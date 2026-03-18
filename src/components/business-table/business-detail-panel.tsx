@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useBusiness } from "@/hooks/use-businesses";
+import { useState, useEffect, useCallback } from "react";
+import { useBusiness, useUpdateBusiness } from "@/hooks/use-businesses";
 import { useProgressItems } from "@/hooks/use-progress-items";
 import { useWeeklyActions } from "@/hooks/use-weekly-actions";
 import { useAuditLogs } from "@/hooks/use-activity";
-import { StageCell } from "@/components/progress-blocks/stage-cell";
+import { StageRowDnd } from "@/components/progress-blocks/stage-row-dnd";
+import { BlockDetail } from "@/components/progress-blocks/block-detail";
 import { ActionCard } from "@/components/weekly-meeting/action-card";
 import { NotesContainer } from "@/components/notes/notes-container";
 import { VersionHistoryPanel } from "@/components/version-diff/version-history-panel";
-import type { Stage, ActionStatus, Priority } from "@/types";
+import type { Stage, ProgressItem, ActionStatus, Priority } from "@/types";
 
 const TABS = [
   "기본 정보",
@@ -22,16 +23,6 @@ const TABS = [
 
 type Tab = (typeof TABS)[number];
 
-const STAGES: { value: Stage; label: string }[] = [
-  { value: "inbound", label: "Inbound" },
-  { value: "funnel", label: "Funnel" },
-  { value: "pipeline", label: "Pipeline" },
-  { value: "proposal", label: "제안" },
-  { value: "contract", label: "계약" },
-  { value: "build", label: "구축" },
-  { value: "maintenance", label: "유지보수" },
-];
-
 interface BusinessDetailPanelProps {
   businessId: string;
   onClose: () => void;
@@ -43,13 +34,59 @@ export function BusinessDetailPanel({
 }: BusinessDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("기본 정보");
   const { data, isLoading } = useBusiness(businessId);
+  const updateBusiness = useUpdateBusiness();
   const business = data?.data;
 
+  // Editable fields
+  const [name, setName] = useState("");
+  const [visibility, setVisibility] = useState("public");
+  const [scale, setScale] = useState("");
+  const [timingText, setTimingText] = useState("");
+  const [timingStart, setTimingStart] = useState("");
+  const [timingEnd, setTimingEnd] = useState("");
+
+  // Sync form when business loads
+  useEffect(() => {
+    if (business) {
+      setName(business.name);
+      setVisibility(business.visibility);
+      setScale(business.scale ?? "");
+      setTimingText(business.timingText ?? "");
+      setTimingStart(business.timingStart ? String(business.timingStart).slice(0, 10) : "");
+      setTimingEnd(business.timingEnd ? String(business.timingEnd).slice(0, 10) : "");
+    }
+  }, [business]);
+
+  // Auto-save on field blur
+  const handleSave = useCallback(() => {
+    if (!business) return;
+    const changes: Record<string, unknown> = {};
+    if (name.trim() && name.trim() !== business.name) changes.name = name.trim();
+    if (visibility !== business.visibility) changes.visibility = visibility;
+    if (scale !== (business.scale ?? "")) changes.scale = scale || null;
+    if (timingText !== (business.timingText ?? "")) changes.timingText = timingText || null;
+    const bStart = business.timingStart ? String(business.timingStart).slice(0, 10) : "";
+    const bEnd = business.timingEnd ? String(business.timingEnd).slice(0, 10) : "";
+    if (timingStart !== bStart) changes.timingStart = timingStart || null;
+    if (timingEnd !== bEnd) changes.timingEnd = timingEnd || null;
+
+    if (Object.keys(changes).length > 0) {
+      updateBusiness.mutate({
+        id: businessId,
+        lockVersion: business.lockVersion,
+        ...changes,
+      });
+    }
+  }, [business, businessId, name, visibility, scale, timingText, timingStart, timingEnd, updateBusiness]);
+
+  // Progress & actions data
   const { data: progressData } = useProgressItems(
     activeTab === "진행상태" ? businessId : null,
   );
   const { data: actionsData } = useWeeklyActions(
-    activeTab === "주간 액션" ? { companyId: (business as unknown as { companyId?: string })?.companyId } : undefined,
+    activeTab === "주간 액션"
+      ? { companyId: (business as unknown as { companyId?: string })?.companyId }
+      : undefined,
   );
   const { data: logsData } = useAuditLogs(
     activeTab === "로그/버전"
@@ -66,11 +103,16 @@ export function BusinessDetailPanel({
     }).catch(() => {});
   }, [businessId]);
 
-  const progressByStage = (progressData?.data ?? {}) as Record<string, unknown[]>;
+  const progressItems = Object.values(progressData?.data ?? {}).flat() as ProgressItem[];
   const weeklyActions = (actionsData?.data ?? []).filter(
     (a) => (a as unknown as { businessId?: string }).businessId === businessId,
   );
   const logs = logsData?.data ?? [];
+
+  const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
+
+  const inputClass =
+    "w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]";
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl">
@@ -110,75 +152,103 @@ export function BusinessDetailPanel({
           <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
         )}
 
-        {/* 기본 정보 */}
+        {/* 기본 정보 — 바로 수정 가능, blur 시 자동 저장 */}
         {business && activeTab === "기본 정보" && (
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">사업명</label>
-              <p className="text-sm">{business.name}</p>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={handleSave}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">기업</label>
-              <p className="text-sm">
+              <p className="text-sm py-1.5 text-[var(--muted-foreground)]">
                 {(business as unknown as { company?: { canonicalName: string } }).company?.canonicalName ?? "—"}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">공개여부</label>
-                <p className="text-sm">{business.visibility === "public" ? "공개" : "비공개"}</p>
+                <select
+                  value={visibility}
+                  onChange={(e) => setVisibility(e.target.value)}
+                  onBlur={handleSave}
+                  className={inputClass}
+                >
+                  <option value="public">공개</option>
+                  <option value="private">엠바고</option>
+                </select>
               </div>
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">사업규모</label>
-                <p className="text-sm">{business.scale ?? "—"}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-medium text-[var(--muted-foreground)]">사업시기</label>
-                <p className="text-sm">{business.timingText ?? "—"}</p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-[var(--muted-foreground)]">현재 단계</label>
-                <p className="text-sm">{business.currentStage ?? "—"}</p>
+                <input
+                  type="text"
+                  value={scale}
+                  onChange={(e) => setScale(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="예: 5억"
+                  className={inputClass}
+                />
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-[var(--muted-foreground)]">기간</label>
-              <p className="text-sm">
-                {business.timingStart ?? "—"} ~ {business.timingEnd ?? "—"}
-              </p>
+              <label className="text-xs font-medium text-[var(--muted-foreground)]">사업시기 (텍스트)</label>
+              <input
+                type="text"
+                value={timingText}
+                onChange={(e) => setTimingText(e.target.value)}
+                onBlur={handleSave}
+                placeholder="예: 2026 상반기"
+                className={inputClass}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-[var(--muted-foreground)]">시작일</label>
+                <input
+                  type="date"
+                  value={timingStart}
+                  onChange={(e) => { setTimingStart(e.target.value); }}
+                  onBlur={handleSave}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-[var(--muted-foreground)]">종료일</label>
+                <input
+                  type="date"
+                  value={timingEnd}
+                  onChange={(e) => { setTimingEnd(e.target.value); }}
+                  onBlur={handleSave}
+                  className={inputClass}
+                />
+              </div>
             </div>
           </div>
         )}
 
-        {/* 진행상태 */}
+        {/* 진행상태 — 카드 드래그앤드롭 */}
         {activeTab === "진행상태" && (
-          <div className="space-y-4">
-            {STAGES.map((stage) => {
-              const items = ((progressByStage[stage.value] as unknown[]) ?? []) as Array<{
-                id: string;
-                businessId: string;
-                stage: Stage;
-                content: string;
-                sortOrder: number;
-                createdBy: string | null;
-                updatedBy: string | null;
-                createdAt: string;
-                updatedAt: string;
-                lockVersion: number;
-              }>;
-              return (
-                <div key={stage.value}>
-                  <h3 className="text-sm font-semibold mb-1">{stage.label}</h3>
-                  <StageCell
-                    businessId={businessId}
-                    stage={stage.value}
-                    items={items}
-                  />
-                </div>
-              );
-            })}
+          <div>
+            <div className="rounded-lg border border-[var(--border)] overflow-hidden">
+              <StageRowDnd
+                businessId={businessId}
+                progressItems={progressItems}
+                onBlockClick={(item) => setSelectedBlock(item)}
+              />
+            </div>
+            {selectedBlock && (
+              <BlockDetail
+                item={selectedBlock}
+                open={!!selectedBlock}
+                onClose={() => setSelectedBlock(null)}
+              />
+            )}
           </div>
         )}
 
