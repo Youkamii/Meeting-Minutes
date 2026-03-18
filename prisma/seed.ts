@@ -1,4 +1,9 @@
 import { PrismaClient } from "@prisma/client";
+import {
+  getISOWeekNumber,
+  getISOWeekYear,
+  getWeekDateRange,
+} from "../src/lib/weekly-cycle";
 
 const prisma = new PrismaClient();
 
@@ -19,35 +24,23 @@ async function main() {
 
   // Create current week cycle
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  // Calculate ISO week number
-  const janFirst = new Date(now.getFullYear(), 0, 1);
-  const daysSinceJan1 =
-    Math.floor(
-      (now.getTime() - janFirst.getTime()) / (24 * 60 * 60 * 1000),
-    ) + 1;
-  const weekNumber = Math.ceil(
-    (daysSinceJan1 + janFirst.getDay()) / 7,
+  const year = getISOWeekYear(now);
+  const weekNumber = getISOWeekNumber(now);
+  const { startDate: monday, endDate: sunday } = getWeekDateRange(
+    year,
+    weekNumber,
   );
 
   const currentCycle = await prisma.weeklyCycle.upsert({
     where: {
       year_weekNumber: {
-        year: now.getFullYear(),
+        year,
         weekNumber,
       },
     },
     update: {},
     create: {
-      year: now.getFullYear(),
+      year,
       weekNumber,
       startDate: monday,
       endDate: sunday,
