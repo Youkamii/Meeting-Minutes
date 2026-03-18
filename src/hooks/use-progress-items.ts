@@ -6,8 +6,10 @@ import type { ProgressItem, Stage } from "@/types";
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, ...err };
+    const text = await res.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { parsed = { message: text }; }
+    throw new Error(parsed.message || `HTTP ${res.status}: ${text.slice(0, 200)}`);
   }
   return res.json();
 }
@@ -24,23 +26,50 @@ export function useProgressItems(businessId: string | null) {
 export function useCreateProgressItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      businessId,
-      stage,
-      title,
-      content,
-      date,
-    }: {
+    mutationFn: (data: {
       businessId: string;
       stage: Stage;
       title?: string;
       content?: string;
       date?: string;
     }) =>
-      fetchJson(`/api/businesses/${businessId}/progress-items`, {
+      fetchJson(`/api/businesses/${data.businessId}/progress-items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage, title, content, date }),
+        body: JSON.stringify({
+          stage: data.stage,
+          title: data.title,
+          content: data.content,
+          date: data.date,
+        }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["progressItems"] });
+      qc.invalidateQueries({ queryKey: ["businesses"] });
+    },
+  });
+}
+
+export function useUpdateProgressItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      id: string;
+      title?: string;
+      content?: string;
+      date?: string | null;
+      sortOrder?: number;
+      lockVersion?: number; // ignored now, kept for interface compat
+    }) =>
+      fetchJson(`/api/progress-items/${data.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: data.title,
+          content: data.content,
+          date: data.date,
+          sortOrder: data.sortOrder,
+        }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
@@ -52,59 +81,21 @@ export function useCreateProgressItem() {
 export function useMoveProgressItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      targetStage,
-      sortOrder,
-    }: {
+    mutationFn: (data: {
       id: string;
       targetStage: Stage;
       sortOrder?: number;
-      lockVersion: number;
-    }) => {
-      // Fetch latest lockVersion before move
-      const latest = await fetchJson<{ data: { lockVersion: number } }>(
-        `/api/progress-items/${id}`,
-      );
-      return fetchJson(`/api/progress-items/${id}`, {
+      lockVersion?: number; // ignored now
+    }) =>
+      fetchJson(`/api/progress-items/${data.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "move", targetStage, sortOrder, lockVersion: latest.data.lockVersion }),
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["progressItems"] });
-      qc.invalidateQueries({ queryKey: ["businesses"] });
-    },
-  });
-}
-
-export function useUpdateProgressItem() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      id,
-      lockVersion: _lockVersion,
-      ...data
-    }: {
-      id: string;
-      title?: string;
-      content?: string;
-      date?: string | null;
-      sortOrder?: number;
-      lockVersion: number;
-    }) => {
-      // Always fetch latest lockVersion before saving
-      const latest = await fetchJson<{ data: { lockVersion: number } }>(
-        `/api/progress-items/${id}`,
-        { method: "GET" },
-      );
-      return fetchJson(`/api/progress-items/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, lockVersion: latest.data.lockVersion }),
-      });
-    },
+        body: JSON.stringify({
+          action: "move",
+          targetStage: data.targetStage,
+          sortOrder: data.sortOrder,
+        }),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
       qc.invalidateQueries({ queryKey: ["businesses"] });
