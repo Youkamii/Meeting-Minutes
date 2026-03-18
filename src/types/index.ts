@@ -6,8 +6,6 @@ export type Role = "admin" | "user";
 
 export type UserStatus = "pending" | "approved" | "rejected";
 
-export type CompanyStatus = "active" | "archived";
-
 export type Visibility = "public" | "private";
 
 export type Stage =
@@ -59,7 +57,6 @@ export interface Company {
   canonicalName: string;
   aliases: string[];
   isKey: boolean;
-  status: CompanyStatus;
   isArchived: boolean;
   archivedAt: string | null;
   sortOrder: number;
