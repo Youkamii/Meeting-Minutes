@@ -1,0 +1,396 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum Role {
+  admin
+  user
+}
+
+enum UserStatus {
+  pending
+  approved
+  rejected
+}
+
+enum Visibility {
+  public
+  private
+}
+
+enum Stage {
+  inbound
+  funnel
+  pipeline
+  proposal
+  contract
+  build
+  maintenance
+}
+
+enum ActionStatus {
+  scheduled
+  in_progress
+  completed
+  on_hold
+}
+
+enum Priority {
+  high
+  medium
+  low
+}
+
+enum NoteTag {
+  situation
+  decision
+  risk
+  follow_up
+}
+
+// ============================================================
+// User (future-ready)
+// ============================================================
+
+model User {
+  id        String     @id @default(uuid())
+  email     String?    @unique
+  name      String
+  role      Role       @default(user)
+  status    UserStatus @default(approved)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations (as actor)
+  companiesCreated     Company[]      @relation("CompanyCreatedBy")
+  companiesUpdated     Company[]      @relation("CompanyUpdatedBy")
+  businessesCreated    Business[]     @relation("BusinessCreatedBy")
+  businessesUpdated    Business[]     @relation("BusinessUpdatedBy")
+  businessesAssigned   Business[]     @relation("BusinessAssignedTo")
+  progressCreated      ProgressItem[] @relation("ProgressCreatedBy")
+  progressUpdated      ProgressItem[] @relation("ProgressUpdatedBy")
+  actionsCreated       WeeklyAction[] @relation("ActionCreatedBy")
+  actionsUpdated       WeeklyAction[] @relation("ActionUpdatedBy")
+  actionsAssigned      WeeklyAction[] @relation("ActionAssignedTo")
+  notesCreated         InternalNote[] @relation("NoteCreatedBy")
+  notesUpdated         InternalNote[] @relation("NoteUpdatedBy")
+  auditLogs            AuditLog[]
+  businessVersions     BusinessVersion[]
+  progressVersions     ProgressItemVersion[]
+  actionVersions       WeeklyActionVersion[]
+  noteVersions         InternalNoteVersion[]
+  recentViews          RecentView[]
+
+  @@map("users")
+}
+
+// ============================================================
+// Company
+// ============================================================
+
+model Company {
+  id            String    @id @default(uuid())
+  canonicalName String    @map("canonical_name")
+  isKey         Boolean   @default(false) @map("is_key")
+  isArchived    Boolean   @default(false) @map("is_archived")
+  archivedAt    DateTime? @map("archived_at")
+  sortOrder     Int       @default(0) @map("sort_order")
+  createdById   String?   @map("created_by")
+  updatedById   String?   @map("updated_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lockVersion   Int       @default(1) @map("lock_version")
+
+  createdBy  User?          @relation("CompanyCreatedBy", fields: [createdById], references: [id])
+  updatedBy  User?          @relation("CompanyUpdatedBy", fields: [updatedById], references: [id])
+  aliases    CompanyAlias[]
+  businesses Business[]
+  actions    WeeklyAction[]
+
+  @@index([canonicalName])
+  @@index([isKey])
+  @@index([isArchived])
+  @@index([sortOrder])
+  @@map("companies")
+}
+
+model CompanyAlias {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  alias     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, alias])
+  @@index([alias])
+  @@map("company_aliases")
+}
+
+// ============================================================
+// Business
+// ============================================================
+
+model Business {
+  id           String     @id @default(uuid())
+  companyId    String     @map("company_id")
+  name         String
+  visibility   Visibility @default(public)
+  scale        String?
+  timingText   String?    @map("timing_text")
+  timingStart  DateTime?  @map("timing_start") @db.Date
+  timingEnd    DateTime?  @map("timing_end") @db.Date
+  currentStage Stage?     @map("current_stage")
+  assignedToId String?    @map("assigned_to")
+  isArchived   Boolean    @default(false) @map("is_archived")
+  archivedAt   DateTime?  @map("archived_at")
+  sortOrder    Int        @default(0) @map("sort_order")
+  createdById  String?    @map("created_by")
+  updatedById  String?    @map("updated_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  lockVersion  Int        @default(1) @map("lock_version")
+
+  company       Company           @relation(fields: [companyId], references: [id])
+  assignedTo    User?             @relation("BusinessAssignedTo", fields: [assignedToId], references: [id])
+  createdBy     User?             @relation("BusinessCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?             @relation("BusinessUpdatedBy", fields: [updatedById], references: [id])
+  progressItems ProgressItem[]
+  actions       WeeklyAction[]
+  versions      BusinessVersion[]
+
+  @@index([companyId])
+  @@index([assignedToId])
+  @@index([isArchived])
+  @@index([currentStage])
+  @@map("businesses")
+}
+
+// ============================================================
+// Progress Item
+// ============================================================
+
+model ProgressItem {
+  id          String   @id @default(uuid())
+  businessId  String   @map("business_id")
+  stage       Stage
+  content     String
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdById String?  @map("created_by")
+  updatedById String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  lockVersion Int      @default(1) @map("lock_version")
+
+  business  Business              @relation(fields: [businessId], references: [id])
+  createdBy User?                 @relation("ProgressCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?                 @relation("ProgressUpdatedBy", fields: [updatedById], references: [id])
+  versions  ProgressItemVersion[]
+
+  @@index([businessId, stage, sortOrder])
+  @@map("progress_items")
+}
+
+// ============================================================
+// Weekly Cycle
+// ============================================================
+
+model WeeklyCycle {
+  id         String   @id @default(uuid())
+  year       Int
+  weekNumber Int      @map("week_number")
+  startDate  DateTime @map("start_date") @db.Date
+  endDate    DateTime @map("end_date") @db.Date
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actions WeeklyAction[]
+
+  @@unique([year, weekNumber])
+  @@map("weekly_cycles")
+}
+
+// ============================================================
+// Weekly Action
+// ============================================================
+
+model WeeklyAction {
+  id             String       @id @default(uuid())
+  cycleId        String       @map("cycle_id")
+  companyId      String       @map("company_id")
+  businessId     String?      @map("business_id")
+  content        String
+  assignedToId   String?      @map("assigned_to")
+  status         ActionStatus @default(scheduled)
+  priority       Priority     @default(medium)
+  carriedFromId  String?      @map("carried_from_id")
+  carryoverCount Int          @default(0) @map("carryover_count")
+  isArchived     Boolean      @default(false) @map("is_archived")
+  archivedAt     DateTime?    @map("archived_at")
+  sortOrder      Int          @default(0) @map("sort_order")
+  createdById    String?      @map("created_by")
+  updatedById    String?      @map("updated_by")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  lockVersion    Int          @default(1) @map("lock_version")
+
+  cycle       WeeklyCycle          @relation(fields: [cycleId], references: [id])
+  company     Company              @relation(fields: [companyId], references: [id])
+  business    Business?            @relation(fields: [businessId], references: [id])
+  assignedTo  User?                @relation("ActionAssignedTo", fields: [assignedToId], references: [id])
+  carriedFrom WeeklyAction?        @relation("CarryoverChain", fields: [carriedFromId], references: [id])
+  carriedTo   WeeklyAction[]       @relation("CarryoverChain")
+  createdBy   User?                @relation("ActionCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?                @relation("ActionUpdatedBy", fields: [updatedById], references: [id])
+  versions    WeeklyActionVersion[]
+
+  @@unique([carriedFromId, cycleId])
+  @@index([cycleId])
+  @@index([companyId])
+  @@index([businessId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([carriedFromId])
+  @@map("weekly_actions")
+}
+
+// ============================================================
+// Internal Note (polymorphic)
+// ============================================================
+
+model InternalNote {
+  id          String   @id @default(uuid())
+  ownerType   String   @map("owner_type") // 'company', 'business', 'weekly_action'
+  ownerId     String   @map("owner_id")
+  title       String?
+  body        String
+  tag         NoteTag?
+  createdById String?  @map("created_by")
+  updatedById String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  lockVersion Int      @default(1) @map("lock_version")
+
+  createdBy User?                 @relation("NoteCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?                 @relation("NoteUpdatedBy", fields: [updatedById], references: [id])
+  versions  InternalNoteVersion[]
+
+  @@index([ownerType, ownerId, createdAt(sort: Desc)])
+  @@map("internal_notes")
+}
+
+// ============================================================
+// Audit Log (immutable)
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  actorId    String?  @map("actor_id")
+  changes    Json?
+  summary    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@index([actorId])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// Version Tables
+// ============================================================
+
+model BusinessVersion {
+  id            String   @id @default(uuid())
+  businessId    String   @map("business_id")
+  versionNumber Int      @map("version_number")
+  snapshot      Json
+  createdById   String?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  business  Business @relation(fields: [businessId], references: [id])
+  createdBy User?    @relation(fields: [createdById], references: [id])
+
+  @@unique([businessId, versionNumber])
+  @@index([businessId, createdAt(sort: Desc)])
+  @@map("business_versions")
+}
+
+model ProgressItemVersion {
+  id               String   @id @default(uuid())
+  progressItemId   String   @map("progress_item_id")
+  versionNumber    Int      @map("version_number")
+  snapshot         Json
+  createdById      String?  @map("created_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  progressItem ProgressItem @relation(fields: [progressItemId], references: [id])
+  createdBy    User?        @relation(fields: [createdById], references: [id])
+
+  @@unique([progressItemId, versionNumber])
+  @@index([progressItemId, createdAt(sort: Desc)])
+  @@map("progress_item_versions")
+}
+
+model WeeklyActionVersion {
+  id            String   @id @default(uuid())
+  actionId      String   @map("action_id")
+  versionNumber Int      @map("version_number")
+  snapshot      Json
+  createdById   String?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  action    WeeklyAction @relation(fields: [actionId], references: [id])
+  createdBy User?        @relation(fields: [createdById], references: [id])
+
+  @@unique([actionId, versionNumber])
+  @@index([actionId, createdAt(sort: Desc)])
+  @@map("weekly_action_versions")
+}
+
+model InternalNoteVersion {
+  id            String   @id @default(uuid())
+  noteId        String   @map("note_id")
+  versionNumber Int      @map("version_number")
+  snapshot      Json
+  createdById   String?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  note      InternalNote @relation(fields: [noteId], references: [id])
+  createdBy User?        @relation(fields: [createdById], references: [id])
+
+  @@unique([noteId, versionNumber])
+  @@index([noteId, createdAt(sort: Desc)])
+  @@map("internal_note_versions")
+}
+
+// ============================================================
+// Recent View
+// ============================================================
+
+model RecentView {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  sessionId  String?  @map("session_id")
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  viewedAt   DateTime @default(now()) @map("viewed_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, viewedAt(sort: Desc)])
+  @@index([sessionId, viewedAt(sort: Desc)])
+  @@map("recent_views")
+}
