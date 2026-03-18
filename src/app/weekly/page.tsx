@@ -39,7 +39,7 @@ export default function WeeklyMeetingPage() {
   const actions = actionsData?.data ?? [];
   const companies = companiesData?.data ?? [];
 
-  // Group actions by company
+  // Group actions by company — include ALL companies from Business Management
   const groupedActions = useMemo(() => {
     const groups: Record<
       string,
@@ -49,6 +49,16 @@ export default function WeeklyMeetingPage() {
       }
     > = {};
 
+    // First, add all companies from Business Management
+    for (const company of companies) {
+      const c = company as unknown as { id: string; canonicalName: string; isKey: boolean };
+      groups[c.id] = {
+        company: c,
+        actions: [],
+      };
+    }
+
+    // Then, assign actions to their companies
     for (const action of actions) {
       const a = action as unknown as {
         companyId: string;
@@ -72,7 +82,7 @@ export default function WeeklyMeetingPage() {
       if (a.company.isKey !== b.company.isKey) return a.company.isKey ? -1 : 1;
       return a.company.canonicalName.localeCompare(b.company.canonicalName);
     });
-  }, [actions]);
+  }, [actions, companies]);
 
   const activeCycle = cycles.find((c) => c.id === activeCycleId) ?? currentCycle;
   const weekLabel = activeCycle
@@ -199,6 +209,17 @@ export default function WeeklyMeetingPage() {
             </div>
 
             <div className="space-y-2 pl-4">
+              {companyActions.length === 0 && (
+                <p className="text-xs text-[var(--muted-foreground)] py-2">
+                  이번 주 액션이 없습니다.{" "}
+                  <button
+                    onClick={() => setShowNewAction(true)}
+                    className="text-[var(--primary)] hover:underline"
+                  >
+                    추가하기
+                  </button>
+                </p>
+              )}
               {companyActions.map((action) => (
                 <ActionCard
                   key={action.id}
