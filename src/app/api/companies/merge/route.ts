@@ -57,39 +57,41 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Re-link businesses and weekly_actions, create aliases, delete merged companies
-  for (const company of mergeCompanies) {
-    await prisma.business.updateMany({
-      where: { companyId: company.id },
-      data: { companyId: canonical_id },
-    });
+  // Wrap all mutations in a transaction so a partial merge never persists
+  await prisma.$transaction(async (tx) => {
+    for (const company of mergeCompanies) {
+      await tx.business.updateMany({
+        where: { companyId: company.id },
+        data: { companyId: canonical_id },
+      });
 
-    await prisma.weeklyAction.updateMany({
-      where: { companyId: company.id },
-      data: { companyId: canonical_id },
-    });
+      await tx.weeklyAction.updateMany({
+        where: { companyId: company.id },
+        data: { companyId: canonical_id },
+      });
 
-    // Create alias for the merged company's canonical name
-    await prisma.companyAlias.create({
-      data: { companyId: canonical_id, alias: company.canonicalName },
-    }).catch(() => {
-      // Ignore duplicate alias
-    });
-
-    // Move existing aliases to canonical company
-    for (const alias of company.aliases) {
-      await prisma.companyAlias.create({
-        data: { companyId: canonical_id, alias: alias.alias },
+      // Create alias for the merged company's canonical name
+      await tx.companyAlias.create({
+        data: { companyId: canonical_id, alias: company.canonicalName },
       }).catch(() => {
         // Ignore duplicate alias
       });
+
+      // Move existing aliases to canonical company
+      for (const alias of company.aliases) {
+        await tx.companyAlias.create({
+          data: { companyId: canonical_id, alias: alias.alias },
+        }).catch(() => {
+          // Ignore duplicate alias
+        });
+      }
+
+      // Delete aliases of merged company first (cascade should handle, but be explicit)
+      await tx.companyAlias.deleteMany({ where: { companyId: company.id } });
+
+      await tx.company.delete({ where: { id: company.id } });
     }
-
-    // Delete aliases of merged company first (cascade should handle, but be explicit)
-    await prisma.companyAlias.deleteMany({ where: { companyId: company.id } });
-
-    await prisma.company.delete({ where: { id: company.id } });
-  }
+  });
 
   await createAuditLog({
     entityType: "company",

@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflict";
 
+const VALID_TAGS = ["situation", "decision", "risk", "follow_up"] as const;
+const VALID_OWNER_TYPES = ["company", "business", "weekly_action"] as const;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const ownerType = searchParams.get("owner_type");
@@ -29,6 +32,26 @@ export async function POST(request: NextRequest) {
   if (!owner_type || !owner_id || !noteBody) {
     return NextResponse.json(
       { error: "VALIDATION", message: "owner_type, owner_id, and body are required" },
+      { status: 400 },
+    );
+  }
+
+  if (!VALID_OWNER_TYPES.includes(owner_type)) {
+    return NextResponse.json(
+      {
+        error: "VALIDATION",
+        message: `owner_type must be one of: ${VALID_OWNER_TYPES.join(", ")}`,
+      },
+      { status: 400 },
+    );
+  }
+
+  if (tag != null && !VALID_TAGS.includes(tag)) {
+    return NextResponse.json(
+      {
+        error: "VALIDATION",
+        message: `tag must be one of: ${VALID_TAGS.join(", ")}`,
+      },
       { status: 400 },
     );
   }
@@ -84,6 +107,16 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(
       { error: "NOT_FOUND", message: "Note not found" },
       { status: 404 },
+    );
+  }
+
+  if (tag !== undefined && tag !== null && !VALID_TAGS.includes(tag)) {
+    return NextResponse.json(
+      {
+        error: "VALIDATION",
+        message: `tag must be one of: ${VALID_TAGS.join(", ")}`,
+      },
+      { status: 400 },
     );
   }
 

@@ -108,16 +108,37 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ data: versions, total: versions.length });
 }
 
+const VALID_ENTITY_TYPES: EntityType[] = ["business", "progressItem", "weeklyAction", "internalNote"];
+
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
+
   const { versionId, entityType } = body as {
     versionId: string;
     entityType: EntityType;
   };
 
-  if (!versionId || !entityType) {
+  if (!versionId || typeof versionId !== "string") {
     return NextResponse.json(
-      { error: "VALIDATION", message: "versionId and entityType are required" },
+      { error: "VALIDATION", message: "versionId is required and must be a string" },
+      { status: 400 },
+    );
+  }
+
+  if (!entityType || !VALID_ENTITY_TYPES.includes(entityType)) {
+    return NextResponse.json(
+      {
+        error: "VALIDATION",
+        message: `entityType is required and must be one of: ${VALID_ENTITY_TYPES.join(", ")}`,
+      },
       { status: 400 },
     );
   }
