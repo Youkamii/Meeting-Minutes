@@ -6,6 +6,15 @@ import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflic
 
 type Params = { params: Promise<{ id: string }> };
 
+export async function GET(_request: NextRequest, context: Params) {
+  const { id } = await context.params;
+  const item = await prisma.progressItem.findUnique({ where: { id } });
+  if (!item) {
+    return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+  }
+  return NextResponse.json({ data: item });
+}
+
 export async function PUT(request: NextRequest, context: Params) {
   const { id } = await context.params;
   const body = await request.json();
