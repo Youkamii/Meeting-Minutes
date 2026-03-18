@@ -7,11 +7,13 @@
 
 ### Frontend Framework
 
-- **Decision**: React 18+ with TypeScript
+- **Decision**: React 19 with TypeScript (via Next.js)
 - **Rationale**: Best ecosystem for complex table UIs with inline editing
   and drag-and-drop. TanStack Table (headless) provides Excel-like table
   features (column pinning, horizontal scroll, virtual scrolling). shadcn/ui
   + Tailwind CSS for consistent, accessible components with dark mode.
+  React 19 brings improved performance with the React Compiler, `use()`
+  hook, and Server Components support.
 - **Alternatives considered**:
   - Vue 3: Smaller ecosystem for enterprise table components
   - Angular: Overkill for ~50-user internal tool
@@ -19,10 +21,12 @@
 
 ### Build Tool
 
-- **Decision**: Vite
-- **Rationale**: Fast dev server, instant HMR, optimal production bundles.
-- **Alternatives considered**: Webpack (slower), Next.js (SSR unnecessary
-  for internal tool)
+- **Decision**: Next.js (App Router) with Turbopack
+- **Rationale**: Integrated build system with fast dev server (Turbopack),
+  instant HMR, and optimized production bundles. Eliminates the need for a
+  separate build tool since Next.js handles both frontend and API routes.
+- **Alternatives considered**: Vite + separate backend (splits codebase),
+  Webpack (slower)
 
 ### UI Libraries
 
@@ -159,7 +163,7 @@ sharing between client and server.
 
 | Layer        | Choice                                    |
 |--------------|-------------------------------------------|
-| Frontend     | React 18 + TypeScript + Vite              |
+| Frontend     | React 19 + TypeScript + Next.js            |
 | UI           | TanStack Table + shadcn/ui + Tailwind v4  |
 | DnD          | dnd-kit                                   |
 | State        | Zustand + TanStack Query                  |
