@@ -11,6 +11,7 @@ import { QuickActionsBar } from "@/components/ui/quick-actions";
 import { MeetingModeToggle } from "@/components/meeting-mode/meeting-mode-toggle";
 import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
 import { useUIStore } from "@/stores/ui-store";
+import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { formatWeekLabel } from "@/lib/weekly-cycle";
 import type { Company, ActionStatus, Priority } from "@/types";
 
@@ -27,6 +28,7 @@ export default function WeeklyMeetingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [showNewAction, setShowNewAction] = useState(false);
   const [showCarryover, setShowCarryover] = useState(false);
+  const [showExcelDownload, setShowExcelDownload] = useState(false);
 
   const { data: actionsData, isLoading: actionsLoading } = useWeeklyActions({
     cycleId: activeCycleId ?? undefined,
@@ -127,6 +129,12 @@ export default function WeeklyMeetingPage() {
         </select>
 
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowExcelDownload(true)}
+            className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--muted)] transition-colors"
+          >
+            엑셀
+          </button>
           <MeetingModeToggle />
           {prevCycle && (
             <WeekEndActions onCarryover={() => setShowCarryover(true)} />
@@ -235,6 +243,13 @@ export default function WeeklyMeetingPage() {
           targetLabel={formatWeekLabel(activeCycle.year, activeCycle.weekNumber)}
         />
       )}
+
+      <ExcelDownloadDialog
+        open={showExcelDownload}
+        onClose={() => setShowExcelDownload(false)}
+        defaultType="weekly"
+        cycleId={activeCycleId ?? undefined}
+      />
     </div>
   );
 }
