@@ -54,8 +54,10 @@ function SortableBlock({
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <MiniBlock
         id={item.id}
+        title={item.title}
         content={item.content}
         stage={item.stage}
+        date={item.date}
         createdAt={item.createdAt}
         onClick={onClick}
       />
@@ -227,8 +229,10 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
           <div className="opacity-80 rotate-2 scale-105">
             <MiniBlock
               id={activeItem.id}
+              title={activeItem.title}
               content={activeItem.content}
               stage={activeItem.stage}
+              date={activeItem.date}
               createdAt={activeItem.createdAt}
             />
           </div>

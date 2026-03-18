@@ -26,11 +26,11 @@ export async function GET(_request: NextRequest, context: Params) {
 export async function POST(request: NextRequest, context: Params) {
   const { id: businessId } = await context.params;
   const body = await request.json();
-  const { stage, content, sortOrder } = body;
+  const { stage, title, content, date, sortOrder } = body;
 
-  if (!stage || !content?.trim()) {
+  if (!stage) {
     return NextResponse.json(
-      { error: "VALIDATION", message: "stage and content are required" },
+      { error: "VALIDATION", message: "stage is required" },
       { status: 400 },
     );
   }
@@ -44,7 +44,9 @@ export async function POST(request: NextRequest, context: Params) {
     data: {
       businessId,
       stage,
-      content: content.trim(),
+      title: title?.trim() ?? "",
+      content: content?.trim() ?? "",
+      date: date ? new Date(date) : null,
       sortOrder: sortOrder ?? (maxSort._max.sortOrder ?? 0) + 1,
     },
   });

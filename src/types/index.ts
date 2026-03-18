@@ -95,7 +95,9 @@ export interface ProgressItem {
   id: string;
   businessId: string;
   stage: Stage;
+  title: string;
   content: string;
+  date: string | null;
   sortOrder: number;
   createdBy: string | null;
   updatedBy: string | null;
