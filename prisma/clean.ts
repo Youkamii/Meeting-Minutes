@@ -2,7 +2,16 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
+// Safety check: require --force flag
+if (!process.argv.includes("--force")) {
+  console.error("⚠ This script deletes ALL data. Run with --force to confirm.");
+  process.exit(1);
+}
+
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL or DIRECT_URL is required");
+}
 const pool = new pg.Pool({ connectionString });
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const adapter = new PrismaPg(pool as any);
