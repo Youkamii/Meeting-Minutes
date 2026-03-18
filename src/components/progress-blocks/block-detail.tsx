@@ -48,7 +48,8 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           ...changes,
         });
       } catch (e) {
-        console.error("저장 실패:", e);
+        console.error("저장 실패:", e instanceof Error ? e.message : e);
+        alert("저장에 실패했습니다: " + (e instanceof Error ? e.message : "알 수 없는 오류"));
       }
       setSaving(false);
     }
