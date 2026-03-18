@@ -58,7 +58,7 @@ export function TopNav() {
               onClick={() => setSearchOpen(true)}
               className="hidden h-8 w-56 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm text-[var(--muted-foreground)] sm:flex"
             >
-              <span>⌕</span>
+              <span>🔍</span>
               <span className="flex-1 text-left">검색...</span>
               <kbd className="rounded border border-[var(--border)] px-1 py-0.5 text-[10px]">
                 ⌘K
@@ -69,7 +69,7 @@ export function TopNav() {
               onClick={() => setSearchOpen(true)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] sm:hidden"
             >
-              ⌕
+              🔍
             </button>
 
             <button

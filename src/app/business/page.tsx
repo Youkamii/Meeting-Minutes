@@ -10,7 +10,17 @@ import { NewCompanyDialog } from "@/components/business-table/new-company-dialog
 import { NewBusinessDialog } from "@/components/business-table/new-business-dialog";
 import { QuickActionsBar } from "@/components/ui/quick-actions";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
-import type { Company } from "@/types";
+import type { Company, Business } from "@/types";
+
+const STAGE_LABELS = [
+  "Inbound(초도미팅)",
+  "Funnel",
+  "Pipeline",
+  "제안",
+  "계약",
+  "구축",
+  "유지보수",
+];
 
 export default function BusinessManagementPage() {
   const [search, setSearch] = useState("");
@@ -22,11 +32,11 @@ export default function BusinessManagementPage() {
   const [showNewBusiness, setShowNewBusiness] = useState(false);
   const [showExcelDownload, setShowExcelDownload] = useState(false);
 
-  // Disable body scroll so only our container scrolls
+  // Disable body scroll so only our container scrolls (via CSS class for safety)
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    document.documentElement.classList.add("overflow-hidden");
     return () => {
-      document.body.style.overflow = "";
+      document.documentElement.classList.remove("overflow-hidden");
     };
   }, []);
 
@@ -51,7 +61,7 @@ export default function BusinessManagementPage() {
     return sortedCompanies.map((company) => ({
       company,
       businesses: businesses.filter(
-        (b) => (b as unknown as { companyId: string }).companyId === company.id,
+        (b: Business) => b.companyId === company.id,
       ),
     }));
   }, [companies, businesses]);
@@ -69,6 +79,7 @@ export default function BusinessManagementPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="기업 및 사업 검색..."
+          aria-label="기업 및 사업 검색"
           className="h-8 w-64 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
         />
 
@@ -131,15 +142,7 @@ export default function BusinessManagementPage() {
                   사업 정보
                 </span>
               </div>
-              {[
-                "Inbound(초도미팅)",
-                "Funnel",
-                "Pipeline",
-                "제안",
-                "계약",
-                "구축",
-                "유지보수",
-              ].map((label) => (
+              {STAGE_LABELS.map((label) => (
                 <div
                   key={label}
                   className="w-[300px] shrink-0 border-r border-[var(--border)] px-2 py-2"
@@ -169,10 +172,10 @@ export default function BusinessManagementPage() {
                   </button>
                 </div>
               )}
-              {bizList.map((biz) => (
+              {bizList.map((biz: Business) => (
                 <BusinessRow
                   key={biz.id}
-                  business={{ ...(biz as unknown as Record<string, unknown>), companyName: company.canonicalName } as never}
+                  business={{ ...biz, companyName: company.canonicalName }}
                   onClick={() => setSelectedBusinessId(biz.id)}
                 />
               ))}
