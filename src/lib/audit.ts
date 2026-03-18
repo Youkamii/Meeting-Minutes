@@ -23,7 +23,7 @@ export async function createAuditLog({
       entityId,
       action,
       actorId,
-      changes: changes ? JSON.parse(JSON.stringify(changes)) : undefined,
+      changes: changes ?? undefined,
       summary,
     },
   });
