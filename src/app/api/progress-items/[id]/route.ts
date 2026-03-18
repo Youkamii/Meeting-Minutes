@@ -60,8 +60,17 @@ export async function POST(request: NextRequest, context: Params) {
   const { id } = await context.params;
   const body = await request.json();
 
+  const VALID_STAGES = ["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"];
+
   if (body.action === "move") {
     const { targetStage, sortOrder, lockVersion } = body;
+
+    if (!targetStage || !VALID_STAGES.includes(targetStage)) {
+      return NextResponse.json(
+        { error: "VALIDATION", message: `Invalid stage "${targetStage}". Must be one of: ${VALID_STAGES.join(", ")}` },
+        { status: 400 },
+      );
+    }
 
     const current = await prisma.progressItem.findUnique({ where: { id } });
     if (!current) {
@@ -114,12 +123,33 @@ export async function POST(request: NextRequest, context: Params) {
   );
 }
 
-export async function DELETE(_request: NextRequest, context: Params) {
+export async function DELETE(request: NextRequest, context: Params) {
   const { id } = await context.params;
 
   const item = await prisma.progressItem.findUnique({ where: { id } });
   if (!item) {
     return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+  }
+
+  // H2: Verify lockVersion before deleting
+  let lockVersion: number | undefined;
+  try {
+    const body = await request.json();
+    lockVersion = body.lockVersion;
+  } catch {
+    // no body — treat as missing lockVersion
+  }
+
+  try {
+    checkLockVersion(
+      item.lockVersion,
+      lockVersion,
+      JSON.parse(JSON.stringify(item)),
+      { lockVersion },
+    );
+  } catch (e) {
+    if (e instanceof ConflictError) return conflictResponse(e);
+    throw e;
   }
 
   await prisma.progressItem.delete({ where: { id } });

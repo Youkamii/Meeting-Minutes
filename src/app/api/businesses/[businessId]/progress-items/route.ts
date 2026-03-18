@@ -28,9 +28,18 @@ export async function POST(request: NextRequest, context: Params) {
   const body = await request.json();
   const { stage, content, sortOrder } = body;
 
+  const VALID_STAGES = ["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"];
+
   if (!stage || !content?.trim()) {
     return NextResponse.json(
       { error: "VALIDATION", message: "stage and content are required" },
+      { status: 400 },
+    );
+  }
+
+  if (!VALID_STAGES.includes(stage)) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: `Invalid stage "${stage}". Must be one of: ${VALID_STAGES.join(", ")}` },
       { status: 400 },
     );
   }

@@ -99,8 +99,18 @@ export function useUpdateProgressItem() {
 export function useDeleteProgressItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/progress-items/${id}`, { method: "DELETE" }),
+    mutationFn: async ({ id, lockVersion }: { id: string; lockVersion: number }) => {
+      const res = await fetch(`/api/progress-items/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockVersion }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw { status: res.status, ...err };
+      }
+      return res;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
       qc.invalidateQueries({ queryKey: ["businesses"] });

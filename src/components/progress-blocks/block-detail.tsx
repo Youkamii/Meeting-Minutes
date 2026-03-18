@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUpdateProgressItem, useDeleteProgressItem } from "@/hooks/use-progress-items";
 import type { ProgressItem } from "@/types";
 
@@ -16,6 +16,12 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const updateItem = useUpdateProgressItem();
   const deleteItem = useDeleteProgressItem();
 
+  // M1: Sync local state when a different item is selected
+  useEffect(() => {
+    setContent(item.content);
+    setEditing(false);
+  }, [item.id, item.content]);
+
   if (!open) return null;
 
   const handleSave = () => {
@@ -27,7 +33,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
 
   const handleDelete = () => {
     if (confirm("Delete this progress block?")) {
-      deleteItem.mutate(item.id, { onSuccess: onClose });
+      deleteItem.mutate({ id: item.id, lockVersion: item.lockVersion }, { onSuccess: onClose });
     }
   };
 
