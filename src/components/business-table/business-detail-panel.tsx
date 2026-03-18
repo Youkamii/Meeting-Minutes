@@ -10,7 +10,7 @@ import { BlockDetail } from "@/components/progress-blocks/block-detail";
 import { ActionCard } from "@/components/weekly-meeting/action-card";
 import { NotesContainer } from "@/components/notes/notes-container";
 import { VersionHistoryPanel } from "@/components/version-diff/version-history-panel";
-import type { Stage, ProgressItem, ActionStatus, Priority } from "@/types";
+import type { Stage, ProgressItem, WeeklyActionWithRelations, BusinessWithCompany } from "@/types";
 
 const TABS = [
   "기본 정보",
@@ -35,7 +35,7 @@ export function BusinessDetailPanel({
   const [activeTab, setActiveTab] = useState<Tab>("기본 정보");
   const { data, isLoading } = useBusiness(businessId);
   const updateBusiness = useUpdateBusiness();
-  const business = data?.data;
+  const business = data?.data as BusinessWithCompany | undefined;
 
   // Editable fields
   const [name, setName] = useState("");
@@ -85,7 +85,7 @@ export function BusinessDetailPanel({
   );
   const { data: actionsData } = useWeeklyActions(
     activeTab === "주간 액션"
-      ? { companyId: (business as unknown as { companyId?: string })?.companyId }
+      ? { companyId: business?.companyId }
       : undefined,
   );
   const { data: logsData } = useAuditLogs(
@@ -105,7 +105,7 @@ export function BusinessDetailPanel({
 
   const progressItems = Object.values(progressData?.data ?? {}).flat() as ProgressItem[];
   const weeklyActions = (actionsData?.data ?? []).filter(
-    (a) => (a as unknown as { businessId?: string }).businessId === businessId,
+    (a) => a.businessId === businessId,
   );
   const logs = logsData?.data ?? [];
 
@@ -168,7 +168,7 @@ export function BusinessDetailPanel({
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">기업</label>
               <p className="text-sm py-1.5 text-[var(--muted-foreground)]">
-                {(business as unknown as { company?: { canonicalName: string } }).company?.canonicalName ?? "—"}
+                {business.company?.canonicalName ?? "—"}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -263,18 +263,7 @@ export function BusinessDetailPanel({
               weeklyActions.map((action) => (
                 <ActionCard
                   key={action.id}
-                  action={action as unknown as {
-                    id: string;
-                    content: string;
-                    status: ActionStatus;
-                    priority: Priority;
-                    assignedToId: string | null;
-                    carryoverCount: number;
-                    carriedFromId: string | null;
-                    lockVersion: number;
-                    company?: { canonicalName: string };
-                    business?: { name: string } | null;
-                  }}
+                  action={action as WeeklyActionWithRelations}
                 />
               ))
             )}

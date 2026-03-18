@@ -133,6 +133,17 @@ export interface WeeklyAction {
   lockVersion: number;
 }
 
+/** WeeklyAction with joined relations as returned by the list API. */
+export interface WeeklyActionWithRelations extends WeeklyAction {
+  company?: { id: string; canonicalName: string; isKey: boolean };
+  business?: { name: string } | null;
+}
+
+/** Business with joined company name as used in list views. */
+export interface BusinessWithCompany extends Business {
+  company?: { canonicalName: string };
+}
+
 export interface InternalNote {
   id: string;
   ownerType: "company" | "business" | "weekly_action";

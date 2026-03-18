@@ -2,7 +2,7 @@
 
 import { StatusDropdown } from "./status-dropdown";
 import { useUpdateWeeklyAction } from "@/hooks/use-weekly-actions";
-import type { ActionStatus, Priority } from "@/types";
+import type { ActionStatus, Priority, WeeklyActionWithRelations } from "@/types";
 
 const PRIORITY_INDICATOR: Record<Priority, string> = {
   high: "border-l-red-500",
@@ -11,18 +11,7 @@ const PRIORITY_INDICATOR: Record<Priority, string> = {
 };
 
 interface ActionCardProps {
-  action: {
-    id: string;
-    content: string;
-    status: ActionStatus;
-    priority: Priority;
-    assignedToId: string | null;
-    carryoverCount: number;
-    carriedFromId: string | null;
-    lockVersion: number;
-    company?: { canonicalName: string };
-    business?: { name: string } | null;
-  };
+  action: WeeklyActionWithRelations;
 }
 
 export function ActionCard({ action }: ActionCardProps) {

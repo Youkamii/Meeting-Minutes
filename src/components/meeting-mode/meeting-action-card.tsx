@@ -1,7 +1,7 @@
 "use client";
 
 import { useUpdateWeeklyAction } from "@/hooks/use-weekly-actions";
-import type { ActionStatus, Priority } from "@/types";
+import type { ActionStatus, Priority, WeeklyActionWithRelations } from "@/types";
 
 const STATUS_OPTIONS: { value: ActionStatus; label: string; color: string }[] = [
   { value: "scheduled", label: "예정", color: "bg-blue-500" },
@@ -17,16 +17,7 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
 ];
 
 interface MeetingActionCardProps {
-  action: {
-    id: string;
-    content: string;
-    status: ActionStatus;
-    priority: Priority;
-    carryoverCount: number;
-    lockVersion: number;
-    company?: { canonicalName: string };
-    business?: { name: string } | null;
-  };
+  action: WeeklyActionWithRelations;
 }
 
 export function MeetingActionCard({ action }: MeetingActionCardProps) {

@@ -13,7 +13,7 @@ import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
 import { useUIStore } from "@/stores/ui-store";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { formatWeekLabel } from "@/lib/weekly-cycle";
-import type { Company, ActionStatus, Priority } from "@/types";
+import type { Company, WeeklyActionWithRelations } from "@/types";
 
 export default function WeeklyMeetingPage() {
   const { data: currentCycleData } = useCurrentCycle();
@@ -36,7 +36,7 @@ export default function WeeklyMeetingPage() {
   });
   const { data: companiesData } = useCompanies();
 
-  const actions = actionsData?.data ?? [];
+  const actions = (actionsData?.data ?? []) as WeeklyActionWithRelations[];
   const companies = companiesData?.data ?? [];
 
   // Group actions by company — include ALL companies from Business Management
@@ -45,29 +45,24 @@ export default function WeeklyMeetingPage() {
       string,
       {
         company: { id: string; canonicalName: string; isKey: boolean };
-        actions: typeof actions;
+        actions: WeeklyActionWithRelations[];
       }
     > = {};
 
     // First, add all companies from Business Management
     for (const company of companies) {
-      const c = company as unknown as { id: string; canonicalName: string; isKey: boolean };
-      groups[c.id] = {
-        company: c,
+      groups[company.id] = {
+        company,
         actions: [],
       };
     }
 
     // Then, assign actions to their companies
     for (const action of actions) {
-      const a = action as unknown as {
-        companyId: string;
-        company?: { id: string; canonicalName: string; isKey: boolean };
-      };
-      const companyId = a.companyId;
+      const companyId = action.companyId;
       if (!groups[companyId]) {
         groups[companyId] = {
-          company: a.company ?? {
+          company: action.company ?? {
             id: companyId,
             canonicalName: "Unknown",
             isKey: false,
@@ -160,7 +155,7 @@ export default function WeeklyMeetingPage() {
       {/* Meeting Mode */}
       {meetingModeActive && (
         <MeetingModeView
-          actions={actions as never[]}
+          actions={actions}
           weekLabel={weekLabel}
         />
       )}
@@ -223,20 +218,7 @@ export default function WeeklyMeetingPage() {
               {companyActions.map((action) => (
                 <ActionCard
                   key={action.id}
-                  action={
-                    action as unknown as {
-                      id: string;
-                      content: string;
-                      status: ActionStatus;
-                      priority: Priority;
-                      assignedToId: string | null;
-                      carryoverCount: number;
-                      carriedFromId: string | null;
-                      lockVersion: number;
-                      company?: { canonicalName: string };
-                      business?: { name: string } | null;
-                    }
-                  }
+                  action={action}
                 />
               ))}
             </div>

@@ -43,7 +43,7 @@ export default function BusinessManagementPage() {
     return sortedCompanies.map((company) => ({
       company,
       businesses: businesses.filter(
-        (b) => (b as unknown as { companyId: string }).companyId === company.id,
+        (b) => b.companyId === company.id,
       ),
     }));
   }, [companies, businesses]);
@@ -164,7 +164,7 @@ export default function BusinessManagementPage() {
             {bizList.map((biz) => (
               <BusinessRow
                 key={biz.id}
-                business={{ ...(biz as unknown as Record<string, unknown>), companyName: company.canonicalName } as never}
+                business={{ ...biz, companyName: company.canonicalName }}
                 onClick={() => setSelectedBusinessId(biz.id)}
               />
             ))}

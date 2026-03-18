@@ -2,28 +2,16 @@
 
 import { useMemo } from "react";
 import { MeetingActionCard } from "./meeting-action-card";
-import type { ActionStatus, Priority } from "@/types";
-
-interface MeetingAction {
-  id: string;
-  content: string;
-  status: ActionStatus;
-  priority: Priority;
-  carryoverCount: number;
-  lockVersion: number;
-  companyId: string;
-  company?: { id: string; canonicalName: string; isKey: boolean };
-  business?: { name: string } | null;
-}
+import type { WeeklyActionWithRelations } from "@/types";
 
 interface MeetingModeViewProps {
-  actions: MeetingAction[];
+  actions: WeeklyActionWithRelations[];
   weekLabel: string;
 }
 
 export function MeetingModeView({ actions, weekLabel }: MeetingModeViewProps) {
   const grouped = useMemo(() => {
-    const groups: Record<string, { company: MeetingAction["company"]; actions: MeetingAction[] }> = {};
+    const groups: Record<string, { company: WeeklyActionWithRelations["company"]; actions: WeeklyActionWithRelations[] }> = {};
 
     for (const action of actions) {
       const cid = action.companyId;

@@ -44,6 +44,15 @@ export async function POST(request: NextRequest, context: Params) {
     );
   }
 
+  const trimmedTitle = title?.trim() ?? "";
+  const trimmedContent = content?.trim() ?? "";
+  if (!trimmedTitle && !trimmedContent) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "At least one of title or content must be non-empty" },
+      { status: 400 },
+    );
+  }
+
   const maxSort = await prisma.progressItem.aggregate({
     where: { businessId, stage },
     _max: { sortOrder: true },
@@ -53,8 +62,8 @@ export async function POST(request: NextRequest, context: Params) {
     data: {
       businessId,
       stage,
-      title: title?.trim() ?? "",
-      content: content?.trim() ?? "",
+      title: trimmedTitle,
+      content: trimmedContent,
       date: date ? new Date(date) : null,
       sortOrder: sortOrder ?? (maxSort._max.sortOrder ?? 0) + 1,
     },
@@ -70,7 +79,7 @@ export async function POST(request: NextRequest, context: Params) {
     entityType: "progress_item",
     entityId: item.id,
     action: "create",
-    changes: { businessId, stage, content: content.trim() },
+    changes: { businessId, stage, title: trimmedTitle, content: trimmedContent },
   });
 
   return NextResponse.json({ data: item }, { status: 201 });
