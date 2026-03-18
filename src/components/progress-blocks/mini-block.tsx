@@ -14,22 +14,25 @@ const STAGE_COLORS: Record<Stage, string> = {
 
 interface MiniBlockProps {
   id: string;
+  title?: string;
   content: string;
   stage: Stage;
+  date?: string | null;
   createdAt: string;
   onClick?: () => void;
 }
 
 export function MiniBlock({
+  title,
   content,
   stage,
+  date,
   createdAt,
   onClick,
 }: MiniBlockProps) {
-  const date = new Date(createdAt).toLocaleDateString("ko-KR", {
-    month: "short",
-    day: "numeric",
-  });
+  const displayDate = date
+    ? new Date(date).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
+    : new Date(createdAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 
   return (
     <div
@@ -38,10 +41,11 @@ export function MiniBlock({
         onClick?.();
       }}
       className={`cursor-pointer rounded border-l-2 ${STAGE_COLORS[stage]} bg-[var(--muted)] px-2 py-1 text-xs hover:bg-[var(--accent)] transition-colors`}
-      title={content}
+      title={title ? `${title}\n${content}` : content}
     >
-      <p className="truncate">{content}</p>
-      <span className="text-[10px] text-[var(--muted-foreground)]">{date}</span>
+      {title && <p className="font-medium truncate">{title}</p>}
+      <p className="truncate text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      <span className="text-[10px] text-[var(--muted-foreground)]">{displayDate}</span>
     </div>
   );
 }

@@ -9,7 +9,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function PUT(request: NextRequest, context: Params) {
   const { id } = await context.params;
   const body = await request.json();
-  const { content, sortOrder, lockVersion } = body;
+  const { title, content, date, sortOrder, lockVersion } = body;
 
   const current = await prisma.progressItem.findUnique({ where: { id } });
   if (!current) {
@@ -31,7 +31,9 @@ export async function PUT(request: NextRequest, context: Params) {
   const updated = await prisma.progressItem.update({
     where: { id },
     data: {
+      ...(title !== undefined ? { title: title.trim() } : {}),
       ...(content !== undefined ? { content: content.trim() } : {}),
+      ...(date !== undefined ? { date: date ? new Date(date) : null } : {}),
       ...(sortOrder !== undefined ? { sortOrder } : {}),
       lockVersion: { increment: 1 },
     },

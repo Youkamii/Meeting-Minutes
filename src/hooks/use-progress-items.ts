@@ -27,16 +27,20 @@ export function useCreateProgressItem() {
     mutationFn: ({
       businessId,
       stage,
+      title,
       content,
+      date,
     }: {
       businessId: string;
       stage: Stage;
-      content: string;
+      title?: string;
+      content?: string;
+      date?: string;
     }) =>
       fetchJson(`/api/businesses/${businessId}/progress-items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage, content }),
+        body: JSON.stringify({ stage, title, content, date }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
@@ -76,19 +80,23 @@ export function useUpdateProgressItem() {
   return useMutation({
     mutationFn: ({
       id,
+      title,
       content,
+      date,
       sortOrder,
       lockVersion,
     }: {
       id: string;
+      title?: string;
       content?: string;
+      date?: string | null;
       sortOrder?: number;
       lockVersion: number;
     }) =>
       fetchJson(`/api/progress-items/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, sortOrder, lockVersion }),
+        body: JSON.stringify({ title, content, date, sortOrder, lockVersion }),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
