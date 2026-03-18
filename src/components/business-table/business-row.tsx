@@ -1,19 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { StageCell } from "@/components/progress-blocks/stage-cell";
+import { StageRowDnd } from "@/components/progress-blocks/stage-row-dnd";
 import { BlockDetail } from "@/components/progress-blocks/block-detail";
 import type { Stage, ProgressItem } from "@/types";
-
-const STAGES: Stage[] = [
-  "inbound",
-  "funnel",
-  "pipeline",
-  "proposal",
-  "contract",
-  "build",
-  "maintenance",
-];
 
 interface BusinessRowProps {
   business: {
@@ -43,21 +33,9 @@ interface BusinessRowProps {
 export function BusinessRow({ business, onClick }: BusinessRowProps) {
   const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
 
-  const progressByStage = STAGES.reduce(
-    (acc, stage) => {
-      acc[stage] = (business.progressItems ?? []).filter(
-        (p) => p.stage === stage,
-      );
-      return acc;
-    },
-    {} as Record<Stage, NonNullable<typeof business.progressItems>>,
-  );
-
   return (
     <>
-      <div
-        className="flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors"
-      >
+      <div className="flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
         {/* Fixed left columns — clickable for detail */}
         <div
           className="flex min-w-[400px] shrink-0 items-center gap-3 border-r border-[var(--border)] px-4 py-2 cursor-pointer"
@@ -86,21 +64,14 @@ export function BusinessRow({ business, onClick }: BusinessRowProps) {
           </span>
         </div>
 
-        {/* Scrollable stage columns — interactive StageCell with drag & drop */}
-        <div className="flex flex-1 overflow-x-auto">
-          {STAGES.map((stage) => (
-            <StageCell
-              key={stage}
-              businessId={business.id}
-              stage={stage}
-              items={(progressByStage[stage] ?? []) as ProgressItem[]}
-              onBlockClick={(item) => setSelectedBlock(item)}
-            />
-          ))}
-        </div>
+        {/* Stage columns with cross-stage drag & drop */}
+        <StageRowDnd
+          businessId={business.id}
+          progressItems={(business.progressItems ?? []) as ProgressItem[]}
+          onBlockClick={(item) => setSelectedBlock(item)}
+        />
       </div>
 
-      {/* Block detail modal */}
       {selectedBlock && (
         <BlockDetail
           item={selectedBlock}
