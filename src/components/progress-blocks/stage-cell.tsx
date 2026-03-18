@@ -56,7 +56,7 @@ export function StageCell({
 
       {overflowCount > 0 && (
         <span className="text-[10px] text-[var(--muted-foreground)]">
-          +{overflowCount} more
+          +{overflowCount} 더보기
         </span>
       )}
 
@@ -68,7 +68,7 @@ export function StageCell({
             onChange={(e) => setNewContent(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-[var(--ring)]"
-            placeholder="Content..."
+            placeholder="내용..."
             autoFocus
           />
           <button
@@ -89,7 +89,7 @@ export function StageCell({
           onClick={() => setShowAdd(true)}
           className="text-[10px] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
         >
-          + add
+          + 추가
         </button>
       )}
     </div>

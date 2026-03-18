@@ -63,17 +63,17 @@ export function NewBusinessDialog({
         onSubmit={handleSubmit}
         className="mx-4 w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl"
       >
-        <h2 className="text-lg font-bold">New Business</h2>
+        <h2 className="text-lg font-bold">새 사업</h2>
 
         <label className="mt-4 block text-sm font-medium">
-          Company *
+          기업 *
           <select
             value={companyId}
             onChange={(e) => setCompanyId(e.target.value)}
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
             required
           >
-            <option value="">Select company...</option>
+            <option value="">기업 선택...</option>
             {companies.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.canonicalName}
@@ -83,7 +83,7 @@ export function NewBusinessDialog({
         </label>
 
         <label className="mt-4 block text-sm font-medium">
-          Business Name *
+          사업명 *
           <input
             type="text"
             value={name}
@@ -95,7 +95,7 @@ export function NewBusinessDialog({
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <label className="block text-sm font-medium">
-            Scale
+            사업규모
             <input
               type="text"
               value={scale}
@@ -105,7 +105,7 @@ export function NewBusinessDialog({
             />
           </label>
           <label className="block text-sm font-medium">
-            Visibility
+            공개여부
             <select
               value={visibility}
               onChange={(e) =>
@@ -113,14 +113,14 @@ export function NewBusinessDialog({
               }
               className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
             >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
+              <option value="public">공개</option>
+              <option value="private">비공개</option>
             </select>
           </label>
         </div>
 
         <label className="mt-4 block text-sm font-medium">
-          Timing (text)
+          사업시기 (텍스트)
           <input
             type="text"
             value={timingText}
@@ -132,7 +132,7 @@ export function NewBusinessDialog({
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <label className="block text-sm font-medium">
-            Start Date
+            시작일
             <input
               type="date"
               value={timingStart}
@@ -141,7 +141,7 @@ export function NewBusinessDialog({
             />
           </label>
           <label className="block text-sm font-medium">
-            End Date
+            종료일
             <input
               type="date"
               value={timingEnd}
@@ -157,14 +157,14 @@ export function NewBusinessDialog({
             onClick={onClose}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--muted)]"
           >
-            Cancel
+            취소
           </button>
           <button
             type="submit"
             disabled={createBusiness.isPending || !companyId || !name.trim()}
             className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
-            {createBusiness.isPending ? "Creating..." : "Create"}
+            {createBusiness.isPending ? "생성 중..." : "생성"}
           </button>
         </div>
       </form>

@@ -59,7 +59,7 @@ export function ExcelDownloadDialog({
       URL.revokeObjectURL(url);
       onClose();
     } catch {
-      alert("Download failed. Please try again.");
+      alert("다운로드에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       setDownloading(false);
     }
@@ -71,18 +71,18 @@ export function ExcelDownloadDialog({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
-        <h2 className="text-lg font-bold">Excel Download</h2>
+        <h2 className="text-lg font-bold">엑셀 다운로드</h2>
 
         <label className="mt-4 block text-sm font-medium">
-          Type
+          유형
           <select
             value={type}
             onChange={(e) => setType(e.target.value as typeof type)}
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
           >
-            <option value="current_view">Current View</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="current_view">현재 보기</option>
+            <option value="weekly">주간</option>
+            <option value="monthly">월간</option>
           </select>
         </label>
 
@@ -95,7 +95,7 @@ export function ExcelDownloadDialog({
                 onChange={(e) => setIncludeCompleted(e.target.checked)}
                 className="rounded"
               />
-              Include completed
+              완료 항목 포함
             </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
@@ -104,7 +104,7 @@ export function ExcelDownloadDialog({
                 onChange={(e) => setIncludeCarryover(e.target.checked)}
                 className="rounded"
               />
-              Include carryover
+              이월 항목 포함
             </label>
           </div>
         )}
@@ -114,14 +114,14 @@ export function ExcelDownloadDialog({
             onClick={onClose}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--muted)]"
           >
-            Cancel
+            취소
           </button>
           <button
             onClick={handleDownload}
             disabled={downloading}
             className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
-            {downloading ? "Downloading..." : "Download"}
+            {downloading ? "다운로드 중..." : "다운로드"}
           </button>
         </div>
       </div>

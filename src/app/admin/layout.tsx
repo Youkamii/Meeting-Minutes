@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/merge", label: "Company Merge" },
-  { href: "/admin/logs", label: "Audit Logs" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/users", label: "사용자" },
+  { href: "/admin/merge", label: "기업 병합" },
+  { href: "/admin/logs", label: "감사 로그" },
+  { href: "/admin/settings", label: "설정" },
 ];
 
 export default function AdminLayout({
@@ -21,7 +21,7 @@ export default function AdminLayout({
     <div className="flex min-h-[calc(100vh-3.5rem)]">
       <aside className="w-56 shrink-0 border-r border-[var(--border)] bg-[var(--card)] p-4">
         <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-          Admin
+          관리자
         </h2>
         <nav className="space-y-1">
           {navItems.map((item) => (

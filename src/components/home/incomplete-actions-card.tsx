@@ -23,15 +23,15 @@ export function IncompleteActionsCard({ actions }: IncompleteActionsCardProps) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold">This Week&apos;s Actions</h2>
+        <h2 className="text-sm font-bold">이번 주 액션</h2>
         <span className="text-xs text-[var(--muted-foreground)]">
-          {incomplete.length} incomplete
+          {incomplete.length}개 미완료
         </span>
       </div>
 
       {incomplete.length === 0 ? (
         <p className="text-sm text-[var(--muted-foreground)]">
-          All caught up!
+          모두 완료되었습니다!
         </p>
       ) : (
         <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -56,7 +56,7 @@ export function IncompleteActionsCard({ actions }: IncompleteActionsCardProps) {
           ))}
           {incomplete.length > 10 && (
             <p className="text-xs text-[var(--muted-foreground)] text-center">
-              +{incomplete.length - 10} more
+              +{incomplete.length - 10} 더보기
             </p>
           )}
         </div>

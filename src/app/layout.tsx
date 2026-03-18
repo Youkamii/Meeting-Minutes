@@ -4,9 +4,9 @@ import { TopNav } from "@/components/layout/top-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Meeting Minutes - Business & Weekly Meeting Ops",
+  title: "회의록 - 사업관리 & 주간회의 운영",
   description:
-    "Internal operations tool for business management and weekly meeting tracking",
+    "사업관리 및 주간회의 추적을 위한 내부 운영 도구",
 };
 
 export default function RootLayout({

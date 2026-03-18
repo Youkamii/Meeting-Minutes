@@ -47,11 +47,11 @@ export default function MergePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ canonical_id: canonicalId, merge_ids: mergeIds }),
       });
-      setResult("Merge completed successfully.");
+      setResult("병합이 완료되었습니다.");
       setSelected([]);
       setCanonicalId(null);
     } catch {
-      setResult("Merge failed. Please try again.");
+      setResult("병합에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       setMerging(false);
     }
@@ -59,11 +59,11 @@ export default function MergePage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">Company Merge</h1>
+      <h1 className="mb-4 text-lg font-bold">기업 병합</h1>
 
       <input
         type="text"
-        placeholder="Search companies..."
+        placeholder="기업 검색..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="mb-4 w-full max-w-md rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
@@ -93,7 +93,7 @@ export default function MergePage() {
         })}
         {companies.length === 0 && (
           <p className="px-3 py-4 text-sm text-[var(--muted-foreground)]">
-            No companies found.
+            검색된 기업이 없습니다.
           </p>
         )}
       </div>
@@ -101,7 +101,7 @@ export default function MergePage() {
       {selected.length >= 2 && (
         <div className="mb-4 rounded-md border border-[var(--border)] bg-[var(--card)] p-4">
           <h2 className="mb-2 text-sm font-bold">
-            Selected ({selected.length}) - Choose canonical company:
+            선택됨 ({selected.length}) - 대표 기업을 선택하세요:
           </h2>
           <div className="space-y-1">
             {selected.map((company) => (
@@ -122,21 +122,20 @@ export default function MergePage() {
 
           {canonicalId && (
             <div className="mt-3 rounded-md bg-[var(--muted)] p-3 text-xs">
-              <p className="font-medium">Preview:</p>
+              <p className="font-medium">미리보기:</p>
               <p>
-                Canonical:{" "}
+                대표 기업:{" "}
                 {selected.find((c) => c.id === canonicalId)?.canonicalName}
               </p>
               <p>
-                Will merge:{" "}
+                병합 대상:{" "}
                 {selected
                   .filter((c) => c.id !== canonicalId)
                   .map((c) => c.canonicalName)
                   .join(", ")}
               </p>
               <p>
-                All businesses and weekly actions will be re-linked to the
-                canonical company.
+                모든 사업과 주간 액션이 대표 기업으로 재연결됩니다.
               </p>
             </div>
           )}
@@ -146,14 +145,14 @@ export default function MergePage() {
             disabled={!canonicalId || merging}
             className="mt-3 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {merging ? "Merging..." : "Confirm Merge"}
+            {merging ? "병합 중..." : "병합 확인"}
           </button>
         </div>
       )}
 
       {selected.length > 0 && selected.length < 2 && (
         <p className="text-sm text-[var(--muted-foreground)]">
-          Select at least 2 companies to merge.
+          병합하려면 최소 2개의 기업을 선택하세요.
         </p>
       )}
 

@@ -102,7 +102,7 @@ export function BusinessRow({ business, onClick }: BusinessRowProps) {
 
               {items.length > 2 && (
                 <span className="text-[10px] text-[var(--muted-foreground)]">
-                  +{items.length - 2} more
+                  +{items.length - 2} 더보기
                 </span>
               )}
             </div>

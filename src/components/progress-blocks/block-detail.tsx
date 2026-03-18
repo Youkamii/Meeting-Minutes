@@ -32,7 +32,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   };
 
   const handleDelete = () => {
-    if (confirm("Delete this progress block?")) {
+    if (confirm("이 진행 블록을 삭제하시겠습니까?")) {
       deleteItem.mutate({ id: item.id, lockVersion: item.lockVersion }, { onSuccess: onClose });
     }
   };
@@ -44,15 +44,15 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     >
       <div className="mx-4 w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold">Progress Block</h3>
+          <h3 className="font-bold">진행 블록</h3>
           <button onClick={onClose} className="text-lg hover:opacity-70">
             ✕
           </button>
         </div>
 
         <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-          Stage: <span className="font-medium capitalize">{item.stage}</span> |
-          Created: {new Date(item.createdAt).toLocaleDateString("ko-KR")}
+          단계: <span className="font-medium capitalize">{item.stage}</span> |
+          생성일: {new Date(item.createdAt).toLocaleDateString("ko-KR")}
         </div>
 
         {editing ? (
@@ -71,13 +71,13 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
                 }}
                 className="rounded-md border border-[var(--border)] px-3 py-1 text-sm"
               >
-                Cancel
+                취소
               </button>
               <button
                 onClick={handleSave}
                 className="rounded-md bg-[var(--primary)] px-3 py-1 text-sm text-[var(--primary-foreground)]"
               >
-                Save
+                저장
               </button>
             </div>
           </div>
@@ -91,14 +91,14 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
               onClick={() => setEditing(true)}
               className="rounded-md border border-[var(--border)] px-3 py-1 text-sm hover:bg-[var(--muted)]"
             >
-              Edit
+              수정
             </button>
           )}
           <button
             onClick={handleDelete}
             className="rounded-md border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
           >
-            Delete
+            삭제
           </button>
         </div>
       </div>

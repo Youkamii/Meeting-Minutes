@@ -20,7 +20,7 @@ export default function AuditLogsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">Audit Logs</h1>
+      <h1 className="mb-4 text-lg font-bold">감사 로그</h1>
 
       <div className="mb-4 flex gap-3">
         <select
@@ -28,13 +28,13 @@ export default function AuditLogsPage() {
           onChange={(e) => setEntityType(e.target.value)}
           className="rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
         >
-          <option value="">All Entity Types</option>
-          <option value="company">Company</option>
-          <option value="business">Business</option>
-          <option value="progress_item">Progress Item</option>
-          <option value="weekly_action">Weekly Action</option>
-          <option value="internal_note">Internal Note</option>
-          <option value="user">User</option>
+          <option value="">전체 항목 유형</option>
+          <option value="company">기업</option>
+          <option value="business">사업</option>
+          <option value="progress_item">진행 항목</option>
+          <option value="weekly_action">주간 액션</option>
+          <option value="internal_note">내부 메모</option>
+          <option value="user">사용자</option>
         </select>
 
         <select
@@ -42,20 +42,20 @@ export default function AuditLogsPage() {
           onChange={(e) => setAction(e.target.value)}
           className="rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
         >
-          <option value="">All Actions</option>
-          <option value="create">Create</option>
-          <option value="update">Update</option>
-          <option value="delete">Delete</option>
-          <option value="move">Move</option>
-          <option value="merge">Merge</option>
-          <option value="carryover">Carryover</option>
-          <option value="status_change">Status Change</option>
-          <option value="role_change">Role Change</option>
+          <option value="">전체 작업</option>
+          <option value="create">생성</option>
+          <option value="update">수정</option>
+          <option value="delete">삭제</option>
+          <option value="move">이동</option>
+          <option value="merge">병합</option>
+          <option value="carryover">이월</option>
+          <option value="status_change">상태 변경</option>
+          <option value="role_change">역할 변경</option>
         </select>
       </div>
 
       {isLoading && (
-        <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+        <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
       )}
 
       <div className="space-y-1">
@@ -89,7 +89,7 @@ export default function AuditLogsPage() {
 
       {!isLoading && filtered.length === 0 && (
         <p className="text-sm text-[var(--muted-foreground)]">
-          No audit logs found.
+          감사 로그를 찾을 수 없습니다.
         </p>
       )}
     </div>

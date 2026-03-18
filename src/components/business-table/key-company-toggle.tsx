@@ -28,7 +28,7 @@ export function KeyCompanyToggle({
       className={`text-lg transition-transform hover:scale-110 ${
         isKey ? "text-yellow-500" : "text-[var(--muted-foreground)] opacity-30 hover:opacity-70"
       }`}
-      title={isKey ? "Remove key company" : "Set as key company"}
+      title={isKey ? "중요기업 해제" : "중요기업 지정"}
     >
       ★
     </button>

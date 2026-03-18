@@ -76,20 +76,20 @@ export function CarryoverDialog({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="mx-4 w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
-        <h2 className="text-lg font-bold">Carryover Actions</h2>
+        <h2 className="text-lg font-bold">이월 액션</h2>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           {sourceLabel} → {targetLabel}
         </p>
 
         {isLoading && (
           <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            Loading candidates...
+            후보 로딩 중...
           </p>
         )}
 
         {!isLoading && candidates.length === 0 && (
           <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-            No incomplete actions to carry over.
+            이월할 미완료 액션이 없습니다.
           </p>
         )}
 
@@ -103,7 +103,7 @@ export function CarryoverDialog({
                   onChange={toggleAll}
                   className="rounded"
                 />
-                Select all ({candidates.length})
+                전체 선택 ({candidates.length})
               </label>
             </div>
 
@@ -140,7 +140,7 @@ export function CarryoverDialog({
             onClick={onClose}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--muted)]"
           >
-            Cancel
+            취소
           </button>
           <button
             onClick={handleCarryover}
@@ -148,8 +148,8 @@ export function CarryoverDialog({
             className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
             {carryover.isPending
-              ? "Carrying over..."
-              : `Carry Over (${selected.size})`}
+              ? "이월 중..."
+              : `이월하기 (${selected.size})`}
           </button>
         </div>
       </div>

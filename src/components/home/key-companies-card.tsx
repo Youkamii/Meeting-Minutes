@@ -13,7 +13,7 @@ export function KeyCompaniesCard({ companies }: KeyCompaniesCardProps) {
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-      <h2 className="text-sm font-bold mb-3">★ Key Companies</h2>
+      <h2 className="text-sm font-bold mb-3">★ 중요기업</h2>
       <div className="flex flex-wrap gap-2">
         {keyCompanies.map((c) => (
           <a

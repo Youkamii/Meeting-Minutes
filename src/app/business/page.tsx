@@ -52,13 +52,13 @@ export default function BusinessManagementPage() {
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
-        <h1 className="text-lg font-bold">Business Management</h1>
+        <h1 className="text-lg font-bold">사업관리</h1>
 
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search companies & businesses..."
+          placeholder="기업 및 사업 검색..."
           className="h-8 w-64 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
         />
 
@@ -69,14 +69,14 @@ export default function BusinessManagementPage() {
             onChange={(e) => setShowKeyOnly(e.target.checked)}
             className="rounded"
           />
-          Key only
+          중요기업만
         </label>
 
         <div className="ml-auto">
           <QuickActionsBar
             actions={[
-              { label: "Company", onClick: () => setShowNewCompany(true) },
-              { label: "Business", onClick: () => setShowNewBusiness(true) },
+              { label: "기업", onClick: () => setShowNewCompany(true) },
+              { label: "사업", onClick: () => setShowNewBusiness(true) },
             ]}
           />
         </div>
@@ -86,21 +86,21 @@ export default function BusinessManagementPage() {
       <div className="flex-1 overflow-y-auto">
         {isLoading && (
           <div className="flex items-center justify-center p-8">
-            <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+            <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
           </div>
         )}
 
         {!isLoading && groupedData.length === 0 && (
           <div className="flex flex-col items-center justify-center p-16 text-center">
-            <p className="text-lg font-medium">No companies yet</p>
+            <p className="text-lg font-medium">등록된 기업이 없습니다</p>
             <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-              Create your first company to get started.
+              첫 번째 기업을 생성하여 시작하세요.
             </p>
             <button
               onClick={() => setShowNewCompany(true)}
               className="mt-4 rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90"
             >
-              + New Company
+              + 새 기업
             </button>
           </div>
         )}
@@ -110,7 +110,7 @@ export default function BusinessManagementPage() {
           <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--background)]">
             <div className="min-w-[400px] shrink-0 border-r border-[var(--border)] px-4 py-2">
               <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase">
-                Company / Business
+                기업 / 사업
               </span>
             </div>
             <div className="flex flex-1 overflow-x-auto">
@@ -144,12 +144,12 @@ export default function BusinessManagementPage() {
           >
             {bizList.length === 0 && (
               <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
-                No businesses yet.{" "}
+                등록된 사업이 없습니다.{" "}
                 <button
                   onClick={() => setShowNewBusiness(true)}
                   className="text-[var(--primary)] hover:underline"
                 >
-                  Add one
+                  추가하기
                 </button>
               </div>
             )}

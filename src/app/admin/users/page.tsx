@@ -54,10 +54,10 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">User Management</h1>
+      <h1 className="mb-4 text-lg font-bold">사용자 관리</h1>
 
       {loading && (
-        <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+        <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
       )}
 
       <div className="space-y-2">
@@ -69,7 +69,7 @@ export default function UsersPage() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">{user.name}</p>
               <p className="text-xs text-[var(--muted-foreground)]">
-                {user.email ?? "No email"}
+                {user.email ?? "이메일 없음"}
               </p>
             </div>
 
@@ -92,13 +92,13 @@ export default function UsersPage() {
                     onClick={() => updateUser(user.id, { status: "approved" })}
                     className="rounded-md bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
                   >
-                    Approve
+                    승인
                   </button>
                   <button
                     onClick={() => updateUser(user.id, { status: "rejected" })}
                     className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                   >
-                    Reject
+                    거절
                   </button>
                 </>
               )}
@@ -107,7 +107,7 @@ export default function UsersPage() {
                   onClick={() => updateUser(user.id, { role: "admin" })}
                   className="rounded-md border border-[var(--border)] px-2 py-1 text-xs hover:bg-[var(--muted)]"
                 >
-                  Make Admin
+                  관리자 지정
                 </button>
               )}
               {user.role === "admin" && (
@@ -115,7 +115,7 @@ export default function UsersPage() {
                   onClick={() => updateUser(user.id, { role: "user" })}
                   className="rounded-md border border-[var(--border)] px-2 py-1 text-xs hover:bg-[var(--muted)]"
                 >
-                  Remove Admin
+                  관리자 해제
                 </button>
               )}
             </div>
@@ -124,7 +124,7 @@ export default function UsersPage() {
       </div>
 
       {!loading && users.length === 0 && (
-        <p className="text-sm text-[var(--muted-foreground)]">No users found.</p>
+        <p className="text-sm text-[var(--muted-foreground)]">사용자를 찾을 수 없습니다.</p>
       )}
     </div>
   );
