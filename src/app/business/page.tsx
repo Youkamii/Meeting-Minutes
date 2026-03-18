@@ -9,6 +9,7 @@ import { BusinessDetailPanel } from "@/components/business-table/business-detail
 import { NewCompanyDialog } from "@/components/business-table/new-company-dialog";
 import { NewBusinessDialog } from "@/components/business-table/new-business-dialog";
 import { QuickActionsBar } from "@/components/ui/quick-actions";
+import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import type { Company } from "@/types";
 
 export default function BusinessManagementPage() {
@@ -19,6 +20,7 @@ export default function BusinessManagementPage() {
   );
   const [showNewCompany, setShowNewCompany] = useState(false);
   const [showNewBusiness, setShowNewBusiness] = useState(false);
+  const [showExcelDownload, setShowExcelDownload] = useState(false);
 
   const { data: companiesData, isLoading: companiesLoading } = useCompanies({
     search,
@@ -72,7 +74,13 @@ export default function BusinessManagementPage() {
           중요기업만
         </label>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowExcelDownload(true)}
+            className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--muted)] transition-colors"
+          >
+            엑셀 다운로드
+          </button>
           <QuickActionsBar
             actions={[
               { label: "기업", onClick: () => setShowNewCompany(true) },
@@ -181,6 +189,11 @@ export default function BusinessManagementPage() {
         open={showNewBusiness}
         onClose={() => setShowNewBusiness(false)}
         companies={companies as Company[]}
+      />
+      <ExcelDownloadDialog
+        open={showExcelDownload}
+        onClose={() => setShowExcelDownload(false)}
+        defaultType="monthly"
       />
     </div>
   );

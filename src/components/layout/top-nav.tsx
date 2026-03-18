@@ -51,6 +51,7 @@ export function TopNav() {
           <NavLink href="/">홈</NavLink>
           <NavLink href="/business">사업관리</NavLink>
           <NavLink href="/weekly">주간회의</NavLink>
+          <NavLink href="/admin">관리자</NavLink>
 
           <div className="ml-auto flex items-center gap-2">
             <button
