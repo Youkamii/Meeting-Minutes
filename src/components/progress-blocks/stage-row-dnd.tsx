@@ -93,8 +93,8 @@ function DroppableStage({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[300px] w-[300px] shrink-0 flex-col gap-1.5 border-r border-[var(--border)] p-3 transition-colors ${
-        isOver ? "bg-[var(--primary)]/10" : ""
+      className={`flex min-w-[300px] w-[300px] shrink-0 flex-col gap-2.5 border-r border-[var(--border)] p-3 transition-colors ${
+        isOver ? "bg-[var(--primary)]/10" : "bg-[var(--muted)]/30"
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -121,7 +121,7 @@ function DroppableStage({
       ) : (
         <button
           onClick={() => setShowAdd(true)}
-          className="text-[10px] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+          className="text-[10px] text-[var(--muted-foreground)]/50 hover:text-[var(--primary)] transition-colors mt-1"
         >
           + 추가
         </button>
