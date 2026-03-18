@@ -6,11 +6,11 @@ import {
   DragOverlay,
   closestCenter,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
-  type DragOverEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -93,7 +93,7 @@ function DroppableStage({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[130px] flex-1 flex-col gap-1 border-r border-[var(--border)] p-2 transition-colors ${
+      className={`flex min-w-[300px] w-[300px] shrink-0 flex-col gap-1.5 border-r border-[var(--border)] p-3 transition-colors ${
         isOver ? "bg-[var(--primary)]/10" : ""
       }`}
       onClick={(e) => e.stopPropagation()}
@@ -140,6 +140,7 @@ interface StageRowDndProps {
 export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRowDndProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
   );
   const moveItem = useMoveProgressItem();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
@@ -155,10 +156,6 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
   const handleDragStart = (event: DragStartEvent) => {
     const item = progressItems.find((p) => p.id === event.active.id);
     setActiveItem(item ?? null);
-  };
-
-  const handleDragOver = (_event: DragOverEvent) => {
-    // Visual feedback handled by isOver in DroppableStage
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -209,10 +206,9 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-1 overflow-x-auto">
+      <div className="flex">
         {STAGES.map((stage) => (
           <DroppableStage
             key={stage}

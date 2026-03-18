@@ -14,7 +14,7 @@ function NavLink({
   return (
     <a
       href={href}
-      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-[var(--accent)] transition-colors"
+      className="rounded-md px-3 py-2 text-base font-medium hover:bg-[var(--accent)] transition-colors"
     >
       {children}
     </a>
@@ -43,7 +43,7 @@ export function TopNav() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
-        <nav className="mx-auto flex h-14 max-w-screen-2xl items-center gap-2 px-4">
+        <nav className="flex h-14 items-center gap-2 px-6">
           <a href="/" className="mr-4 text-lg font-bold">
             MM
           </a>
@@ -58,7 +58,7 @@ export function TopNav() {
               onClick={() => setSearchOpen(true)}
               className="hidden h-8 w-56 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm text-[var(--muted-foreground)] sm:flex"
             >
-              <span>⌕</span>
+              <span>🔍</span>
               <span className="flex-1 text-left">검색...</span>
               <kbd className="rounded border border-[var(--border)] px-1 py-0.5 text-[10px]">
                 ⌘K
@@ -69,7 +69,7 @@ export function TopNav() {
               onClick={() => setSearchOpen(true)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] sm:hidden"
             >
-              ⌕
+              🔍
             </button>
 
             <button

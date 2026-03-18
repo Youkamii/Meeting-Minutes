@@ -19,7 +19,7 @@ export default function RootLayout({
       <body>
         <Providers>
           <TopNav />
-          <main className="mx-auto max-w-screen-2xl">{children}</main>
+          <main>{children}</main>
         </Providers>
       </body>
     </html>
