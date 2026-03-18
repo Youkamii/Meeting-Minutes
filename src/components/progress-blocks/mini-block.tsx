@@ -40,12 +40,12 @@ export function MiniBlock({
         e.stopPropagation();
         onClick?.();
       }}
-      className={`cursor-pointer rounded border-l-2 ${STAGE_COLORS[stage]} bg-[var(--muted)] px-2 py-1 text-xs hover:bg-[var(--accent)] transition-colors`}
+      className={`cursor-pointer rounded border-l-2 ${STAGE_COLORS[stage]} bg-[var(--muted)] px-3 py-2 text-sm hover:bg-[var(--accent)] transition-colors`}
       title={title ? `${title}\n${content}` : content}
     >
-      {title && <p className="font-medium truncate">{title}</p>}
-      <p className="truncate text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
-      <span className="text-[10px] text-[var(--muted-foreground)]">{displayDate}</span>
+      {title && <p className="font-medium whitespace-pre-wrap break-words">{title}</p>}
+      <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
   );
 }

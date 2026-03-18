@@ -93,7 +93,7 @@ function DroppableStage({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[130px] flex-1 flex-col gap-1 border-r border-[var(--border)] p-2 transition-colors ${
+      className={`flex min-w-[300px] w-[300px] shrink-0 flex-col gap-1.5 border-r border-[var(--border)] p-3 transition-colors ${
         isOver ? "bg-[var(--primary)]/10" : ""
       }`}
       onClick={(e) => e.stopPropagation()}
@@ -212,7 +212,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-1 overflow-x-auto">
+      <div className="flex">
         {STAGES.map((stage) => (
           <DroppableStage
             key={stage}

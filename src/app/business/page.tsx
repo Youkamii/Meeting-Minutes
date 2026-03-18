@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCompanies } from "@/hooks/use-companies";
 import { useBusinesses } from "@/hooks/use-businesses";
 import { CompanyGroupRow } from "@/components/business-table/company-group-row";
@@ -21,6 +21,14 @@ export default function BusinessManagementPage() {
   const [showNewCompany, setShowNewCompany] = useState(false);
   const [showNewBusiness, setShowNewBusiness] = useState(false);
   const [showExcelDownload, setShowExcelDownload] = useState(false);
+
+  // Disable body scroll so only our container scrolls
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   const { data: companiesData, isLoading: companiesLoading } = useCompanies({
     search,
@@ -53,7 +61,7 @@ export default function BusinessManagementPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
+      <div className="shrink-0 flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
         <h1 className="text-lg font-bold">사업관리</h1>
 
         <input
@@ -90,8 +98,8 @@ export default function BusinessManagementPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Table — single scroll container for both axes, fills remaining viewport */}
+      <div className="flex-1 overflow-auto">
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
@@ -113,15 +121,16 @@ export default function BusinessManagementPage() {
           </div>
         )}
 
-        {/* Stage column headers */}
-        {groupedData.length > 0 && (
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--background)]">
-            <div className="min-w-[220px] w-[220px] shrink-0 border-r border-[var(--border)] px-4 py-2">
-              <span className="text-xs font-semibold text-[var(--muted-foreground)]">
-                사업 정보
-              </span>
-            </div>
-            <div className="flex flex-1 overflow-x-auto">
+        {/* Inner wide content */}
+        <div className="w-max min-w-full">
+          {/* Stage column headers */}
+          {groupedData.length > 0 && (
+            <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--background)]">
+              <div className="w-[280px] shrink-0 border-r border-[var(--border)] px-4 py-2">
+                <span className="text-sm font-semibold text-[var(--muted-foreground)]">
+                  사업 정보
+                </span>
+              </div>
               {[
                 "Inbound(초도미팅)",
                 "Funnel",
@@ -133,7 +142,7 @@ export default function BusinessManagementPage() {
               ].map((label) => (
                 <div
                   key={label}
-                  className="min-w-[120px] flex-1 border-r border-[var(--border)] px-2 py-2"
+                  className="w-[300px] shrink-0 border-r border-[var(--border)] px-2 py-2"
                 >
                   <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase">
                     {label}
@@ -141,35 +150,35 @@ export default function BusinessManagementPage() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {groupedData.map(({ company, businesses: bizList }) => (
-          <CompanyGroupRow
-            key={company.id}
-            company={company}
-            businessCount={bizList.length}
-          >
-            {bizList.length === 0 && (
-              <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
-                등록된 사업이 없습니다.{" "}
-                <button
-                  onClick={() => setShowNewBusiness(true)}
-                  className="text-[var(--primary)] hover:underline"
-                >
-                  추가하기
-                </button>
-              </div>
-            )}
-            {bizList.map((biz) => (
-              <BusinessRow
-                key={biz.id}
-                business={{ ...(biz as unknown as Record<string, unknown>), companyName: company.canonicalName } as never}
-                onClick={() => setSelectedBusinessId(biz.id)}
-              />
-            ))}
-          </CompanyGroupRow>
-        ))}
+          {groupedData.map(({ company, businesses: bizList }) => (
+            <CompanyGroupRow
+              key={company.id}
+              company={company}
+              businessCount={bizList.length}
+            >
+              {bizList.length === 0 && (
+                <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
+                  등록된 사업이 없습니다.{" "}
+                  <button
+                    onClick={() => setShowNewBusiness(true)}
+                    className="text-[var(--primary)] hover:underline"
+                  >
+                    추가하기
+                  </button>
+                </div>
+              )}
+              {bizList.map((biz) => (
+                <BusinessRow
+                  key={biz.id}
+                  business={{ ...(biz as unknown as Record<string, unknown>), companyName: company.canonicalName } as never}
+                  onClick={() => setSelectedBusinessId(biz.id)}
+                />
+              ))}
+            </CompanyGroupRow>
+          ))}
+        </div>
       </div>
 
       {/* Detail Panel */}

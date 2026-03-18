@@ -14,7 +14,7 @@ function NavLink({
   return (
     <a
       href={href}
-      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-[var(--accent)] transition-colors"
+      className="rounded-md px-3 py-2 text-base font-medium hover:bg-[var(--accent)] transition-colors"
     >
       {children}
     </a>
@@ -43,7 +43,7 @@ export function TopNav() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
-        <nav className="mx-auto flex h-14 max-w-screen-2xl items-center gap-2 px-4">
+        <nav className="flex h-14 items-center gap-2 px-6">
           <a href="/" className="mr-4 text-lg font-bold">
             MM
           </a>
