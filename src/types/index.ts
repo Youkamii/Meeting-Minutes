@@ -92,7 +92,9 @@ export interface ProgressItem {
   id: string;
   businessId: string;
   stage: Stage;
+  title: string;
   content: string;
+  date: string | null;
   sortOrder: number;
   createdBy: string | null;
   updatedBy: string | null;
@@ -129,6 +131,17 @@ export interface WeeklyAction {
   createdAt: string;
   updatedAt: string;
   lockVersion: number;
+}
+
+/** WeeklyAction with joined relations as returned by the list API. */
+export interface WeeklyActionWithRelations extends WeeklyAction {
+  company?: { id: string; canonicalName: string; isKey: boolean };
+  business?: { name: string } | null;
+}
+
+/** Business with joined company name as used in list views. */
+export interface BusinessWithCompany extends Business {
+  company?: { canonicalName: string };
 }
 
 export interface InternalNote {
