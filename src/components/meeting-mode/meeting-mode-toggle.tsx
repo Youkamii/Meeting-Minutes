@@ -14,7 +14,7 @@ export function MeetingModeToggle() {
           : "border border-[var(--border)] hover:bg-[var(--muted)]"
       }`}
     >
-      {meetingModeActive ? "Exit Meeting Mode" : "Meeting Mode"}
+      {meetingModeActive ? "회의모드 종료" : "회의모드"}
     </button>
   );
 }

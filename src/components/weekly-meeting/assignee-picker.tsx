@@ -14,7 +14,7 @@ export function AssigneePicker({ value, onChange }: AssigneePickerProps) {
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value || null)}
       onClick={(e) => e.stopPropagation()}
-      placeholder="Assignee"
+      placeholder="담당자"
       className="w-24 rounded border border-[var(--border)] bg-[var(--background)] px-2 py-0.5 text-xs outline-none focus:ring-1 focus:ring-[var(--ring)]"
     />
   );

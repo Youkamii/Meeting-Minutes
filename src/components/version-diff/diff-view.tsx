@@ -66,8 +66,8 @@ const changeLabelStyles: Record<ChangeType, string> = {
 export function DiffView({
   snapshotA,
   snapshotB,
-  labelA = "Before",
-  labelB = "After",
+  labelA = "이전",
+  labelB = "이후",
 }: DiffViewProps) {
   const diffs = computeDiff(snapshotA, snapshotB);
   const changedDiffs = diffs.filter((d) => d.type !== "unchanged");
@@ -76,14 +76,14 @@ export function DiffView({
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="mb-3 flex items-center gap-4 text-xs text-[var(--muted-foreground)]">
-        <span className="text-green-700">+ Added</span>
-        <span className="text-red-700">- Removed</span>
-        <span className="text-yellow-700">~ Changed</span>
+        <span className="text-green-700">+ 추가됨</span>
+        <span className="text-red-700">- 삭제됨</span>
+        <span className="text-yellow-700">~ 변경됨</span>
       </div>
 
       {changedDiffs.length === 0 && (
         <p className="text-sm text-[var(--muted-foreground)]">
-          No differences found.
+          차이점이 없습니다.
         </p>
       )}
 
@@ -124,7 +124,7 @@ export function DiffView({
       {unchangedDiffs.length > 0 && changedDiffs.length > 0 && (
         <details className="mt-3">
           <summary className="cursor-pointer text-xs text-[var(--muted-foreground)]">
-            {unchangedDiffs.length} unchanged field(s)
+            {unchangedDiffs.length}개 변경되지 않은 필드
           </summary>
           <div className="mt-2 space-y-1">
             {unchangedDiffs.map((diff) => (

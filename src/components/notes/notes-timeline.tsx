@@ -52,16 +52,16 @@ export function NotesTimeline({
         onSubmit={handleSubmit}
         className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4"
       >
-        <h3 className="mb-2 text-sm font-bold">Add Note</h3>
+        <h3 className="mb-2 text-sm font-bold">메모 추가</h3>
         <input
           type="text"
-          placeholder="Title (optional)"
+          placeholder="제목 (선택사항)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="mb-2 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm"
         />
         <textarea
-          placeholder="Write your note..."
+          placeholder="메모를 작성하세요..."
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={3}
@@ -73,18 +73,18 @@ export function NotesTimeline({
             onChange={(e) => setTag(e.target.value as NoteTag | "")}
             className="rounded-md border border-[var(--border)] bg-[var(--background)] px-2 py-1 text-xs"
           >
-            <option value="">No tag</option>
-            <option value="situation">Situation</option>
-            <option value="decision">Decision</option>
-            <option value="risk">Risk</option>
-            <option value="follow_up">Follow-up</option>
+            <option value="">태그 없음</option>
+            <option value="situation">상황</option>
+            <option value="decision">결정</option>
+            <option value="risk">위험</option>
+            <option value="follow_up">후속조치</option>
           </select>
           <button
             type="submit"
             disabled={!body.trim() || isAdding}
             className="ml-auto rounded-md bg-[var(--primary)] px-3 py-1 text-xs font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
           >
-            {isAdding ? "Adding..." : "Add"}
+            {isAdding ? "추가 중..." : "추가"}
           </button>
         </div>
       </form>
@@ -117,7 +117,7 @@ export function NotesTimeline({
 
         {notes.length === 0 && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            No notes yet.
+            메모가 없습니다.
           </p>
         )}
       </div>

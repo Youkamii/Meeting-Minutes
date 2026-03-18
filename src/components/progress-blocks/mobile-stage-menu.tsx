@@ -46,7 +46,7 @@ export function MobileStageMenu({
     >
       <div className="w-full rounded-t-xl border-t border-[var(--border)] bg-[var(--background)] p-4 pb-8">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--muted-foreground)]" />
-        <h3 className="text-sm font-bold mb-3">Move to stage</h3>
+        <h3 className="text-sm font-bold mb-3">단계 이동</h3>
         <div className="space-y-1">
           {STAGES.map((stage) => (
             <button
@@ -59,7 +59,7 @@ export function MobileStageMenu({
               }`}
             >
               {stage.label}
-              {stage.value === item.stage && " (current)"}
+              {stage.value === item.stage && " (현재)"}
             </button>
           ))}
         </div>

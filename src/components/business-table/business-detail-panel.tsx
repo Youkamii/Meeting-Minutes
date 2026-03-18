@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useBusiness } from "@/hooks/use-businesses";
 
 const TABS = [
-  "Basic Info",
-  "Progress",
-  "Weekly Actions",
-  "Internal Notes",
-  "Files/References",
-  "Log/Version",
+  "기본 정보",
+  "진행상태",
+  "주간 액션",
+  "내부 메모",
+  "파일/참고자료",
+  "로그/버전",
 ] as const;
 
 type Tab = (typeof TABS)[number];
@@ -23,7 +23,7 @@ export function BusinessDetailPanel({
   businessId,
   onClose,
 }: BusinessDetailPanelProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("Basic Info");
+  const [activeTab, setActiveTab] = useState<Tab>("기본 정보");
   const { data, isLoading } = useBusiness(businessId);
   const business = data?.data;
 
@@ -32,7 +32,7 @@ export function BusinessDetailPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <h2 className="text-lg font-bold truncate">
-          {isLoading ? "Loading..." : business?.name ?? "Business Detail"}
+          {isLoading ? "로딩 중..." : business?.name ?? "사업 상세"}
         </h2>
         <button
           onClick={onClose}
@@ -62,20 +62,20 @@ export function BusinessDetailPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {isLoading && (
-          <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+          <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
         )}
 
-        {business && activeTab === "Basic Info" && (
+        {business && activeTab === "기본 정보" && (
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                Business Name
+                사업명
               </label>
               <p className="text-sm">{business.name}</p>
             </div>
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                Company
+                기업
               </label>
               <p className="text-sm">
                 {(business as unknown as { company?: { canonicalName: string } })
@@ -85,13 +85,13 @@ export function BusinessDetailPanel({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                  Visibility
+                  공개여부
                 </label>
                 <p className="text-sm">{business.visibility}</p>
               </div>
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                  Scale
+                  사업규모
                 </label>
                 <p className="text-sm">{business.scale ?? "—"}</p>
               </div>
@@ -99,20 +99,20 @@ export function BusinessDetailPanel({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                  Timing
+                  사업시기
                 </label>
                 <p className="text-sm">{business.timingText ?? "—"}</p>
               </div>
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                  Current Stage
+                  현재 단계
                 </label>
                 <p className="text-sm">{business.currentStage ?? "—"}</p>
               </div>
             </div>
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">
-                Date Range
+                기간
               </label>
               <p className="text-sm">
                 {business.timingStart ?? "—"} ~ {business.timingEnd ?? "—"}
@@ -121,33 +121,33 @@ export function BusinessDetailPanel({
           </div>
         )}
 
-        {activeTab === "Progress" && (
+        {activeTab === "진행상태" && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            Progress blocks will be added in US2.
+            진행 블록은 US2에서 추가될 예정입니다.
           </p>
         )}
 
-        {activeTab === "Weekly Actions" && (
+        {activeTab === "주간 액션" && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            Weekly actions will be added in US3.
+            주간 액션은 US3에서 추가될 예정입니다.
           </p>
         )}
 
-        {activeTab === "Internal Notes" && (
+        {activeTab === "내부 메모" && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            Internal notes will be added in Phase 14.
+            내부 메모는 Phase 14에서 추가될 예정입니다.
           </p>
         )}
 
-        {activeTab === "Files/References" && (
+        {activeTab === "파일/참고자료" && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            File attachments are planned for a future version.
+            파일 첨부는 향후 버전에서 지원될 예정입니다.
           </p>
         )}
 
-        {activeTab === "Log/Version" && (
+        {activeTab === "로그/버전" && (
           <p className="text-sm text-[var(--muted-foreground)]">
-            Audit logs and version history will be added in US8/US9.
+            감사 로그와 버전 히스토리는 US8/US9에서 추가될 예정입니다.
           </p>
         )}
       </div>

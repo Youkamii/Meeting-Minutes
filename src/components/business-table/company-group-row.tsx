@@ -42,7 +42,7 @@ export function CompanyGroupRow({
         )}
 
         <span className="ml-auto text-xs text-[var(--muted-foreground)]">
-          {businessCount} business{businessCount !== 1 ? "es" : ""}
+          {businessCount}개 사업
         </span>
       </div>
 

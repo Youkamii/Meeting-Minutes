@@ -51,7 +51,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search companies, businesses, actions, notes..."
+            placeholder="기업, 사업, 액션, 메모 검색..."
             className="flex-1 bg-transparent px-3 py-3 text-sm outline-none"
             autoFocus
           />
@@ -64,17 +64,17 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
           <div className="max-h-80 overflow-y-auto p-2">
             {data.total === 0 && query.length >= 2 && (
               <p className="p-4 text-center text-sm text-[var(--muted-foreground)]">
-                No results for &quot;{query}&quot;
+                &quot;{query}&quot;에 대한 검색 결과가 없습니다
               </p>
             )}
 
             {results.companies.length > 0 && (
-              <ResultSection title="Companies">
+              <ResultSection title="기업">
                 {results.companies.map((c) => (
                   <ResultItem
                     key={c.id}
                     title={(c as unknown as { canonicalName: string }).canonicalName}
-                    subtitle="Company"
+                    subtitle="기업"
                     href={`/business`}
                     onClose={onClose}
                   />
@@ -83,12 +83,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             )}
 
             {results.businesses.length > 0 && (
-              <ResultSection title="Businesses">
+              <ResultSection title="사업">
                 {results.businesses.map((b) => (
                   <ResultItem
                     key={b.id}
                     title={b.name}
-                    subtitle={`Business · ${(b as unknown as { company?: { canonicalName: string } }).company?.canonicalName ?? ""}`}
+                    subtitle={`사업 · ${(b as unknown as { company?: { canonicalName: string } }).company?.canonicalName ?? ""}`}
                     href={`/business`}
                     onClose={onClose}
                   />
@@ -97,12 +97,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             )}
 
             {results.weeklyActions.length > 0 && (
-              <ResultSection title="Weekly Actions">
+              <ResultSection title="주간 액션">
                 {results.weeklyActions.map((a) => (
                   <ResultItem
                     key={a.id}
                     title={(a as unknown as { content: string }).content}
-                    subtitle="Weekly Action"
+                    subtitle="주간 액션"
                     href={`/weekly`}
                     onClose={onClose}
                   />
@@ -111,12 +111,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             )}
 
             {results.progressItems.length > 0 && (
-              <ResultSection title="Progress Items">
+              <ResultSection title="진행 항목">
                 {results.progressItems.map((p) => (
                   <ResultItem
                     key={p.id}
                     title={p.content}
-                    subtitle={`Progress · ${p.stage}`}
+                    subtitle={`진행 · ${p.stage}`}
                     href={`/business`}
                     onClose={onClose}
                   />
@@ -125,12 +125,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             )}
 
             {results.notes.length > 0 && (
-              <ResultSection title="Notes">
+              <ResultSection title="메모">
                 {results.notes.map((n) => (
                   <ResultItem
                     key={n.id}
                     title={n.title ?? n.body.slice(0, 60)}
-                    subtitle="Note"
+                    subtitle="메모"
                     href={`/business`}
                     onClose={onClose}
                   />

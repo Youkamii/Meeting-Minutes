@@ -45,7 +45,7 @@ export function VersionHistoryPanel({
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold">Version History</h3>
+        <h3 className="text-sm font-bold">버전 히스토리</h3>
         <button
           onClick={() => {
             setCompareMode(!compareMode);
@@ -57,12 +57,12 @@ export function VersionHistoryPanel({
               : "border border-[var(--border)] hover:bg-[var(--muted)]"
           }`}
         >
-          {compareMode ? "Cancel Compare" : "Compare"}
+          {compareMode ? "비교 취소" : "비교"}
         </button>
       </div>
 
       {isLoading && (
-        <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+        <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
       )}
 
       <div className="space-y-1 max-h-64 overflow-y-auto">
@@ -93,7 +93,7 @@ export function VersionHistoryPanel({
 
       {versions.length === 0 && !isLoading && (
         <p className="text-sm text-[var(--muted-foreground)]">
-          No versions yet.
+          버전이 없습니다.
         </p>
       )}
 
@@ -102,7 +102,7 @@ export function VersionHistoryPanel({
           onClick={handleCompare}
           className="mt-3 w-full rounded-md bg-[var(--primary)] px-3 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
         >
-          Compare Selected
+          선택 항목 비교
         </button>
       )}
     </div>

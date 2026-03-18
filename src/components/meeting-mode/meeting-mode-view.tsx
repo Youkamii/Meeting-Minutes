@@ -42,7 +42,7 @@ export function MeetingModeView({ actions, weekLabel }: MeetingModeViewProps) {
   return (
     <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold mb-1">Weekly Meeting</h1>
+        <h1 className="text-3xl font-bold mb-1">주간회의</h1>
         <p className="text-xl text-[var(--muted-foreground)] mb-8">{weekLabel}</p>
 
         {grouped.map(({ company, actions: companyActions }) => (
@@ -62,7 +62,7 @@ export function MeetingModeView({ actions, weekLabel }: MeetingModeViewProps) {
 
         {actions.length === 0 && (
           <p className="text-xl text-center text-[var(--muted-foreground)] py-16">
-            No actions for this week.
+            이번 주 액션이 없습니다.
           </p>
         )}
       </div>

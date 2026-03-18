@@ -48,9 +48,9 @@ export function TopNav() {
             MM
           </a>
 
-          <NavLink href="/">Home</NavLink>
-          <NavLink href="/business">Business</NavLink>
-          <NavLink href="/weekly">Weekly</NavLink>
+          <NavLink href="/">홈</NavLink>
+          <NavLink href="/business">사업관리</NavLink>
+          <NavLink href="/weekly">주간회의</NavLink>
 
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -58,7 +58,7 @@ export function TopNav() {
               className="hidden h-8 w-56 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm text-[var(--muted-foreground)] sm:flex"
             >
               <span>⌕</span>
-              <span className="flex-1 text-left">Search...</span>
+              <span className="flex-1 text-left">검색...</span>
               <kbd className="rounded border border-[var(--border)] px-1 py-0.5 text-[10px]">
                 ⌘K
               </kbd>
@@ -74,7 +74,7 @@ export function TopNav() {
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="h-8 w-8 rounded-md border border-[var(--border)] text-sm hover:bg-[var(--accent)] transition-colors"
-              aria-label="Toggle theme"
+              aria-label="테마 전환"
             >
               {mounted ? (theme === "dark" ? "☀" : "☽") : "◑"}
             </button>
