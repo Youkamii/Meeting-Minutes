@@ -14,6 +14,7 @@ interface BusinessRowProps {
     timingText: string | null;
     currentStage: Stage | null;
     assignedToId: string | null;
+    companyName?: string;
     progressItems?: {
       id: string;
       businessId: string;
@@ -36,32 +37,38 @@ export function BusinessRow({ business, onClick }: BusinessRowProps) {
   return (
     <>
       <div className="flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
-        {/* Fixed left columns — clickable for detail */}
+        {/* Fixed left column — 사업명 + 고객사명 + 공개여부 + 규모 */}
         <div
-          className="flex min-w-[400px] shrink-0 items-center gap-3 border-r border-[var(--border)] px-4 py-2 cursor-pointer"
+          className="flex min-w-[220px] w-[220px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] px-4 py-2 cursor-pointer"
           onClick={onClick}
         >
-          <span
-            className={`text-xs px-1.5 py-0.5 rounded ${
-              business.visibility === "public"
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-            }`}
-          >
-            {business.visibility === "public" ? "공개" : "비공개"}
-          </span>
-
-          <span className="text-sm font-medium truncate flex-1">
+          {/* 사업명 (크게) */}
+          <span className="text-sm font-bold truncate">
             {business.name}
           </span>
-
-          <span className="text-xs text-[var(--muted-foreground)] truncate max-w-[80px]">
-            {business.timingText ?? "—"}
-          </span>
-
-          <span className="text-xs text-[var(--muted-foreground)] truncate max-w-[60px]">
-            {business.scale ?? "—"}
-          </span>
+          {/* 고객사명 (작게) */}
+          {business.companyName && (
+            <span className="text-xs text-[var(--muted-foreground)] truncate">
+              {business.companyName}
+            </span>
+          )}
+          {/* 공개여부 + 사업규모 */}
+          <div className="flex items-center gap-2 mt-0.5">
+            <span
+              className={`text-[10px] font-medium ${
+                business.visibility === "public"
+                  ? "text-[var(--foreground)]"
+                  : "text-red-600 dark:text-red-400"
+              }`}
+            >
+              {business.visibility === "public" ? "공개" : "엠바고"}
+            </span>
+            {business.scale && (
+              <span className="text-[10px] text-[var(--muted-foreground)]">
+                {business.scale}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Stage columns with cross-stage drag & drop */}
