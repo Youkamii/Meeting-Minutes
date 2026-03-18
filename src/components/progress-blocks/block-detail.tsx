@@ -14,14 +14,25 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
   const [content, setContent] = useState(item.content);
   const [date, setDate] = useState(item.date ? String(item.date).slice(0, 10) : "");
+  const [saving, setSaving] = useState(false);
   const updateItem = useUpdateProgressItem();
   const titleRef = useRef<HTMLInputElement>(null);
+  const closedRef = useRef(false);
 
   useEffect(() => {
-    if (open) setTimeout(() => titleRef.current?.focus(), 50);
-  }, [open]);
+    if (open) {
+      closedRef.current = false;
+      setTitle(item.title ?? "");
+      setContent(item.content);
+      setDate(item.date ? String(item.date).slice(0, 10) : "");
+      setTimeout(() => titleRef.current?.focus(), 50);
+    }
+  }, [open, item]);
 
-  const saveAndClose = useCallback(() => {
+  const saveAndClose = useCallback(async () => {
+    if (closedRef.current || saving) return;
+    closedRef.current = true;
+
     const changes: Record<string, unknown> = {};
     if (title.trim() !== (item.title ?? "")) changes.title = title.trim();
     if (content.trim() !== item.content) changes.content = content.trim();
@@ -29,14 +40,20 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     if (date !== origDate) changes.date = date || null;
 
     if (Object.keys(changes).length > 0) {
-      updateItem.mutate({
-        id: item.id,
-        lockVersion: item.lockVersion,
-        ...changes,
-      });
+      setSaving(true);
+      try {
+        await updateItem.mutateAsync({
+          id: item.id,
+          lockVersion: item.lockVersion,
+          ...changes,
+        });
+      } catch (e) {
+        console.error("저장 실패:", e);
+      }
+      setSaving(false);
     }
     onClose();
-  }, [title, content, date, item, updateItem, onClose]);
+  }, [title, content, date, item, saving, updateItem, onClose]);
 
   if (!open) return null;
 
@@ -56,10 +73,11 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           <span className="text-xs text-[var(--muted-foreground)] capitalize">
             {item.stage}
           </span>
-          <button onClick={saveAndClose} className="text-sm hover:opacity-70">✕</button>
+          <button onClick={saveAndClose} disabled={saving} className="text-sm hover:opacity-70">
+            {saving ? "저장 중..." : "✕"}
+          </button>
         </div>
 
-        {/* 제목 */}
         <input
           ref={titleRef}
           type="text"
@@ -69,7 +87,6 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           className={`${inputClass} font-medium`}
         />
 
-        {/* 날짜 */}
         <input
           type="date"
           value={date}
@@ -77,7 +94,6 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           className={inputClass}
         />
 
-        {/* 세부내용 */}
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -85,10 +101,6 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           className={`${inputClass} resize-none`}
           rows={4}
         />
-
-        <p className="text-[10px] text-[var(--muted-foreground)]">
-          바깥을 클릭하거나 ✕를 누르면 자동 저장됩니다
-        </p>
       </div>
     </div>
   );
