@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 
-type Params = { params: Promise<{ businessId: string }> };
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, context: Params) {
-  const { businessId } = await context.params;
+  const { id: businessId } = await context.params;
 
   const items = await prisma.progressItem.findMany({
     where: { businessId },
@@ -24,7 +24,7 @@ export async function GET(_request: NextRequest, context: Params) {
 }
 
 export async function POST(request: NextRequest, context: Params) {
-  const { businessId } = await context.params;
+  const { id: businessId } = await context.params;
   const body = await request.json();
   const { stage, content, sortOrder } = body;
 

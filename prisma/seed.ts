@@ -1,6 +1,16 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL or DIRECT_URL is required");
+}
+
+const pool = new pg.Pool({ connectionString });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const adapter = new PrismaPg(pool as any);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Create system user
@@ -29,13 +39,13 @@ async function main() {
   sunday.setDate(monday.getDate() + 6);
 
   // Calculate ISO week number
-  const janFirst = new Date(now.getFullYear(), 0, 1);
-  const daysSinceJan1 =
-    Math.floor(
-      (now.getTime() - janFirst.getTime()) / (24 * 60 * 60 * 1000),
-    ) + 1;
+  const d = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()),
+  );
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   const weekNumber = Math.ceil(
-    (daysSinceJan1 + janFirst.getDay()) / 7,
+    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
   );
 
   const currentCycle = await prisma.weeklyCycle.upsert({
@@ -62,9 +72,11 @@ async function main() {
 main()
   .then(async () => {
     await prisma.$disconnect();
+    await pool.end();
   })
   .catch(async (e) => {
     console.error(e);
     await prisma.$disconnect();
+    await pool.end();
     process.exit(1);
   });
