@@ -4,7 +4,15 @@ import { createWorkbook, styleHeader, generateFilename, workbookToBuffer } from 
 import { createAuditLog } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
   const { type, ...options } = body;
 
   if (type === "weekly") {
@@ -27,6 +35,13 @@ async function handleWeeklyExport(options: {
   includeCarryover?: boolean;
   assignedTo?: string;
 }) {
+  if (!options.cycleId) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "cycleId is required for weekly export" },
+      { status: 400 },
+    );
+  }
+
   const where = {
     cycleId: options.cycleId,
     isArchived: false,
@@ -68,12 +83,16 @@ async function handleWeeklyExport(options: {
   const filename = generateFilename("weekly");
   const buffer = await workbookToBuffer(wb);
 
-  await createAuditLog({
-    entityType: "export",
-    entityId: options.cycleId,
-    action: "download",
-    changes: { type: "weekly", ...options, filename },
-  });
+  try {
+    await createAuditLog({
+      entityType: "export",
+      entityId: options.cycleId,
+      action: "download",
+      changes: { type: "weekly", ...options, filename },
+    });
+  } catch (e) {
+    console.error("Audit log failed (weekly export):", e);
+  }
 
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
@@ -90,6 +109,15 @@ async function handleMonthlyExport(options: {
   includeStageStatus?: boolean;
   includeIncompleteActions?: boolean;
 }) {
+  const year = Number(options.year);
+  const month = Number(options.month);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "year and month must be valid numbers (month 1-12)" },
+      { status: 400 },
+    );
+  }
+
   const businesses = await prisma.business.findMany({
     where: { isArchived: false },
     include: {
@@ -127,12 +155,16 @@ async function handleMonthlyExport(options: {
   const filename = generateFilename(`monthly_${options.year}-${String(options.month).padStart(2, "0")}`);
   const buffer = await workbookToBuffer(wb);
 
-  await createAuditLog({
-    entityType: "export",
-    entityId: `${options.year}-${options.month}`,
-    action: "download",
-    changes: { type: "monthly", ...options, filename },
-  });
+  try {
+    await createAuditLog({
+      entityType: "export",
+      entityId: `${options.year}-${options.month}`,
+      action: "download",
+      changes: { type: "monthly", ...options, filename },
+    });
+  } catch (e) {
+    console.error("Audit log failed (monthly export):", e);
+  }
 
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
