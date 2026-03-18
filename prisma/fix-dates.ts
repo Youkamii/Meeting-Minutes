@@ -6,21 +6,22 @@ const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL or DIRECT_URL is required");
 
 const pool = new pg.Pool({ connectionString });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const adapter = new PrismaPg(pool as any);
+const adapter = new PrismaPg(pool as unknown as ConstructorParameters<typeof PrismaPg>[0]);
 const prisma = new PrismaClient({ adapter });
 
 // (MM/DD) or (M/DD) or (MM/D) or (M/D) pattern
 const DATE_PATTERN = /\((\d{1,2})\/(\d{1,2})\)\s*/;
 
+// Base year: months >= cutoffMonth are baseYear, otherwise baseYear+1
+const BASE_YEAR = parseInt(process.argv[2] || "2025", 10);
+const CUTOFF_MONTH = parseInt(process.argv[3] || "4", 10);
+
 function parseDate(month: number, day: number): Date {
-  // 4~12월 → 2025, 1~3월 → 2026
-  const year = month >= 4 ? 2025 : 2026;
+  const year = month >= CUTOFF_MONTH ? BASE_YEAR : BASE_YEAR + 1;
   return new Date(year, month - 1, day);
 }
 
 function stripDatePrefixes(content: string): string {
-  // Remove (MM/DD) patterns from each line
   return content
     .split("\n")
     .map((line) => line.replace(DATE_PATTERN, "").trim())
@@ -31,16 +32,19 @@ function stripDatePrefixes(content: string): string {
 async function main() {
   const items = await prisma.progressItem.findMany();
   console.log(`Found ${items.length} progress items`);
+  console.log(`Date logic: month >= ${CUTOFF_MONTH} → ${BASE_YEAR}, else → ${BASE_YEAR + 1}`);
 
   let updated = 0;
   for (const item of items) {
-    const match = item.content?.match(DATE_PATTERN);
+    if (!item.content) continue;
+
+    const match = item.content.match(DATE_PATTERN);
     if (!match) continue;
 
     const month = parseInt(match[1], 10);
     const day = parseInt(match[2], 10);
     const date = parseDate(month, day);
-    const cleanContent = stripDatePrefixes(item.content!);
+    const cleanContent = stripDatePrefixes(item.content);
 
     await prisma.progressItem.update({
       where: { id: item.id },
