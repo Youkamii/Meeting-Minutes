@@ -2,14 +2,20 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
+// Safety check: require --force flag to prevent accidental production runs
+if (!process.argv.includes("--force")) {
+  console.error("⚠ This script deletes ALL existing data before importing.");
+  console.error("  Run with --force to confirm: npx tsx prisma/import-excel.ts --force");
+  process.exit(1);
+}
+
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL or DIRECT_URL is required");
 }
 
 const pool = new pg.Pool({ connectionString });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const adapter = new PrismaPg(pool as any);
+const adapter = new PrismaPg(pool as unknown as ConstructorParameters<typeof PrismaPg>[0]);
 const prisma = new PrismaClient({ adapter });
 
 // Stage mapping from Excel columns to DB enum
@@ -335,168 +341,164 @@ const rows = [
   },
 ];
 
-// Determine the "current stage" from progress data
-function determineCurrentStage(
-  stages: Record<string, string>,
-): string {
-  const stageOrder = [
-    "maintenance",
-    "build",
-    "contract",
-    "proposal",
-    "pipeline",
-    "funnel",
-    "inbound",
-  ];
-  for (const stage of stageOrder) {
+type Stage = "inbound" | "funnel" | "pipeline" | "proposal" | "contract" | "build" | "maintenance";
+
+const STAGE_ORDER: Stage[] = [
+  "maintenance",
+  "build",
+  "contract",
+  "proposal",
+  "pipeline",
+  "funnel",
+  "inbound",
+];
+
+function determineCurrentStage(stages: Record<string, string>): Stage {
+  for (const stage of STAGE_ORDER) {
     if (stages[stage]) return stage;
   }
   return "inbound";
 }
 
 async function main() {
-  // 1. Clean all existing data
-  console.log("Cleaning existing data...");
-  await prisma.recentView.deleteMany({});
-  await prisma.internalNoteVersion.deleteMany({});
-  await prisma.weeklyActionVersion.deleteMany({});
-  await prisma.progressItemVersion.deleteMany({});
-  await prisma.businessVersion.deleteMany({});
-  await prisma.auditLog.deleteMany({});
-  await prisma.internalNote.deleteMany({});
-  await prisma.weeklyAction.deleteMany({});
-  await prisma.progressItem.deleteMany({});
-  await prisma.business.deleteMany({});
-  await prisma.companyAlias.deleteMany({});
-  await prisma.company.deleteMany({});
-  await prisma.weeklyCycle.deleteMany({});
-  console.log("All data cleaned.");
+  await prisma.$transaction(async (tx) => {
+    // 1. Clean all existing data
+    console.log("Cleaning existing data...");
+    await tx.recentView.deleteMany({});
+    await tx.internalNoteVersion.deleteMany({});
+    await tx.weeklyActionVersion.deleteMany({});
+    await tx.progressItemVersion.deleteMany({});
+    await tx.businessVersion.deleteMany({});
+    await tx.auditLog.deleteMany({});
+    await tx.internalNote.deleteMany({});
+    await tx.weeklyAction.deleteMany({});
+    await tx.progressItem.deleteMany({});
+    await tx.business.deleteMany({});
+    await tx.companyAlias.deleteMany({});
+    await tx.company.deleteMany({});
+    await tx.weeklyCycle.deleteMany({});
+    console.log("All data cleaned.");
 
-  // 2. Re-create system user and weekly cycle
-  const systemUser = await prisma.user.upsert({
-    where: { email: "system@meeting-minutes.local" },
-    update: {},
-    create: {
-      email: "system@meeting-minutes.local",
-      name: "System",
-      role: "admin",
-      status: "approved",
-    },
-  });
-  console.log(`System user: ${systemUser.id}`);
+    // 2. Re-create system user and weekly cycle
+    const systemUser = await tx.user.upsert({
+      where: { email: "system@meeting-minutes.local" },
+      update: {},
+      create: {
+        email: "system@meeting-minutes.local",
+        name: "System",
+        role: "admin",
+        status: "approved",
+      },
+    });
+    console.log(`System user: ${systemUser.id}`);
 
-  // Create current week cycle
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
 
-  const d = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()),
-  );
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNumber = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
-  );
+    const d = new Date(
+      Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()),
+    );
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNumber = Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    );
 
-  await prisma.weeklyCycle.upsert({
-    where: { year_weekNumber: { year: now.getFullYear(), weekNumber } },
-    update: {},
-    create: {
-      year: now.getFullYear(),
-      weekNumber,
-      startDate: monday,
-      endDate: sunday,
-    },
-  });
-  console.log(`Weekly cycle: ${now.getFullYear()}-W${weekNumber}`);
+    await tx.weeklyCycle.upsert({
+      where: { year_weekNumber: { year: now.getFullYear(), weekNumber } },
+      update: {},
+      create: {
+        year: now.getFullYear(),
+        weekNumber,
+        startDate: monday,
+        endDate: sunday,
+      },
+    });
+    console.log(`Weekly cycle: ${now.getFullYear()}-W${weekNumber}`);
 
-  // 3. Import Excel data
-  // Track companies to handle duplicates (e.g., 고려해운 has 2 businesses)
-  const companyMap = new Map<string, string>(); // name -> id
+    // 3. Import Excel data
+    const companyMap = new Map<string, string>();
 
-  let sortOrder = 0;
-  for (const row of rows) {
-    sortOrder++;
+    let sortOrder = 0;
+    for (const row of rows) {
+      sortOrder++;
 
-    // Create or get company
-    let companyId = companyMap.get(row.company);
-    if (!companyId) {
-      const company = await prisma.company.create({
-        data: {
-          canonicalName: row.company,
-          isKey: false,
-          sortOrder,
-          createdById: systemUser.id,
-          updatedById: systemUser.id,
-          aliases:
-            row.company === "수비올"
-              ? {
-                  create: [
-                    { alias: "테크로스 환경서비스" },
-                    { alias: "수비올" },
-                  ],
-                }
-              : undefined,
-        },
-      });
-      companyId = company.id;
-      companyMap.set(row.company, companyId);
-      console.log(`  Company: ${row.company}`);
-    }
-
-    // Create business if name exists, or if there are stages (some rows have no business name but have stage data)
-    const hasStages = Object.keys(row.stages).length > 0;
-    if (row.business || hasStages) {
-      const currentStage = determineCurrentStage(
-        row.stages as Record<string, string>,
-      );
-      const business = await prisma.business.create({
-        data: {
-          companyId,
-          name: row.business || row.company,
-          visibility: row.visibility === "public" ? "public" : "private",
-          scale: row.scale != null ? String(row.scale) : null,
-          currentStage: currentStage as any,
-          sortOrder,
-          createdById: systemUser.id,
-          updatedById: systemUser.id,
-        },
-      });
-      console.log(
-        `    Business: ${business.name} [${currentStage}] scale=${row.scale}`,
-      );
-
-      // Create progress items for each stage
-      let piOrder = 0;
-      for (const [stage, content] of Object.entries(row.stages)) {
-        if (!content) continue;
-        piOrder++;
-        await prisma.progressItem.create({
+      let companyId = companyMap.get(row.company);
+      if (!companyId) {
+        const company = await tx.company.create({
           data: {
-            businessId: business.id,
-            stage: stage as any,
-            content: content as string,
-            sortOrder: piOrder,
+            canonicalName: row.company,
+            isKey: false,
+            sortOrder,
+            createdById: systemUser.id,
+            updatedById: systemUser.id,
+            aliases:
+              row.company === "수비올"
+                ? {
+                    create: [
+                      { alias: "테크로스 환경서비스" },
+                      { alias: "수비올" },
+                    ],
+                  }
+                : undefined,
+          },
+        });
+        companyId = company.id;
+        companyMap.set(row.company, companyId);
+        console.log(`  Company: ${row.company}`);
+      }
+
+      const hasStages = Object.keys(row.stages).length > 0;
+      if (row.business || hasStages) {
+        const currentStage = determineCurrentStage(
+          row.stages as Record<string, string>,
+        );
+        const business = await tx.business.create({
+          data: {
+            companyId,
+            name: row.business || row.company,
+            visibility: row.visibility === "public" ? "public" : "private",
+            scale: row.scale != null ? String(row.scale) : null,
+            currentStage,
+            sortOrder,
             createdById: systemUser.id,
             updatedById: systemUser.id,
           },
         });
-        console.log(`      Progress [${stage}]: ${(content as string).substring(0, 50)}...`);
-      }
-    } else {
-      // Company-only row (no business name, no stages)
-      console.log(`    (no business data)`);
-    }
-  }
+        console.log(
+          `    Business: ${business.name} [${currentStage}] scale=${row.scale}`,
+        );
 
-  console.log("\nImport complete!");
-  console.log(`Companies: ${companyMap.size}`);
+        let piOrder = 0;
+        for (const [stage, content] of Object.entries(row.stages)) {
+          if (!content) continue;
+          piOrder++;
+          await tx.progressItem.create({
+            data: {
+              businessId: business.id,
+              stage: stage as Stage,
+              content,
+              sortOrder: piOrder,
+              createdById: systemUser.id,
+              updatedById: systemUser.id,
+            },
+          });
+          console.log(`      Progress [${stage}]: ${content.substring(0, 50)}...`);
+        }
+      } else {
+        console.log(`    (no business data)`);
+      }
+    }
+
+    console.log("\nImport complete!");
+    console.log(`Companies: ${companyMap.size}`);
+  }, { timeout: 60000 });
 }
 
 main()
