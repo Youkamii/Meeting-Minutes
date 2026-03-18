@@ -45,58 +45,62 @@ export async function POST(request: NextRequest) {
     where: { id: { in: actionIds }, cycleId: sourceCycleId },
   });
 
-  const created = [];
+  const created = await prisma.$transaction(async (tx) => {
+    const results = [];
 
-  for (const source of sourceActions) {
-    // Check for duplicate carryover
-    const existing = await prisma.weeklyAction.findUnique({
-      where: {
-        carriedFromId_cycleId: {
-          carriedFromId: source.id,
-          cycleId: targetCycleId,
+    for (const source of sourceActions) {
+      // Check for duplicate carryover
+      const existing = await tx.weeklyAction.findUnique({
+        where: {
+          carriedFromId_cycleId: {
+            carriedFromId: source.id,
+            cycleId: targetCycleId,
+          },
         },
-      },
-    });
+      });
 
-    if (existing) continue; // Skip already carried over
+      if (existing) continue; // Skip already carried over
 
-    const newAction = await prisma.weeklyAction.create({
-      data: {
-        cycleId: targetCycleId,
-        companyId: source.companyId,
-        businessId: source.businessId,
-        content: source.content,
-        assignedToId: source.assignedToId,
-        status: "scheduled",
-        priority: source.priority,
-        carriedFromId: source.id,
-        carryoverCount: source.carryoverCount + 1,
-        sortOrder: source.sortOrder,
-      },
-      include: { company: true, business: true, cycle: true },
-    });
+      const newAction = await tx.weeklyAction.create({
+        data: {
+          cycleId: targetCycleId,
+          companyId: source.companyId,
+          businessId: source.businessId,
+          content: source.content,
+          assignedToId: source.assignedToId,
+          status: "scheduled",
+          priority: source.priority,
+          carriedFromId: source.id,
+          carryoverCount: source.carryoverCount + 1,
+          sortOrder: source.sortOrder,
+        },
+        include: { company: true, business: true, cycle: true },
+      });
 
-    await createVersionSnapshot({
-      entityType: "weeklyAction",
-      entityId: newAction.id,
-      snapshot: JSON.parse(JSON.stringify(newAction)),
-    });
+      await createVersionSnapshot({
+        entityType: "weeklyAction",
+        entityId: newAction.id,
+        snapshot: JSON.parse(JSON.stringify(newAction)),
+      });
 
-    await createAuditLog({
-      entityType: "weekly_action",
-      entityId: newAction.id,
-      action: "carryover",
-      changes: {
-        sourceCycleId,
-        targetCycleId,
-        originalActionId: source.id,
-        carryoverCount: newAction.carryoverCount,
-      },
-      summary: `Carried over from previous week (count: ${newAction.carryoverCount})`,
-    });
+      await createAuditLog({
+        entityType: "weekly_action",
+        entityId: newAction.id,
+        action: "carryover",
+        changes: {
+          sourceCycleId,
+          targetCycleId,
+          originalActionId: source.id,
+          carryoverCount: newAction.carryoverCount,
+        },
+        summary: `Carried over from previous week (count: ${newAction.carryoverCount})`,
+      });
 
-    created.push(newAction);
-  }
+      results.push(newAction);
+    }
+
+    return results;
+  });
 
   return NextResponse.json({
     data: created,

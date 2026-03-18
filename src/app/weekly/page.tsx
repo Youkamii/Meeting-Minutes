@@ -75,8 +75,8 @@ export default function WeeklyMeetingPage() {
     if (!activeCycle) return null;
     return cycles.find(
       (c) =>
-        c.year === activeCycle.year && c.weekNumber === activeCycle.weekNumber - 1 ||
-        (activeCycle.weekNumber === 1 && c.year === activeCycle.year - 1),
+        (c.year === activeCycle.year && c.weekNumber === activeCycle.weekNumber - 1) ||
+        (activeCycle.weekNumber === 1 && c.year === activeCycle.year - 1 && c.weekNumber >= 52),
     );
   }, [cycles, activeCycle]);
 
