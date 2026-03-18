@@ -8,6 +8,9 @@ import { NewActionDialog } from "@/components/weekly-meeting/new-action-dialog";
 import { CarryoverDialog } from "@/components/weekly-meeting/carryover-dialog";
 import { WeekEndActions } from "@/components/weekly-meeting/week-end-actions";
 import { QuickActionsBar } from "@/components/ui/quick-actions";
+import { MeetingModeToggle } from "@/components/meeting-mode/meeting-mode-toggle";
+import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
+import { useUIStore } from "@/stores/ui-store";
 import { formatWeekLabel } from "@/lib/weekly-cycle";
 import type { Company, ActionStatus, Priority } from "@/types";
 
@@ -20,6 +23,7 @@ export default function WeeklyMeetingPage() {
   const [selectedCycleId, setSelectedCycleId] = useState<string | null>(null);
   const activeCycleId = selectedCycleId ?? currentCycle?.id ?? null;
 
+  const meetingModeActive = useUIStore((s) => s.meetingModeActive);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [showNewAction, setShowNewAction] = useState(false);
   const [showCarryover, setShowCarryover] = useState(false);
@@ -69,6 +73,9 @@ export default function WeeklyMeetingPage() {
   }, [actions]);
 
   const activeCycle = cycles.find((c) => c.id === activeCycleId) ?? currentCycle;
+  const weekLabel = activeCycle
+    ? formatWeekLabel(activeCycle.year, activeCycle.weekNumber)
+    : "";
 
   // Find previous cycle for carryover
   const prevCycle = useMemo(() => {
@@ -120,6 +127,7 @@ export default function WeeklyMeetingPage() {
         </select>
 
         <div className="ml-auto flex items-center gap-2">
+          <MeetingModeToggle />
           {prevCycle && (
             <WeekEndActions onCarryover={() => setShowCarryover(true)} />
           )}
@@ -131,8 +139,16 @@ export default function WeeklyMeetingPage() {
         </div>
       </div>
 
-      {/* Action list */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Meeting Mode */}
+      {meetingModeActive && (
+        <MeetingModeView
+          actions={actions as never[]}
+          weekLabel={weekLabel}
+        />
+      )}
+
+      {/* Normal Action list */}
+      <div className={`flex-1 overflow-y-auto p-4 ${meetingModeActive ? "hidden" : ""}`}>
         {actionsLoading && (
           <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
         )}

@@ -1,0 +1,95 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useTheme } from "next-themes";
+import { SearchOverlay } from "@/components/search/search-overlay";
+
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-[var(--accent)] transition-colors"
+    >
+      {children}
+    </a>
+  );
+}
+
+export function TopNav() {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setSearchOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [handleGlobalKeyDown]);
+
+  return (
+    <>
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
+        <nav className="mx-auto flex h-14 max-w-screen-2xl items-center gap-2 px-4">
+          <a href="/" className="mr-4 text-lg font-bold">
+            MM
+          </a>
+
+          <NavLink href="/">Home</NavLink>
+          <NavLink href="/business">Business</NavLink>
+          <NavLink href="/weekly">Weekly</NavLink>
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden h-8 w-56 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 text-sm text-[var(--muted-foreground)] sm:flex"
+            >
+              <span>⌕</span>
+              <span className="flex-1 text-left">Search...</span>
+              <kbd className="rounded border border-[var(--border)] px-1 py-0.5 text-[10px]">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] sm:hidden"
+            >
+              ⌕
+            </button>
+
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-8 w-8 rounded-md border border-[var(--border)] text-sm hover:bg-[var(--accent)] transition-colors"
+              aria-label="Toggle theme"
+            >
+              {mounted ? (theme === "dark" ? "☀" : "☽") : "◑"}
+            </button>
+
+            <div className="h-8 w-8 rounded-full bg-[var(--muted)] flex items-center justify-center text-xs">
+              U
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <SearchOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
+    </>
+  );
+}
