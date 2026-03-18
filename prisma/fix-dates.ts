@@ -1,0 +1,72 @@
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
+
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) throw new Error("DATABASE_URL or DIRECT_URL is required");
+
+const pool = new pg.Pool({ connectionString });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const adapter = new PrismaPg(pool as any);
+const prisma = new PrismaClient({ adapter });
+
+// (MM/DD) or (M/DD) or (MM/D) or (M/D) pattern
+const DATE_PATTERN = /\((\d{1,2})\/(\d{1,2})\)\s*/;
+
+function parseDate(month: number, day: number): Date {
+  // 4~12월 → 2025, 1~3월 → 2026
+  const year = month >= 4 ? 2025 : 2026;
+  return new Date(year, month - 1, day);
+}
+
+function stripDatePrefixes(content: string): string {
+  // Remove (MM/DD) patterns from each line
+  return content
+    .split("\n")
+    .map((line) => line.replace(DATE_PATTERN, "").trim())
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
+async function main() {
+  const items = await prisma.progressItem.findMany();
+  console.log(`Found ${items.length} progress items`);
+
+  let updated = 0;
+  for (const item of items) {
+    const match = item.content?.match(DATE_PATTERN);
+    if (!match) continue;
+
+    const month = parseInt(match[1], 10);
+    const day = parseInt(match[2], 10);
+    const date = parseDate(month, day);
+    const cleanContent = stripDatePrefixes(item.content!);
+
+    await prisma.progressItem.update({
+      where: { id: item.id },
+      data: {
+        date,
+        content: cleanContent,
+      },
+    });
+
+    updated++;
+    console.log(
+      `  [${item.stage}] ${date.toISOString().slice(0, 10)} | ${cleanContent.substring(0, 60)}...`,
+    );
+  }
+
+  console.log(`\nUpdated ${updated}/${items.length} items`);
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    await pool.end();
+    process.exit(1);
+  });
