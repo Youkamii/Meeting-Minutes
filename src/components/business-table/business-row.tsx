@@ -13,20 +13,9 @@ interface BusinessRowProps {
     scale: string | null;
     timingText: string | null;
     currentStage: Stage | null;
-    assignedToId: string | null;
+    assignedTo: string | null;
     companyName?: string;
-    progressItems?: {
-      id: string;
-      businessId: string;
-      stage: Stage;
-      content: string;
-      sortOrder: number;
-      createdBy: string | null;
-      updatedBy: string | null;
-      createdAt: string;
-      updatedAt: string;
-      lockVersion: number;
-    }[];
+    progressItems?: ProgressItem[];
   };
   onClick: () => void;
 }
