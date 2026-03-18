@@ -66,20 +66,20 @@ export function ConflictDialog({
       onClick={handleBackdropClick}
     >
       <div className="mx-4 w-full max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
-        <h2 className="text-lg font-bold">Conflict Detected</h2>
+        <h2 className="text-lg font-bold">충돌 감지</h2>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-          This record was modified by another user. Compare the changes below.
+          이 레코드가 다른 사용자에 의해 수정되었습니다. 아래에서 변경사항을 비교하세요.
         </p>
 
         <div className="mt-4 max-h-80 overflow-auto rounded border border-[var(--border)]">
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-[var(--muted)]">
               <tr>
-                <th className="px-3 py-2 text-xs font-medium">Field</th>
+                <th className="px-3 py-2 text-xs font-medium">필드</th>
                 <th className="px-3 py-2 text-xs font-medium">
-                  Server (Latest)
+                  서버 (최신)
                 </th>
-                <th className="px-3 py-2 text-xs font-medium">Your Changes</th>
+                <th className="px-3 py-2 text-xs font-medium">내 변경사항</th>
               </tr>
             </thead>
             <tbody>
@@ -100,19 +100,19 @@ export function ConflictDialog({
             onClick={onClose}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--muted)] transition-colors"
           >
-            Cancel
+            취소
           </button>
           <button
             onClick={onUseLatest}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--muted)] transition-colors"
           >
-            Use Latest
+            최신 버전 사용
           </button>
           <button
             onClick={onReapply}
             className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90 transition-opacity"
           >
-            Re-apply My Changes
+            내 변경사항 재적용
           </button>
         </div>
       </div>
