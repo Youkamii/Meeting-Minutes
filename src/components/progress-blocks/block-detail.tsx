@@ -57,6 +57,11 @@ function MiniCalendar({ onDateClick }: { onDateClick: (day: number, month: numbe
   );
 }
 
+const MIN_WIDTH = 540;
+const MIN_HEIGHT = 400;
+const DEFAULT_WIDTH = 700;
+const DEFAULT_HEIGHT = 520;
+
 export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
   const [content, setContent] = useState(item.content);
@@ -65,6 +70,29 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const updateItem = useUpdateProgressItem();
   const titleRef = useRef<HTMLInputElement>(null);
   const closedRef = useRef(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: DEFAULT_WIDTH, h: DEFAULT_HEIGHT });
+  const resizing = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizing.current = { startX: e.clientX, startY: e.clientY, startW: size.w, startH: size.h };
+
+    const onMove = (ev: MouseEvent) => {
+      if (!resizing.current) return;
+      const newW = Math.max(MIN_WIDTH, resizing.current.startW + (ev.clientX - resizing.current.startX));
+      const newH = Math.max(MIN_HEIGHT, resizing.current.startH + (ev.clientY - resizing.current.startY));
+      setSize({ w: newW, h: newH });
+    };
+    const onUp = () => {
+      resizing.current = null;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [size]);
 
   useEffect(() => {
     if (open) {
@@ -72,6 +100,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
       setTitle(item.title ?? "");
       setContent(item.content);
       setDate(item.date ?? "");
+      setSize({ w: DEFAULT_WIDTH, h: DEFAULT_HEIGHT });
       setTimeout(() => titleRef.current?.focus(), 50);
     }
   }, [open, item]);
@@ -127,11 +156,13 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
       onClick={saveAndClose}
     >
       <div
-        className="mx-4 flex gap-5 rounded-lg border border-[var(--border)] bg-[var(--background)] p-5 shadow-xl"
+        ref={modalRef}
+        className="relative mx-4 flex gap-5 rounded-lg border border-[var(--border)] bg-[var(--background)] p-5 shadow-xl"
+        style={{ width: size.w, height: size.h }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Left: form */}
-        <div className="flex-1 min-w-[320px] space-y-3">
+        <div className="flex flex-1 min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--muted-foreground)] capitalize">
               {item.stage}
@@ -162,18 +193,27 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="세부내용"
-            className={`${inputClass} resize-none`}
-            rows={4}
+            className={`${inputClass} flex-1 min-h-0`}
           />
 
-          <p className="text-[10px] text-[var(--muted-foreground)]">
+          <p className="text-[10px] text-[var(--muted-foreground)] shrink-0">
             바깥을 클릭하거나 ✕를 누르면 자동 저장됩니다
           </p>
         </div>
 
         {/* Right: calendar */}
-        <div className="border-l border-[var(--border)] pl-5">
+        <div className="shrink-0 border-l border-[var(--border)] pl-5">
           <MiniCalendar onDateClick={handleCalendarDateClick} />
+        </div>
+
+        {/* Resize handle */}
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          onMouseDown={handleResizeStart}
+        >
+          <svg viewBox="0 0 16 16" className="w-4 h-4 text-[var(--muted-foreground)] opacity-50">
+            <path d="M14 14H10M14 14V10M14 8V14H8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          </svg>
         </div>
       </div>
     </div>
