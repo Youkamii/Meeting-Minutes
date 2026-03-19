@@ -79,14 +79,14 @@ function DroppableStage({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
-  const [newContent, setNewContent] = useState("");
+  const [newTitle, setNewTitle] = useState("");
   const createItem = useCreateProgressItem();
 
   const handleAdd = () => {
-    if (!newContent.trim()) return;
+    if (!newTitle.trim()) return;
     createItem.mutate(
-      { businessId, stage, content: newContent.trim() },
-      { onSuccess: () => { setNewContent(""); setShowAdd(false); } },
+      { businessId, stage, title: newTitle.trim() },
+      { onSuccess: () => { setNewTitle(""); setShowAdd(false); } },
     );
   };
 
@@ -108,11 +108,11 @@ function DroppableStage({
         <div className="flex gap-1">
           <input
             type="text"
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-[var(--ring)]"
-            placeholder="내용..."
+            placeholder="제목..."
             autoFocus
           />
           <button onClick={handleAdd} className="shrink-0 text-xs text-[var(--primary)]">✓</button>
