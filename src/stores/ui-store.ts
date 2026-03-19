@@ -7,6 +7,12 @@ interface UIState {
   toggleSidebar: () => void;
   toggleMeetingMode: () => void;
   setMeetingMode: (active: boolean) => void;
+  // Search highlight: scroll to & red-border a specific card
+  searchHighlightId: string | null;
+  setSearchHighlightId: (id: string | null) => void;
+  // Search filter: dim all cards not matching this text
+  searchFilterText: string | null;
+  setSearchFilterText: (text: string | null) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -19,6 +25,10 @@ export const useUIStore = create<UIState>()(
       toggleMeetingMode: () =>
         set((state) => ({ meetingModeActive: !state.meetingModeActive })),
       setMeetingMode: (active) => set({ meetingModeActive: active }),
+      searchHighlightId: null,
+      setSearchHighlightId: (id) => set({ searchHighlightId: id }),
+      searchFilterText: null,
+      setSearchFilterText: (text) => set({ searchFilterText: text }),
     }),
     {
       name: "meeting-minutes-ui",
