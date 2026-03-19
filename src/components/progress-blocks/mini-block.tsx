@@ -30,9 +30,7 @@ export function MiniBlock({
   createdAt,
   onClick,
 }: MiniBlockProps) {
-  const displayDate = date
-    ? new Date(date).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
-    : new Date(createdAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+  const displayDate = date || "";
 
   return (
     <div
