@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, context: Params) {
       data: {
         ...(title !== undefined ? { title: title.trim() } : {}),
         ...(content !== undefined ? { content: content.trim() } : {}),
-        ...(date !== undefined ? { date: date ? new Date(date) : null } : {}),
+        ...(date !== undefined ? { date: date && !isNaN(new Date(date).getTime()) ? new Date(date) : null } : {}),
         ...(sortOrder !== undefined ? { sortOrder } : {}),
         lockVersion: { increment: 1 },
       },
