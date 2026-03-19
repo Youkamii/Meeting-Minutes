@@ -60,7 +60,7 @@ function MiniCalendar({ onDateClick }: { onDateClick: (day: number, month: numbe
 export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
   const [content, setContent] = useState(item.content);
-  const [date, setDate] = useState(item.date ? String(item.date).slice(0, 10) : "");
+  const [date, setDate] = useState(item.date ?? "");
   const [saving, setSaving] = useState(false);
   const updateItem = useUpdateProgressItem();
   const titleRef = useRef<HTMLInputElement>(null);
@@ -71,7 +71,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
       closedRef.current = false;
       setTitle(item.title ?? "");
       setContent(item.content);
-      setDate(item.date ? String(item.date).slice(0, 10) : "");
+      setDate(item.date ?? "");
       setTimeout(() => titleRef.current?.focus(), 50);
     }
   }, [open, item]);
@@ -83,7 +83,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     const changes: Record<string, unknown> = {};
     if (title.trim() !== (item.title ?? "")) changes.title = title.trim();
     if (content.trim() !== item.content) changes.content = content.trim();
-    const origDate = item.date ? String(item.date).slice(0, 10) : "";
+    const origDate = item.date ?? "";
     if (date !== origDate) changes.date = date || null;
 
     if (Object.keys(changes).length > 0) {
