@@ -135,9 +135,10 @@ interface StageRowDndProps {
   businessId: string;
   progressItems: ProgressItem[];
   onBlockClick?: (item: ProgressItem) => void;
+  visibleStages?: Set<string>;
 }
 
-export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRowDndProps) {
+export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleStages }: StageRowDndProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
@@ -209,15 +210,36 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
       onDragEnd={handleDragEnd}
     >
       <div className="flex">
-        {STAGES.map((stage) => (
-          <DroppableStage
-            key={stage}
-            stage={stage}
-            items={itemsByStage[stage]}
-            businessId={businessId}
-            onBlockClick={onBlockClick}
-          />
-        ))}
+        {STAGES.map((stage) => {
+          if (visibleStages && !visibleStages.has(stage)) {
+            const count = (itemsByStage[stage] ?? []).length;
+            return (
+              <div key={stage} className="w-[40px] shrink-0 border-r border-[var(--border)] flex flex-col items-center gap-1 py-2">
+                {(itemsByStage[stage] ?? []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.id}
+                    className="w-5 h-1.5 rounded-full bg-[var(--muted-foreground)] opacity-25"
+                    title={item.title || item.content}
+                  />
+                ))}
+                {count > 5 && (
+                  <span className="text-[8px] text-[var(--muted-foreground)] opacity-40">
+                    +{count - 5}
+                  </span>
+                )}
+              </div>
+            );
+          }
+          return (
+            <DroppableStage
+              key={stage}
+              stage={stage}
+              items={itemsByStage[stage]}
+              businessId={businessId}
+              onBlockClick={onBlockClick}
+            />
+          );
+        })}
       </div>
 
       <DragOverlay>
