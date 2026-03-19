@@ -8,20 +8,23 @@ interface CompanyGroupRowProps {
   company: Company;
   businessCount: number;
   children: React.ReactNode;
+  dragHandleProps?: Record<string, unknown>;
 }
 
 export function CompanyGroupRow({
   company,
   businessCount,
   children,
+  dragHandleProps,
 }: CompanyGroupRowProps) {
   const [expanded, setExpanded] = useState(true);
 
   return (
     <div className="border-b border-[var(--border)]">
       <div
-        className="flex cursor-pointer items-center gap-2 bg-[var(--muted)] px-4 py-2 hover:bg-[var(--accent)] transition-colors"
+        className="sticky left-0 z-[5] flex cursor-pointer items-center gap-2 bg-[var(--muted)] px-4 py-2 hover:bg-[var(--accent)] transition-colors"
         onClick={() => setExpanded(!expanded)}
+        {...dragHandleProps}
       >
         <span className="text-xs text-[var(--muted-foreground)] w-4">
           {expanded ? "▼" : "▶"}
