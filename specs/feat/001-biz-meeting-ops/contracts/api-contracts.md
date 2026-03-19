@@ -68,6 +68,14 @@ Restore an archived company.
 
 **Response**: `{ data: Company }`
 
+### PUT /api/companies/reorder
+Batch-update company display order.
+
+**Body**: `{ orderedIds: UUID[] }`
+**Response**: `{ success: true }`
+**Notes**: Sets `sort_order` for each company based on array index position.
+Creates an audit log entry with action "move".
+
 ### POST /api/companies/merge
 Merge companies (admin only).
 
