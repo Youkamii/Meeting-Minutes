@@ -14,6 +14,26 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Validate: no duplicates
+    const uniqueIds = new Set(orderedIds);
+    if (uniqueIds.size !== orderedIds.length) {
+      return NextResponse.json(
+        { error: "VALIDATION", message: "orderedIds contains duplicates" },
+        { status: 400 },
+      );
+    }
+
+    // Validate: all ids exist
+    const existingCount = await prisma.company.count({
+      where: { id: { in: orderedIds } },
+    });
+    if (existingCount !== orderedIds.length) {
+      return NextResponse.json(
+        { error: "VALIDATION", message: "Some company ids do not exist" },
+        { status: 400 },
+      );
+    }
+
     await prisma.$transaction(
       orderedIds.map((id, index) =>
         prisma.company.update({
