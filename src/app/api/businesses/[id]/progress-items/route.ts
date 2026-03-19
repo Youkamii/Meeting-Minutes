@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, context: Params) {
       stage,
       title: trimmedTitle,
       content: trimmedContent,
-      date: date ? new Date(date) : null,
+      date: date && !isNaN(new Date(date).getTime()) ? new Date(date) : null,
       sortOrder: sortOrder ?? (maxSort._max.sortOrder ?? 0) + 1,
     },
   });
