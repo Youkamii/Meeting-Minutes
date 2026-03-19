@@ -419,11 +419,20 @@ and role fields; verify all entities have created_by/updated_by fields.
 - **FR-03**: Business Management screen MUST present an Excel-like table with
   fixed left columns (visibility, company, business name, timing, scale,
   assignee) and horizontally scrollable progress stage columns (Inbound
-  through Maintenance).
+  through Maintenance). The left columns (company group header, business
+  info) MUST remain sticky during horizontal scroll. Stage column headers
+  MUST be clickable to toggle visibility — collapsed stages show as narrow
+  (40px) indicators with mini pill markers representing card count.
+  Multiple stages can be visible simultaneously; minimum one stage must
+  remain visible.
 - **FR-04**: Progress stage cells MUST display thin mini-blocks (not large
   cards) with content, date, and author; support reordering within a stage;
   support moving to another stage within the same business row; show "+N
-  more" overflow indicator.
+  more" overflow indicator. When creating a new progress item without
+  specifying a date, the system MUST default to today's date (YYYY-MM-DD).
+  The block detail modal MUST open at 700×520px by default and support
+  drag-to-resize from the bottom-right corner (minimum 540×400px). The
+  textarea fills available vertical space dynamically.
 - **FR-05**: Business detail MUST open as a right slide panel or full-screen
   view with tabs: Basic Info, Progress, Weekly Actions, Internal Notes,
   Files/References, Log/Version.
@@ -435,19 +444,34 @@ and role fields; verify all entities have created_by/updated_by fields.
   previous week: auto-detect candidates, show candidate list, allow
   selective and bulk carryover, display carryover badge and cumulative
   count.
-- **FR-08**: System MUST support key company designation (toggle on/off),
-  key company filtering, and key company pinning to top — consistently
-  across Business Management, Weekly Meeting, Home, and search results.
+- **FR-08**: System MUST support key company designation (★ toggle on/off)
+  as a favorite marker — consistently across Business Management, Weekly
+  Meeting, Home, and search results. Company display order is controlled
+  via drag-and-drop reordering (not tied to key-company status). The
+  reordered sort order persists via `sortOrder` field. A "중요기업만"
+  checkbox filters the list to show only key companies; when active and no
+  key companies exist, the empty state indicates how to designate key
+  companies.
 - **FR-09**: System MUST provide internal notes (timeline-style, not
   threaded) attachable to Company, Business, and Weekly Action with
   optional tags (Situation, Decision, Risk, Follow-up). Notes MUST be
   searchable and partially visible inline in list/detail views.
-- **FR-10**: System MUST provide global search across company canonical
-  names, aliases, business names, progress block content, memos, weekly
-  action content, and assignee names. Results MUST be grouped by type.
-- **FR-11**: Search results MUST support quick actions: open detail, add
-  weekly action, move stage, change assignee, toggle key company, add
-  memo, view log, view version. Mobile MUST use action sheets.
+- **FR-10**: The system provides two complementary search mechanisms:
+  (a) **Global search (⌘K)** — a command palette overlay for navigating to
+  specific items. Searching across company names/aliases, business names,
+  progress block content, memos, weekly actions. Results grouped by type.
+  Clicking a progress item scrolls to the card and highlights it with a
+  blue border (current) that transitions to red (visited) when the next
+  match is selected; red border fades on mouse hover.
+  (b) **Local filter** — the Business Management toolbar search input dims
+  non-matching progress cards (opacity 25%) without hiding companies or
+  businesses. Pressing Enter cycles through matching cards sequentially
+  with a (n/N) counter. The filter respects the current key-company filter
+  and visible stage selection. Clearing the input (✕) removes all dimming.
+- **FR-11**: Global search results MUST support navigation to the matched
+  item (scroll + highlight for progress items, page navigation for other
+  types). Quick actions from search results are a future enhancement.
+  Mobile MUST use action sheets.
 - **FR-12**: System MUST record audit logs for: entity CRUD, progress block
   moves, weekly action status changes and carryovers, assignee changes,
   key company toggles, company merges, canonical name changes, Excel
@@ -565,6 +589,26 @@ The service has the following menu structure:
 - Q: Audit log and version retention policy? → A: Unlimited retention.
   All logs and versions are kept indefinitely. A future archiving policy
   may be added if storage becomes a concern, but is out of scope now.
+
+### Session 2026-03-19
+
+- Q: Key company (★) and pin-to-top — are they the same? → A: No. ★ is a
+  favorite/importance marker only. Display order is controlled by
+  drag-and-drop reordering of company rows, persisted via sortOrder. Pin
+  feature was considered and removed in favor of DnD.
+- Q: Search overlap between global (⌘K) and local toolbar search? → A:
+  Separated by role. Global search = navigate to a specific item (scroll +
+  highlight). Local search = filter/dim non-matching cards in place. They
+  do not interfere with each other.
+- Q: Stage column visibility? → A: Stage headers are clickable toggles.
+  Collapsed stages shrink to 40px with pill indicators showing card
+  existence. Card filtering and search respect visible stages only.
+- Q: Default date on progress item creation? → A: When date is not
+  specified, today's date (YYYY-MM-DD) is auto-filled. Updates do not
+  change the date unless explicitly modified.
+- Q: Block detail modal size? → A: Default 700×520px, resizable by
+  dragging the bottom-right corner (min 540×400px). Textarea fills
+  available space. Size resets when opening a different card.
 
 ## Assumptions
 
