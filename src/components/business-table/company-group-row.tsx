@@ -24,8 +24,17 @@ export function CompanyGroupRow({
       <div
         className="sticky left-0 z-[5] flex cursor-pointer items-center gap-2 bg-[var(--muted)] px-4 py-2 hover:bg-[var(--accent)] transition-colors"
         onClick={() => setExpanded(!expanded)}
-        {...dragHandleProps}
       >
+        {dragHandleProps && (
+          <span
+            className="text-[var(--muted-foreground)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+            {...dragHandleProps}
+            title="드래그하여 순서 변경"
+          >
+            ⠿
+          </span>
+        )}
         <span className="text-xs text-[var(--muted-foreground)] w-4">
           {expanded ? "▼" : "▶"}
         </span>

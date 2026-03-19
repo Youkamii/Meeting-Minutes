@@ -73,6 +73,12 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: DEFAULT_WIDTH, h: DEFAULT_HEIGHT });
   const resizing = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const resizeCleanup = useRef<(() => void) | null>(null);
+
+  // Cleanup resize listeners on unmount
+  useEffect(() => {
+    return () => { resizeCleanup.current?.(); };
+  }, []);
 
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,13 +91,15 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
       const newH = Math.max(MIN_HEIGHT, resizing.current.startH + (ev.clientY - resizing.current.startY));
       setSize({ w: newW, h: newH });
     };
-    const onUp = () => {
+    const cleanup = () => {
       resizing.current = null;
+      resizeCleanup.current = null;
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("mouseup", cleanup);
     };
+    resizeCleanup.current = cleanup;
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("mouseup", cleanup);
   }, [size]);
 
   useEffect(() => {
