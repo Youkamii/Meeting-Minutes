@@ -184,7 +184,7 @@ model ProgressItem {
   stage       Stage
   title       String    @default("")
   content     String
-  date        DateTime? @db.Date
+  date        String    @default("")
   sortOrder   Int       @default(0) @map("sort_order")
   createdById String?  @map("created_by")
   updatedById String?  @map("updated_by")
