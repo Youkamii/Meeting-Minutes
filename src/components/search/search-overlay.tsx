@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useUIStore } from "@/stores/ui-store";
 import type { SearchResults } from "@/types";
 
 interface SearchOverlayProps {
@@ -11,6 +12,7 @@ interface SearchOverlayProps {
 
 export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState("");
+  const setHighlightId = useUIStore((s) => s.setSearchHighlightId);
 
   const { data } = useQuery<{ data: SearchResults; total: number }>({
     queryKey: ["search", query],
@@ -36,6 +38,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
   }, [open, handleKeyDown]);
+
+  // Navigate to a specific card by id (scroll + red highlight)
+  const goToCard = (itemId: string) => {
+    setHighlightId(itemId);
+    onClose();
+  };
 
   if (!open) return null;
 
@@ -75,7 +83,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     key={c.id}
                     title={(c as unknown as { canonicalName: string }).canonicalName}
                     subtitle="기업"
-                    href={`/business`}
+                    href="/business"
                     onClose={onClose}
                   />
                 ))}
@@ -89,7 +97,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     key={b.id}
                     title={b.name}
                     subtitle={`사업 · ${(b as unknown as { company?: { canonicalName: string } }).company?.canonicalName ?? ""}`}
-                    href={`/business`}
+                    href="/business"
                     onClose={onClose}
                   />
                 ))}
@@ -103,7 +111,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     key={a.id}
                     title={(a as unknown as { content: string }).content}
                     subtitle="주간 액션"
-                    href={`/weekly`}
+                    href="/weekly"
                     onClose={onClose}
                   />
                 ))}
@@ -117,8 +125,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     key={p.id}
                     title={p.content}
                     subtitle={`진행 · ${p.stage}`}
-                    href={`/business`}
-                    onClose={onClose}
+                    onClick={() => goToCard(p.id)}
                   />
                 ))}
               </ResultSection>
@@ -131,7 +138,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     key={n.id}
                     title={n.title ?? n.body.slice(0, 60)}
                     subtitle="메모"
-                    href={`/business`}
+                    href="/business"
                     onClose={onClose}
                   />
                 ))}
@@ -165,13 +172,29 @@ function ResultItem({
   title,
   subtitle,
   href,
+  onClick,
   onClose,
 }: {
   title: string;
   subtitle: string;
-  href: string;
-  onClose: () => void;
+  href?: string;
+  onClick?: () => void;
+  onClose?: () => void;
 }) {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-left hover:bg-[var(--muted)] transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <p className="truncate font-medium">{title}</p>
+          <p className="text-xs text-[var(--muted-foreground)]">{subtitle}</p>
+        </div>
+      </button>
+    );
+  }
+
   return (
     <a
       href={href}
