@@ -18,9 +18,10 @@ interface BusinessRowProps {
     progressItems?: ProgressItem[];
   };
   onClick: () => void;
+  visibleStages?: Set<string>;
 }
 
-export function BusinessRow({ business, onClick }: BusinessRowProps) {
+export function BusinessRow({ business, onClick, visibleStages }: BusinessRowProps) {
   const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
 
   return (
@@ -28,7 +29,7 @@ export function BusinessRow({ business, onClick }: BusinessRowProps) {
       <div className="flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
         {/* Fixed left column — 사업명 + 고객사명 + 공개여부 + 규모 */}
         <div
-          className="flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-1 border-r border-[var(--border)] px-4 py-3 cursor-pointer"
+          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-1 border-r border-[var(--border)] bg-[var(--background)] px-4 py-3 cursor-pointer"
           onClick={onClick}
         >
           {/* 사업명 (크게) */}
@@ -65,6 +66,7 @@ export function BusinessRow({ business, onClick }: BusinessRowProps) {
           businessId={business.id}
           progressItems={(business.progressItems ?? []) as ProgressItem[]}
           onBlockClick={(item) => setSelectedBlock(item)}
+          visibleStages={visibleStages}
         />
       </div>
 

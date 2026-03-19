@@ -80,6 +80,21 @@ export function useUpdateCompany() {
   });
 }
 
+export function useReorderCompanies() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderedIds: string[]) =>
+      fetchJson<{ success: boolean }>("/api/companies/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["companies"] });
+    },
+  });
+}
+
 export function useArchiveCompany() {
   const qc = useQueryClient();
   return useMutation({
