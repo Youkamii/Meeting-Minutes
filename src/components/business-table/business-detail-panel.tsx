@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useBusiness, useUpdateBusiness } from "@/hooks/use-businesses";
-import { useProgressItems } from "@/hooks/use-progress-items";
 import { useWeeklyActions } from "@/hooks/use-weekly-actions";
 import { useAuditLogs } from "@/hooks/use-activity";
-import { StageRowDnd } from "@/components/progress-blocks/stage-row-dnd";
-import { BlockDetail } from "@/components/progress-blocks/block-detail";
 import { ActionCard } from "@/components/weekly-meeting/action-card";
 import { NotesContainer } from "@/components/notes/notes-container";
 import { VersionHistoryPanel } from "@/components/version-diff/version-history-panel";
-import type { Stage, ProgressItem, WeeklyActionWithRelations, BusinessWithCompany } from "@/types";
+import type { WeeklyActionWithRelations, BusinessWithCompany } from "@/types";
 
 const TABS = [
   "기본 정보",
-  "진행상태",
   "주간 액션",
   "내부 메모",
   "파일/참고자료",
@@ -37,18 +33,30 @@ export function BusinessDetailPanel({
   const updateBusiness = useUpdateBusiness();
   const business = data?.data as BusinessWithCompany | undefined;
 
+  // Ref to always have the latest business for handleSave (avoids stale lockVersion)
+  const businessRef = useRef(business);
+  useEffect(() => {
+    businessRef.current = business;
+  }, [business]);
+
+  // Track which business id we've synced form for (prevent refetch overwriting edits)
+  const syncedIdRef = useRef<string | null>(null);
+
   // Editable fields
   const [name, setName] = useState("");
+  const [embargoName, setEmbargoName] = useState("");
   const [visibility, setVisibility] = useState("public");
   const [scale, setScale] = useState("");
   const [timingText, setTimingText] = useState("");
   const [timingStart, setTimingStart] = useState("");
   const [timingEnd, setTimingEnd] = useState("");
 
-  // Sync form when business loads
+  // Sync form only when business.id changes
   useEffect(() => {
-    if (business) {
+    if (business && business.id !== syncedIdRef.current) {
+      syncedIdRef.current = business.id;
       setName(business.name);
+      setEmbargoName((business as Record<string, unknown>).embargoName as string ?? "");
       setVisibility(business.visibility);
       setScale(business.scale ?? "");
       setTimingText(business.timingText ?? "");
@@ -59,30 +67,30 @@ export function BusinessDetailPanel({
 
   // Auto-save on field blur
   const handleSave = useCallback(() => {
-    if (!business) return;
+    const biz = businessRef.current;
+    if (!biz) return;
     const changes: Record<string, unknown> = {};
-    if (name.trim() && name.trim() !== business.name) changes.name = name.trim();
-    if (visibility !== business.visibility) changes.visibility = visibility;
-    if (scale !== (business.scale ?? "")) changes.scale = scale || null;
-    if (timingText !== (business.timingText ?? "")) changes.timingText = timingText || null;
-    const bStart = business.timingStart ? String(business.timingStart).slice(0, 10) : "";
-    const bEnd = business.timingEnd ? String(business.timingEnd).slice(0, 10) : "";
+    if (name.trim() && name.trim() !== biz.name) changes.name = name.trim();
+    const bizEmbargoName = (biz as Record<string, unknown>).embargoName as string | null;
+    if (embargoName !== (bizEmbargoName ?? "")) changes.embargoName = embargoName || null;
+    if (visibility !== biz.visibility) changes.visibility = visibility;
+    if (scale !== (biz.scale ?? "")) changes.scale = scale || null;
+    if (timingText !== (biz.timingText ?? "")) changes.timingText = timingText || null;
+    const bStart = biz.timingStart ? String(biz.timingStart).slice(0, 10) : "";
+    const bEnd = biz.timingEnd ? String(biz.timingEnd).slice(0, 10) : "";
     if (timingStart !== bStart) changes.timingStart = timingStart || null;
     if (timingEnd !== bEnd) changes.timingEnd = timingEnd || null;
 
     if (Object.keys(changes).length > 0) {
       updateBusiness.mutate({
         id: businessId,
-        lockVersion: business.lockVersion,
+        lockVersion: biz.lockVersion,
         ...changes,
       });
     }
-  }, [business, businessId, name, visibility, scale, timingText, timingStart, timingEnd, updateBusiness]);
+  }, [businessId, name, embargoName, visibility, scale, timingText, timingStart, timingEnd, updateBusiness]);
 
-  // Progress & actions data
-  const { data: progressData } = useProgressItems(
-    activeTab === "진행상태" ? businessId : null,
-  );
+  // Data for tabs
   const { data: actionsData } = useWeeklyActions(
     activeTab === "주간 액션"
       ? { companyId: business?.companyId }
@@ -103,26 +111,45 @@ export function BusinessDetailPanel({
     }).catch(() => {});
   }, [businessId]);
 
-  const progressItems = Object.values(progressData?.data ?? {}).flat() as ProgressItem[];
   const weeklyActions = (actionsData?.data ?? []).filter(
     (a) => a.businessId === businessId,
   );
   const logs = logsData?.data ?? [];
 
-  const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
-
   const inputClass =
     "w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]";
+
+  const headerName = (() => {
+    if (isLoading) return "로딩 중...";
+    if (!business) return "사업 상세";
+    if (visibility === "private" && embargoName) {
+      return embargoName;
+    }
+    return business.name;
+  })();
+
+  const companyLabel = business?.company?.canonicalName;
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-        <h2 className="text-lg font-bold truncate">
-          {isLoading ? "로딩 중..." : business?.name ?? "사업 상세"}
-        </h2>
+        <div className="flex items-center gap-3 min-w-0">
+          <h2 className={`text-lg font-bold truncate ${visibility === "private" && embargoName ? "text-red-900 dark:text-red-400" : ""}`}>
+            {headerName}
+          </h2>
+          {companyLabel && (
+            <span className="text-sm text-[var(--muted-foreground)] truncate shrink-0">
+              {companyLabel}
+            </span>
+          )}
+        </div>
         <button
-          onClick={onClose}
+          onClick={() => {
+            handleSave();
+            syncedIdRef.current = null;
+            onClose();
+          }}
           className="rounded-md p-1 hover:bg-[var(--muted)] text-xl"
         >
           ✕
@@ -165,19 +192,23 @@ export function BusinessDetailPanel({
                 className={inputClass}
               />
             </div>
-            <div>
-              <label className="text-xs font-medium text-[var(--muted-foreground)]">기업</label>
-              <p className="text-sm py-1.5 text-[var(--muted-foreground)]">
-                {business.company?.canonicalName ?? "—"}
-              </p>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[var(--muted-foreground)]">공개여부</label>
                 <select
                   value={visibility}
-                  onChange={(e) => setVisibility(e.target.value)}
-                  onBlur={handleSave}
+                  onChange={(e) => {
+                    const newVal = e.target.value;
+                    setVisibility(newVal);
+                    const biz = businessRef.current;
+                    if (biz && newVal !== biz.visibility) {
+                      updateBusiness.mutate({
+                        id: businessId,
+                        lockVersion: biz.lockVersion,
+                        visibility: newVal,
+                      });
+                    }
+                  }}
                   className={inputClass}
                 >
                   <option value="public">공개</option>
@@ -196,6 +227,19 @@ export function BusinessDetailPanel({
                 />
               </div>
             </div>
+            {visibility === "private" && (
+              <div>
+                <label className="text-xs font-medium text-[var(--muted-foreground)]">엠바고 표시명</label>
+                <input
+                  type="text"
+                  value={embargoName}
+                  onChange={(e) => setEmbargoName(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="비공개 시 표시할 이름"
+                  className={inputClass}
+                />
+              </div>
+            )}
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">사업시기 (텍스트)</label>
               <input
@@ -229,26 +273,6 @@ export function BusinessDetailPanel({
                 />
               </div>
             </div>
-          </div>
-        )}
-
-        {/* 진행상태 — 카드 드래그앤드롭 */}
-        {activeTab === "진행상태" && (
-          <div>
-            <div className="rounded-lg border border-[var(--border)] overflow-hidden">
-              <StageRowDnd
-                businessId={businessId}
-                progressItems={progressItems}
-                onBlockClick={(item) => setSelectedBlock(item)}
-              />
-            </div>
-            {selectedBlock && (
-              <BlockDetail
-                item={selectedBlock}
-                open={!!selectedBlock}
-                onClose={() => setSelectedBlock(null)}
-              />
-            )}
           </div>
         )}
 
