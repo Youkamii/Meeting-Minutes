@@ -70,7 +70,7 @@ export default function BusinessManagementPage() {
     null,
   );
   const [showNewCompany, setShowNewCompany] = useState(false);
-  const [showNewBusiness, setShowNewBusiness] = useState(false);
+  const [newBusinessForCompany, setNewBusinessForCompany] = useState<string | null>(null);
   const [showExcelDownload, setShowExcelDownload] = useState(false);
   const [visibleStages, setVisibleStages] = useState<Set<string>>(
     new Set(ALL_STAGE_KEYS),
@@ -282,7 +282,6 @@ export default function BusinessManagementPage() {
           <QuickActionsBar
             actions={[
               { label: "기업", onClick: () => setShowNewCompany(true) },
-              { label: "사업", onClick: () => setShowNewBusiness(true) },
             ]}
           />
         </div>
@@ -375,7 +374,7 @@ export default function BusinessManagementPage() {
                         <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
                           등록된 사업이 없습니다.{" "}
                           <button
-                            onClick={() => setShowNewBusiness(true)}
+                            onClick={() => setNewBusinessForCompany(company.id)}
                             className="text-[var(--primary)] hover:underline"
                           >
                             추가하기
@@ -428,9 +427,10 @@ export default function BusinessManagementPage() {
         onClose={() => setShowNewCompany(false)}
       />
       <NewBusinessDialog
-        open={showNewBusiness}
-        onClose={() => setShowNewBusiness(false)}
+        open={!!newBusinessForCompany}
+        onClose={() => setNewBusinessForCompany(null)}
         companies={companies as Company[]}
+        preselectedCompanyId={newBusinessForCompany ?? undefined}
       />
       <ExcelDownloadDialog
         open={showExcelDownload}
