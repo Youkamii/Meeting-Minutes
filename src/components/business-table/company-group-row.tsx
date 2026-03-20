@@ -22,11 +22,11 @@ export function CompanyGroupRow({
   return (
     <div className="border-b border-[var(--border)]">
       <div
-        className="flex cursor-pointer"
+        className="flex cursor-pointer group"
         onClick={() => setExpanded(!expanded)}
       >
         {/* Sticky left — company info */}
-        <div className="sticky left-0 z-[5] flex w-[280px] shrink-0 items-center gap-2 bg-[var(--muted)] px-4 py-2 hover:bg-[var(--accent)] transition-colors">
+        <div className="sticky left-0 z-[5] flex w-[280px] shrink-0 items-center gap-2 bg-[var(--muted)] px-4 py-2 group-hover:bg-[var(--accent)] transition-colors">
           {dragHandleProps && (
             <span
               className="text-[var(--muted-foreground)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
@@ -57,7 +57,7 @@ export function CompanyGroupRow({
         </div>
 
         {/* Right — fills remaining width, same bg, no left border */}
-        <div className="flex-1 flex items-center bg-[var(--muted)] hover:bg-[var(--accent)] transition-colors px-4 py-2">
+        <div className="flex-1 flex items-center bg-[var(--muted)] group-hover:bg-[var(--accent)] transition-colors px-4 py-2">
           <span className="ml-auto text-xs text-[var(--muted-foreground)]">
             {businessCount}개 사업
           </span>
