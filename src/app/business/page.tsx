@@ -383,7 +383,7 @@ export default function BusinessManagementPage() {
                       )}
                       {[...bizList].sort((a, b) => {
                         if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
-                        return 0;
+                        return a.sortOrder - b.sortOrder;
                       }).map((biz: Business) => (
                         <BusinessRow
                           key={biz.id}
