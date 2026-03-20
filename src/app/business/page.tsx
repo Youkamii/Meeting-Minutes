@@ -131,11 +131,12 @@ export default function BusinessManagementPage() {
     return map;
   }, [companies]);
 
-  // Compute match IDs from search text (cards + company/business name matches)
-  const filterMatchIds = useMemo(() => {
-    if (search.length < 2) return [];
+  // Compute matches: card IDs + business IDs (for company/business name matches)
+  const { filterMatchIds, matchBizIds } = useMemo(() => {
+    if (search.length < 2) return { filterMatchIds: [] as string[], matchBizIds: [] as string[] };
     const lc = search.toLowerCase();
-    const ids: string[] = [];
+    const cardIds: string[] = [];
+    const bizIds: string[] = [];
 
     for (const biz of visibleBusinesses) {
       if (biz.isArchived) continue;
@@ -143,54 +144,69 @@ export default function BusinessManagementPage() {
       const companyName = companyNameMap.get(biz.companyId) ?? "";
       const bizNameMatches = biz.name.toLowerCase().includes(lc) || companyName.includes(lc);
 
+      if (bizNameMatches) bizIds.push(biz.id);
+
       const items = (biz as Business & { progressItems?: { id: string; title?: string; content: string; stage: string }[] }).progressItems ?? [];
-
-      if (bizNameMatches && items.length > 0) {
-        // Company/business name matches → include first visible card as scroll target
-        const firstVisible = items.find((item) => visibleStages.has(item.stage));
-        if (firstVisible && !ids.includes(firstVisible.id)) {
-          ids.push(firstVisible.id);
-        }
-      }
-
       for (const item of items) {
         if (!visibleStages.has(item.stage)) continue;
         if (
           (item.title ?? "").toLowerCase().includes(lc) ||
           item.content.toLowerCase().includes(lc)
         ) {
-          if (!ids.includes(item.id)) ids.push(item.id);
+          cardIds.push(item.id);
         }
       }
     }
-    return ids;
+    return { filterMatchIds: cardIds, matchBizIds: bizIds };
   }, [search, visibleBusinesses, visibleStages, companyNameMap]);
 
-  // Keep ref in sync for Enter handler
+  // Combined match count for display
+  const totalMatchCount = filterMatchIds.length + matchBizIds.length;
+
+  // Combined list: business matches first, then card matches
+  const allMatchRefs = useRef<{ type: "biz" | "card"; id: string }[]>([]);
+  allMatchRefs.current = [
+    ...matchBizIds.map((id) => ({ type: "biz" as const, id })),
+    ...filterMatchIds.map((id) => ({ type: "card" as const, id })),
+  ];
+
+  // Keep card ref in sync
   matchIdsRef.current = filterMatchIds;
 
-  // Sync filter text to store — only when it actually changes
+  // Business highlight state
+  const [highlightBizId, setHighlightBizId] = useState<string | null>(null);
+
+  // Sync filter text to store
   useEffect(() => {
     const newVal = search.length >= 2 ? search : null;
     if (filterTextRef.current !== newVal) {
       filterTextRef.current = newVal;
       setFilterText(newVal);
       setMatchIndex(-1);
+      setHighlightBizId(null);
     }
   }, [search, setFilterText]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => { setFilterText(null); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const goToNextMatch = () => {
-    const ids = matchIdsRef.current;
-    if (ids.length === 0) return;
-    const next = (matchIndex + 1) % ids.length;
+    const all = allMatchRefs.current;
+    if (all.length === 0) return;
+    const next = (matchIndex + 1) % all.length;
     setMatchIndex(next);
-    setHighlightId(ids[next]);
+    const match = all[next];
+    if (match.type === "biz") {
+      setHighlightId(null);
+      setHighlightBizId(match.id);
+      const el = document.querySelector(`[data-business-id="${match.id}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      setHighlightBizId(null);
+      setHighlightId(match.id);
+    }
   };
 
   // Group businesses by company, sorted by sortOrder
@@ -250,7 +266,7 @@ export default function BusinessManagementPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && filterMatchIds.length > 0) {
+              if (e.key === "Enter" && totalMatchCount > 0) {
                 e.preventDefault();
                 goToNextMatch();
               }
@@ -276,11 +292,11 @@ export default function BusinessManagementPage() {
 
         {search.length >= 2 && (
           <span className="text-xs text-[var(--primary)] font-medium tabular-nums">
-            {filterMatchIds.length === 0
+            {totalMatchCount === 0
               ? "결과 없음"
               : matchIndex >= 0
-                ? `(${matchIndex + 1}/${filterMatchIds.length})`
-                : `${filterMatchIds.length}건`}
+                ? `(${matchIndex + 1}/${totalMatchCount})`
+                : `${totalMatchCount}건`}
           </span>
         )}
 
@@ -412,6 +428,7 @@ export default function BusinessManagementPage() {
                           business={{ ...biz, companyName: company.canonicalName }}
                           onClick={() => setSelectedBusinessId(biz.id)}
                           visibleStages={visibleStages}
+                          highlighted={highlightBizId === biz.id}
                         />
                       ))}
                     </CompanyGroupRow>
