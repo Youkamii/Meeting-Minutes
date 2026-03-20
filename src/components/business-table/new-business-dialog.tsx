@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCreateBusiness } from "@/hooks/use-businesses";
 import type { Company } from "@/types";
 
@@ -18,6 +18,10 @@ export function NewBusinessDialog({
   preselectedCompanyId,
 }: NewBusinessDialogProps) {
   const [companyId, setCompanyId] = useState(preselectedCompanyId ?? "");
+
+  useEffect(() => {
+    if (open) setCompanyId(preselectedCompanyId ?? "");
+  }, [open, preselectedCompanyId]);
   const [name, setName] = useState("");
   const [scale, setScale] = useState("");
   const [timingText, setTimingText] = useState("");
