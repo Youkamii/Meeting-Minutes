@@ -13,8 +13,11 @@ interface BusinessRowProps {
     visibility: string;
     scale: string | null;
     timingText: string | null;
+    timingStart?: string | null;
+    timingEnd?: string | null;
     currentStage: Stage | null;
     assignedTo: string | null;
+    isArchived?: boolean;
     companyName?: string;
     progressItems?: ProgressItem[];
   };
@@ -24,6 +27,7 @@ interface BusinessRowProps {
 
 export function BusinessRow({ business, onClick, visibleStages }: BusinessRowProps) {
   const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
+  const [expanded, setExpanded] = useState(!business.isArchived);
 
   const displayName =
     business.visibility === "private" && business.embargoName
@@ -35,41 +39,69 @@ export function BusinessRow({ business, onClick, visibleStages }: BusinessRowPro
       ? "text-red-900 dark:text-red-400"
       : "";
 
+  const isArchived = business.isArchived ?? false;
+
+  // Format date range
+  const formatDate = (d: string | null | undefined) => {
+    if (!d) return null;
+    return String(d).slice(0, 10);
+  };
+  const startDate = formatDate(business.timingStart);
+  const endDate = formatDate(business.timingEnd);
+  const dateDisplay = startDate
+    ? endDate
+      ? `${startDate} ~ ${endDate}`
+      : startDate
+    : null;
+
   return (
     <>
-      <div className="flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
-        {/* Fixed left column — 사업명 + 고객사명 + 규모 */}
+      <div className={`flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors ${isArchived ? "opacity-60" : ""}`}>
+        {/* Fixed left column */}
         <div
-          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-1 border-r border-[var(--border)] bg-[var(--background)] px-4 py-3 cursor-pointer"
-          onClick={onClick}
+          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[var(--background)] px-4 py-3 cursor-pointer"
+          onClick={isArchived ? () => setExpanded(!expanded) : onClick}
+          onDoubleClick={isArchived ? onClick : undefined}
         >
-          {/* 사업명 (크게) */}
-          <span className={`text-base font-bold truncate ${nameColorClass}`}>
-            {displayName}
-          </span>
-          {/* 고객사명 (작게) */}
-          {business.companyName && (
+          {/* 사업명 */}
+          <div className="flex items-center gap-1.5">
+            {isArchived && (
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {expanded ? "▼" : "▶"}
+              </span>
+            )}
+            <span className={`text-lg font-bold truncate ${nameColorClass} ${isArchived ? "line-through text-[var(--muted-foreground)]" : ""}`}>
+              {displayName}
+            </span>
+            {isArchived && (
+              <span className="text-[9px] bg-[var(--muted)] text-[var(--muted-foreground)] rounded px-1.5 py-0.5 shrink-0">
+                종료
+              </span>
+            )}
+          </div>
+          {/* 시작~종료일 */}
+          {dateDisplay && (
             <span className="text-xs text-[var(--muted-foreground)] truncate">
-              {business.companyName}
+              {dateDisplay}
             </span>
           )}
           {/* 사업규모 */}
           {business.scale && (
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-[var(--muted-foreground)]">
-                {business.scale}
-              </span>
-            </div>
+            <span className="text-[10px] text-[var(--muted-foreground)]">
+              {business.scale}
+            </span>
           )}
         </div>
 
-        {/* Stage columns with cross-stage drag & drop */}
-        <StageRowDnd
-          businessId={business.id}
-          progressItems={(business.progressItems ?? []) as ProgressItem[]}
-          onBlockClick={(item) => setSelectedBlock(item)}
-          visibleStages={visibleStages}
-        />
+        {/* Stage columns — hidden when archived and collapsed */}
+        {(!isArchived || expanded) && (
+          <StageRowDnd
+            businessId={business.id}
+            progressItems={(business.progressItems ?? []) as ProgressItem[]}
+            onBlockClick={(item) => setSelectedBlock(item)}
+            visibleStages={visibleStages}
+          />
+        )}
       </div>
 
       {selectedBlock && (
