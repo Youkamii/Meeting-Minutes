@@ -71,6 +71,7 @@ export interface Business {
   id: string;
   companyId: string;
   name: string;
+  embargoName: string | null;
   visibility: Visibility;
   scale: string | null;
   timingText: string | null;
