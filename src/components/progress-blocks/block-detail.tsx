@@ -84,7 +84,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     if (title.trim() !== (item.title ?? "")) changes.title = title.trim();
     if (content.trim() !== item.content) changes.content = content.trim();
     const origDate = item.date ?? "";
-    if (date !== origDate) changes.date = date || null;
+    if (date !== origDate) changes.date = date || "";
 
     if (Object.keys(changes).length > 0) {
       setSaving(true);
@@ -114,10 +114,10 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     "w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]";
 
   const handleCalendarDateClick = (day: number, month: number, year: number) => {
-    const yy = String(year).slice(2);
+    const yyyy = String(year);
     const mm = String(month + 1).padStart(2, "0");
     const dd = String(day).padStart(2, "0");
-    const dateStr = `${yy}-${mm}-${dd}`;
+    const dateStr = `${yyyy}-${mm}-${dd}`;
     setDate((prev) => (prev ? `${prev} ${dateStr}` : dateStr));
   };
 
