@@ -85,3 +85,31 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Tiptap editor styles */
+.tiptap {
+  outline: none;
+  min-height: 60px;
+}
+.tiptap p {
+  margin: 0.25em 0;
+}
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5em;
+  margin: 0.25em 0;
+}
+.tiptap li {
+  margin: 0.1em 0;
+}
+.tiptap mark {
+  border-radius: 2px;
+  padding: 0 2px;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
