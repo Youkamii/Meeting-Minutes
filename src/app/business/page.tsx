@@ -124,26 +124,47 @@ export default function BusinessManagementPage() {
     [businesses, visibleCompanyIds],
   );
 
-  // Compute match IDs from search text (only within visible businesses)
+  // Build company name lookup for search matching
+  const companyNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of companies) map.set(c.id, (c as Company).canonicalName.toLowerCase());
+    return map;
+  }, [companies]);
+
+  // Compute match IDs from search text (cards + company/business name matches)
   const filterMatchIds = useMemo(() => {
     if (search.length < 2) return [];
     const lc = search.toLowerCase();
     const ids: string[] = [];
+
     for (const biz of visibleBusinesses) {
       if (biz.isArchived) continue;
+
+      const companyName = companyNameMap.get(biz.companyId) ?? "";
+      const bizNameMatches = biz.name.toLowerCase().includes(lc) || companyName.includes(lc);
+
       const items = (biz as Business & { progressItems?: { id: string; title?: string; content: string; stage: string }[] }).progressItems ?? [];
+
+      if (bizNameMatches && items.length > 0) {
+        // Company/business name matches → include first visible card as scroll target
+        const firstVisible = items.find((item) => visibleStages.has(item.stage));
+        if (firstVisible && !ids.includes(firstVisible.id)) {
+          ids.push(firstVisible.id);
+        }
+      }
+
       for (const item of items) {
         if (!visibleStages.has(item.stage)) continue;
         if (
           (item.title ?? "").toLowerCase().includes(lc) ||
           item.content.toLowerCase().includes(lc)
         ) {
-          ids.push(item.id);
+          if (!ids.includes(item.id)) ids.push(item.id);
         }
       }
     }
     return ids;
-  }, [search, visibleBusinesses, visibleStages]);
+  }, [search, visibleBusinesses, visibleStages, companyNameMap]);
 
   // Keep ref in sync for Enter handler
   matchIdsRef.current = filterMatchIds;
