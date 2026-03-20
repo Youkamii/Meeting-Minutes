@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { useUIStore } from "@/stores/ui-store";
 import type { Stage } from "@/types";
 
@@ -89,10 +90,17 @@ export function MiniBlock({
       }}
       onMouseEnter={handleMouseEnter}
       className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
-      title={title ? `${title}\n${content}` : content}
+      title={undefined}
     >
       {title && <p className="font-semibold text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
-      <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      {content && /<[a-z][\s\S]*>/i.test(content) ? (
+        <div
+          className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+        />
+      ) : (
+        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      )}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
   );

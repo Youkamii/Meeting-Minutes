@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { Highlight } from "@tiptap/extension-highlight";
+import { Placeholder } from "@tiptap/extension-placeholder";
 import { useUpdateProgressItem } from "@/hooks/use-progress-items";
 import type { ProgressItem } from "@/types";
 
@@ -57,14 +63,167 @@ function MiniCalendar({ onDateClick }: { onDateClick: (day: number, month: numbe
   );
 }
 
+const TEXT_COLORS = [
+  { label: "기본", value: "" },
+  { label: "빨강", value: "#ef4444" },
+  { label: "파랑", value: "#3b82f6" },
+  { label: "초록", value: "#22c55e" },
+  { label: "주황", value: "#f97316" },
+  { label: "보라", value: "#a855f7" },
+];
+
+const HIGHLIGHT_COLORS = [
+  { label: "없음", value: "" },
+  { label: "노랑", value: "#fef08a" },
+  { label: "초록", value: "#bbf7d0" },
+  { label: "파랑", value: "#bfdbfe" },
+  { label: "분홍", value: "#fecdd3" },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function EditorToolbar({ editor }: { editor: any }) {
+  const [showColors, setShowColors] = useState(false);
+  const [showHighlights, setShowHighlights] = useState(false);
+
+  if (!editor) return null;
+
+  const btnClass = (active: boolean) =>
+    `w-7 h-7 flex items-center justify-center rounded transition-colors ${
+      active
+        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+    }`;
+
+  const currentColor = editor.getAttributes("textStyle").color ?? "";
+
+  return (
+    <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-[var(--border)]">
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        className={btnClass(editor.isActive("bold"))}
+        title="볼드 (Ctrl+B)"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className={btnClass(editor.isActive("italic"))}
+        title="이탤릭 (Ctrl+I)"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        className={btnClass(editor.isActive("strike"))}
+        title="취소선"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4H9a3 3 0 0 0-3 3v.5"/><path d="M4 12h16"/><path d="M8 20h7a3 3 0 0 0 3-3v-.5"/></svg>
+      </button>
+
+      <span className="w-px h-5 bg-[var(--border)] mx-1" />
+
+      {/* Text color */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => { setShowColors(!showColors); setShowHighlights(false); }}
+          className={`${btnClass(!!currentColor)} relative`}
+          title="글자 색"
+        >
+          <span className="text-xs font-bold">A</span>
+          <span
+            className="absolute bottom-0.5 left-1 right-1 h-[3px] rounded-full"
+            style={{ backgroundColor: currentColor || "var(--foreground)" }}
+          />
+        </button>
+        {showColors && (
+          <div className="absolute top-full left-0 mt-1 z-50 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--background)] p-2 shadow-lg">
+            {TEXT_COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => {
+                  if (c.value) editor.chain().focus().setColor(c.value).run();
+                  else editor.chain().focus().unsetColor().run();
+                  setShowColors(false);
+                }}
+                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                  currentColor === c.value ? "border-[var(--primary)] scale-110" : "border-transparent"
+                }`}
+                style={{ backgroundColor: c.value || "var(--foreground)" }}
+                title={c.label}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Highlight */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => { setShowHighlights(!showHighlights); setShowColors(false); }}
+          className={btnClass(editor.isActive("highlight"))}
+          title="형광펜"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+        </button>
+        {showHighlights && (
+          <div className="absolute top-full left-0 mt-1 z-50 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--background)] p-2 shadow-lg">
+            {HIGHLIGHT_COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => {
+                  if (c.value) editor.chain().focus().toggleHighlight({ color: c.value }).run();
+                  else editor.chain().focus().unsetHighlight().run();
+                  setShowHighlights(false);
+                }}
+                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                  editor.isActive("highlight", { color: c.value }) ? "border-[var(--primary)] scale-110" : "border-transparent"
+                }`}
+                style={{ backgroundColor: c.value || "var(--muted)" }}
+                title={c.label}
+              >
+                {!c.value && <span className="text-[8px]">✕</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <span className="w-px h-5 bg-[var(--border)] mx-1" />
+
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={btnClass(editor.isActive("bulletList"))}
+        title="목록"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={btnClass(editor.isActive("orderedList"))}
+        title="번호 목록"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">1</text><text x="2" y="14" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">2</text><text x="2" y="20" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">3</text></svg>
+      </button>
+    </div>
+  );
+}
+
 const MIN_WIDTH = 540;
 const MIN_HEIGHT = 400;
-const DEFAULT_WIDTH = 700;
-const DEFAULT_HEIGHT = 520;
+const DEFAULT_WIDTH = 860;
+const DEFAULT_HEIGHT = 620;
 
 export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
-  const [content, setContent] = useState(item.content);
   const [date, setDate] = useState(item.date ?? "");
   const [saving, setSaving] = useState(false);
   const updateItem = useUpdateProgressItem();
@@ -74,6 +233,23 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [size, setSize] = useState({ w: DEFAULT_WIDTH, h: DEFAULT_HEIGHT });
   const resizing = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
   const resizeCleanup = useRef<(() => void) | null>(null);
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      Placeholder.configure({ placeholder: "세부내용..." }),
+    ],
+    content: item.content || "",
+    editorProps: {
+      attributes: {
+        class: "outline-none min-h-[60px] px-3 py-2 text-sm",
+      },
+    },
+  });
 
   // Cleanup resize listeners on unmount
   useEffect(() => {
@@ -106,20 +282,23 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     if (open) {
       closedRef.current = false;
       setTitle(item.title ?? "");
-      setContent(item.content);
       setDate(item.date ?? "");
       setSize({ w: DEFAULT_WIDTH, h: DEFAULT_HEIGHT });
+      editor?.commands.setContent(item.content || "");
       setTimeout(() => titleRef.current?.focus(), 50);
     }
-  }, [open, item]);
+  }, [open, item, editor]);
 
   const saveAndClose = useCallback(async () => {
     if (closedRef.current || saving) return;
     closedRef.current = true;
 
+    const editorHtml = editor?.getHTML() ?? "";
+    const cleanContent = editorHtml === "<p></p>" ? "" : editorHtml;
+
     const changes: Record<string, unknown> = {};
     if (title.trim() !== (item.title ?? "")) changes.title = title.trim();
-    if (content.trim() !== item.content) changes.content = content.trim();
+    if (cleanContent !== item.content) changes.content = cleanContent;
     const origDate = item.date ?? "";
     if (date !== origDate) changes.date = date || "";
 
@@ -138,12 +317,12 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
       setSaving(false);
     }
     onClose();
-  }, [title, content, date, item, saving, updateItem, onClose]);
+  }, [title, date, item, saving, updateItem, onClose, editor]);
 
-  // Sync local state when a different item is selected
+  // Sync editor content when a different item is selected
   useEffect(() => {
-    setContent(item.content);
-  }, [item.id, item.content]);
+    editor?.commands.setContent(item.content || "");
+  }, [item.id, item.content, editor]);
 
   if (!open) return null;
 
@@ -197,12 +376,12 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
             className={inputClass}
           />
 
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="세부내용"
-            className={`${inputClass} flex-1 min-h-0`}
-          />
+          <div className="flex flex-1 min-h-0 flex-col rounded-md border border-[var(--border)] bg-[var(--background)] overflow-hidden">
+            <EditorToolbar editor={editor} />
+            <div className="flex-1 overflow-y-auto">
+              <EditorContent editor={editor} className="h-full" />
+            </div>
+          </div>
 
           <p className="text-[10px] text-[var(--muted-foreground)] shrink-0">
             바깥을 클릭하거나 ✕를 누르면 자동 저장됩니다
