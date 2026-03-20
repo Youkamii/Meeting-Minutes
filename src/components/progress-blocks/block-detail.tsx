@@ -82,30 +82,37 @@ const HIGHLIGHT_COLORS = [
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function EditorToolbar({ editor }: { editor: any }) {
+  const [showColors, setShowColors] = useState(false);
+  const [showHighlights, setShowHighlights] = useState(false);
+
   if (!editor) return null;
 
   const btnClass = (active: boolean) =>
-    `px-1.5 py-0.5 rounded text-xs transition-colors ${
-      active ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "hover:bg-[var(--muted)]"
+    `w-7 h-7 flex items-center justify-center rounded transition-colors ${
+      active
+        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
     }`;
 
+  const currentColor = editor.getAttributes("textStyle").color ?? "";
+
   return (
-    <div className="flex items-center gap-1 border-b border-[var(--border)] pb-2 mb-1 flex-wrap">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-[var(--border)]">
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
         className={btnClass(editor.isActive("bold"))}
-        title="볼드"
+        title="볼드 (Ctrl+B)"
       >
-        <strong>B</strong>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleItalic().run()}
         className={btnClass(editor.isActive("italic"))}
-        title="이탤릭"
+        title="이탤릭 (Ctrl+I)"
       >
-        <em>I</em>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
       </button>
       <button
         type="button"
@@ -113,46 +120,82 @@ function EditorToolbar({ editor }: { editor: any }) {
         className={btnClass(editor.isActive("strike"))}
         title="취소선"
       >
-        <s>S</s>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4H9a3 3 0 0 0-3 3v.5"/><path d="M4 12h16"/><path d="M8 20h7a3 3 0 0 0 3-3v-.5"/></svg>
       </button>
 
-      <span className="w-px h-4 bg-[var(--border)] mx-1" />
+      <span className="w-px h-5 bg-[var(--border)] mx-1" />
 
-      <select
-        value={editor.getAttributes("textStyle").color ?? ""}
-        onChange={(e) => {
-          const v = e.target.value;
-          if (v) editor.chain().focus().setColor(v).run();
-          else editor.chain().focus().unsetColor().run();
-        }}
-        className="text-xs rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 outline-none"
-        title="글자 색"
-      >
-        {TEXT_COLORS.map((c) => (
-          <option key={c.value} value={c.value}>{c.label}</option>
-        ))}
-      </select>
+      {/* Text color */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => { setShowColors(!showColors); setShowHighlights(false); }}
+          className={`${btnClass(!!currentColor)} relative`}
+          title="글자 색"
+        >
+          <span className="text-xs font-bold">A</span>
+          <span
+            className="absolute bottom-0.5 left-1 right-1 h-[3px] rounded-full"
+            style={{ backgroundColor: currentColor || "var(--foreground)" }}
+          />
+        </button>
+        {showColors && (
+          <div className="absolute top-full left-0 mt-1 z-50 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--background)] p-2 shadow-lg">
+            {TEXT_COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => {
+                  if (c.value) editor.chain().focus().setColor(c.value).run();
+                  else editor.chain().focus().unsetColor().run();
+                  setShowColors(false);
+                }}
+                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                  currentColor === c.value ? "border-[var(--primary)] scale-110" : "border-transparent"
+                }`}
+                style={{ backgroundColor: c.value || "var(--foreground)" }}
+                title={c.label}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-      <select
-        value={
-          editor.isActive("highlight")
-            ? (editor.getAttributes("highlight").color ?? "#fef08a")
-            : ""
-        }
-        onChange={(e) => {
-          const v = e.target.value;
-          if (v) editor.chain().focus().toggleHighlight({ color: v }).run();
-          else editor.chain().focus().unsetHighlight().run();
-        }}
-        className="text-xs rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 outline-none"
-        title="형광펜"
-      >
-        {HIGHLIGHT_COLORS.map((c) => (
-          <option key={c.value} value={c.value}>{c.label}</option>
-        ))}
-      </select>
+      {/* Highlight */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => { setShowHighlights(!showHighlights); setShowColors(false); }}
+          className={btnClass(editor.isActive("highlight"))}
+          title="형광펜"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+        </button>
+        {showHighlights && (
+          <div className="absolute top-full left-0 mt-1 z-50 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--background)] p-2 shadow-lg">
+            {HIGHLIGHT_COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => {
+                  if (c.value) editor.chain().focus().toggleHighlight({ color: c.value }).run();
+                  else editor.chain().focus().unsetHighlight().run();
+                  setShowHighlights(false);
+                }}
+                className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                  editor.isActive("highlight", { color: c.value }) ? "border-[var(--primary)] scale-110" : "border-transparent"
+                }`}
+                style={{ backgroundColor: c.value || "var(--muted)" }}
+                title={c.label}
+              >
+                {!c.value && <span className="text-[8px]">✕</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <span className="w-px h-4 bg-[var(--border)] mx-1" />
+      <span className="w-px h-5 bg-[var(--border)] mx-1" />
 
       <button
         type="button"
@@ -160,7 +203,7 @@ function EditorToolbar({ editor }: { editor: any }) {
         className={btnClass(editor.isActive("bulletList"))}
         title="목록"
       >
-        •
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
       </button>
       <button
         type="button"
@@ -168,7 +211,7 @@ function EditorToolbar({ editor }: { editor: any }) {
         className={btnClass(editor.isActive("orderedList"))}
         title="번호 목록"
       >
-        1.
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">1</text><text x="2" y="14" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">2</text><text x="2" y="20" fontSize="7" fill="currentColor" stroke="none" fontWeight="bold">3</text></svg>
       </button>
     </div>
   );
@@ -176,8 +219,8 @@ function EditorToolbar({ editor }: { editor: any }) {
 
 const MIN_WIDTH = 540;
 const MIN_HEIGHT = 400;
-const DEFAULT_WIDTH = 700;
-const DEFAULT_HEIGHT = 520;
+const DEFAULT_WIDTH = 860;
+const DEFAULT_HEIGHT = 620;
 
 export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
@@ -192,6 +235,7 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
   const resizeCleanup = useRef<(() => void) | null>(null);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       TextStyle,
