@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { useUIStore } from "@/stores/ui-store";
 import type { Stage } from "@/types";
 
@@ -92,10 +93,10 @@ export function MiniBlock({
       title={undefined}
     >
       {title && <p className="font-semibold text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
-      {content && content.includes("<") ? (
+      {content && /<[a-z][\s\S]*>/i.test(content) ? (
         <div
           className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
         />
       ) : (
         <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
