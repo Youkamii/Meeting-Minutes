@@ -61,6 +61,7 @@ export async function PUT(request: NextRequest, context: Params) {
 
     const data: Record<string, unknown> = { lockVersion: { increment: 1 } };
     if (updateData.name !== undefined) data.name = updateData.name.trim();
+    if (updateData.embargoName !== undefined) data.embargoName = updateData.embargoName;
     if (updateData.visibility !== undefined) data.visibility = updateData.visibility;
     if (updateData.scale !== undefined) data.scale = updateData.scale;
     if (updateData.timingText !== undefined) data.timingText = updateData.timingText;
