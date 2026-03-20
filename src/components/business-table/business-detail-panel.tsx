@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useBusiness, useUpdateBusiness } from "@/hooks/use-businesses";
+import { useBusiness, useUpdateBusiness, useArchiveBusiness } from "@/hooks/use-businesses";
 import { useWeeklyActions } from "@/hooks/use-weekly-actions";
 import { useAuditLogs } from "@/hooks/use-activity";
 import { ActionCard } from "@/components/weekly-meeting/action-card";
@@ -32,6 +32,7 @@ export function BusinessDetailPanel({
   const { data, isLoading } = useBusiness(businessId);
   const updateBusiness = useUpdateBusiness();
   const business = data?.data as BusinessWithCompany | undefined;
+  const archiveBusiness = useArchiveBusiness();
 
   // Ref to always have the latest business for handleSave (avoids stale lockVersion)
   const businessRef = useRef(business);
@@ -272,6 +273,33 @@ export function BusinessDetailPanel({
                   className={inputClass}
                 />
               </div>
+            </div>
+
+            {/* 사업 종료/재개 */}
+            <div className="pt-4 mt-4 border-t border-[var(--border)] flex justify-end">
+              {business.isArchived ? (
+                <button
+                  onClick={() => {
+                    if (confirm("사업을 재개하시겠습니까?")) {
+                      archiveBusiness.mutate({ id: businessId, action: "restore" });
+                    }
+                  }}
+                  className="rounded-md border border-[var(--primary)] px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                >
+                  사업 재개
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (confirm("사업 종료 처리 하시겠습니까?")) {
+                      archiveBusiness.mutate({ id: businessId, action: "archive" });
+                    }
+                  }}
+                  className="rounded-md border border-[var(--destructive)] px-4 py-2 text-sm text-[var(--destructive)] hover:bg-[var(--destructive)]/10 transition-colors"
+                >
+                  사업 종료
+                </button>
+              )}
             </div>
           </div>
         )}
