@@ -131,7 +131,16 @@ export function BusinessDetailPanel({
 
   const companyLabel = business?.company?.canonicalName;
 
+  const handleClose = () => {
+    handleSave();
+    syncedIdRef.current = null;
+    onClose();
+  };
+
   return (
+    <>
+    {/* Backdrop — click outside to save and close */}
+    <div className="fixed inset-0 z-40" onClick={handleClose} />
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
@@ -146,11 +155,7 @@ export function BusinessDetailPanel({
           )}
         </div>
         <button
-          onClick={() => {
-            handleSave();
-            syncedIdRef.current = null;
-            onClose();
-          }}
+          onClick={handleClose}
           className="rounded-md p-1 hover:bg-[var(--muted)] text-xl"
         >
           ✕
@@ -360,5 +365,6 @@ export function BusinessDetailPanel({
         )}
       </div>
     </div>
+    </>
   );
 }
