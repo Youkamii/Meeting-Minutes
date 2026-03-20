@@ -143,6 +143,7 @@ model Business {
   id           String     @id @default(uuid())
   companyId    String     @map("company_id")
   name         String
+  embargoName  String?    @map("embargo_name")
   visibility   Visibility @default(public)
   scale        String?
   timingText   String?    @map("timing_text")
