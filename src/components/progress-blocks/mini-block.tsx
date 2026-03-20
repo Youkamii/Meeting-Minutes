@@ -92,7 +92,14 @@ export function MiniBlock({
       title={title ? `${title}\n${content}` : content}
     >
       {title && <p className="font-semibold text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
-      <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      {content && content.includes("<") ? (
+        <div
+          className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ol]:pl-4 line-clamp-3"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      ) : (
+        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)] line-clamp-3">{content || "내용 없음"}</p>
+      )}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
   );
