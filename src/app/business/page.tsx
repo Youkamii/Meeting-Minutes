@@ -109,7 +109,7 @@ export default function BusinessManagementPage() {
   const { data: companiesData, isLoading: companiesLoading } = useCompanies({
     isKey: showKeyOnly ? true : undefined,
   });
-  const { data: businessesData, isLoading: businessesLoading } = useBusinesses({});
+  const { data: businessesData, isLoading: businessesLoading } = useBusinesses({ includeArchived: true });
 
   const companies = companiesData?.data ?? [];
   const businesses = businessesData?.data ?? [];
@@ -381,7 +381,10 @@ export default function BusinessManagementPage() {
                           </button>
                         </div>
                       )}
-                      {bizList.map((biz: Business) => (
+                      {[...bizList].sort((a, b) => {
+                        if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
+                        return a.sortOrder - b.sortOrder;
+                      }).map((biz: Business) => (
                         <BusinessRow
                           key={biz.id}
                           business={{ ...biz, companyName: company.canonicalName }}
