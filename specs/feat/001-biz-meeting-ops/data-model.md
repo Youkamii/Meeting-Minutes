@@ -83,6 +83,10 @@ role=admin, status=approved) for pre-auth operation.
 
 **Indexes**: canonical_name, is_key, is_archived, sort_order
 
+**sort_order**: Controls display position in Business Management. Updated
+via drag-and-drop reordering (`PUT /api/companies/reorder`). The is_key
+flag is a favorite marker only and does not affect sort order.
+
 ---
 
 ### CompanyAlias
@@ -135,7 +139,9 @@ role=admin, status=approved) for pre-auth operation.
 | id           | UUID         | PK                                |
 | business_id  | UUID         | FK → Business, NOT NULL           |
 | stage        | ENUM         | Stage enum, NOT NULL              |
+| title        | VARCHAR(255) | DEFAULT ''                        |
 | content      | TEXT         | NOT NULL                          |
+| date         | VARCHAR(255) | DEFAULT '' (free text period)     |
 | sort_order   | INT          | DEFAULT 0                         |
 | created_by   | UUID         | FK → User, nullable               |
 | updated_by   | UUID         | FK → User, nullable               |
@@ -147,6 +153,10 @@ role=admin, status=approved) for pre-auth operation.
 
 **Constraints**: Progress items cannot move across business rows
 (enforced in application logic).
+
+**Default behavior**: When creating a progress item without specifying
+a date, the API defaults to today's date (YYYY-MM-DD format). The date
+field is free text to support period descriptions (e.g., "25-03-01 25-03-15").
 
 ---
 

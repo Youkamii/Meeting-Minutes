@@ -79,14 +79,14 @@ function DroppableStage({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
-  const [newContent, setNewContent] = useState("");
+  const [newTitle, setNewTitle] = useState("");
   const createItem = useCreateProgressItem();
 
   const handleAdd = () => {
-    if (!newContent.trim()) return;
+    if (!newTitle.trim()) return;
     createItem.mutate(
-      { businessId, stage, content: newContent.trim() },
-      { onSuccess: () => { setNewContent(""); setShowAdd(false); } },
+      { businessId, stage, title: newTitle.trim() },
+      { onSuccess: () => { setNewTitle(""); setShowAdd(false); } },
     );
   };
 
@@ -108,11 +108,11 @@ function DroppableStage({
         <div className="flex gap-1">
           <input
             type="text"
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-[var(--ring)]"
-            placeholder="내용..."
+            placeholder="제목..."
             autoFocus
           />
           <button onClick={handleAdd} className="shrink-0 text-xs text-[var(--primary)]">✓</button>
@@ -135,9 +135,10 @@ interface StageRowDndProps {
   businessId: string;
   progressItems: ProgressItem[];
   onBlockClick?: (item: ProgressItem) => void;
+  visibleStages?: Set<string>;
 }
 
-export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRowDndProps) {
+export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleStages }: StageRowDndProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
@@ -209,15 +210,36 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick }: StageRo
       onDragEnd={handleDragEnd}
     >
       <div className="flex">
-        {STAGES.map((stage) => (
-          <DroppableStage
-            key={stage}
-            stage={stage}
-            items={itemsByStage[stage]}
-            businessId={businessId}
-            onBlockClick={onBlockClick}
-          />
-        ))}
+        {STAGES.map((stage) => {
+          if (visibleStages && !visibleStages.has(stage)) {
+            const count = (itemsByStage[stage] ?? []).length;
+            return (
+              <div key={stage} className="w-[40px] shrink-0 border-r border-[var(--border)] flex flex-col items-center gap-1 py-2">
+                {(itemsByStage[stage] ?? []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.id}
+                    className="w-5 h-1.5 rounded-full bg-[var(--muted-foreground)] opacity-25"
+                    title={item.title || item.content}
+                  />
+                ))}
+                {count > 5 && (
+                  <span className="text-[8px] text-[var(--muted-foreground)] opacity-40">
+                    +{count - 5}
+                  </span>
+                )}
+              </div>
+            );
+          }
+          return (
+            <DroppableStage
+              key={stage}
+              stage={stage}
+              items={itemsByStage[stage]}
+              businessId={businessId}
+              onBlockClick={onBlockClick}
+            />
+          );
+        })}
       </div>
 
       <DragOverlay>

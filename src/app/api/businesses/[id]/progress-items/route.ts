@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, context: Params) {
       stage,
       title: trimmedTitle,
       content: trimmedContent,
-      date: date ?? "",
+      date: date || new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10),
       sortOrder: sortOrder ?? (maxSort._max.sortOrder ?? 0) + 1,
     },
   });

@@ -75,7 +75,7 @@
 - [ ] T026 [US1] Create new company dialog (canonical name, optional aliases) in src/components/business-table/new-company-dialog.tsx
 - [ ] T027 [US1] Create new business dialog (company selector, name, visibility, scale, timing text, timing date picker, assignee) in src/components/business-table/new-business-dialog.tsx
 - [ ] T028 [US1] Create business detail slide panel with tabs (Basic Info, Progress, Weekly Actions, Internal Notes, Files/References placeholder, Log/Version) in src/components/business-table/business-detail-panel.tsx
-- [ ] T029 [US1] Create key company toggle button and filtering logic (pin to top, filter toggle) in src/components/business-table/key-company-toggle.tsx
+- [ ] T029 [US1] Create key company toggle button (★ favorite marker only, no sort effect) and filtering logic ("중요기업만" checkbox) in src/components/business-table/key-company-toggle.tsx
 - [ ] T030 [US1] Add quick action buttons (new company, new business) to Business Management toolbar and Home screen in src/components/ui/quick-actions.tsx
 
 **Checkpoint**: Companies and businesses can be created, viewed in table, and detail panel works
@@ -300,10 +300,31 @@
 - [ ] T103 [P] Implement mobile responsive layout: Business Management (card/accordion), Weekly Meeting (company card + action list), detail (full-screen overlay), floating action button in src/app/business/page.tsx and src/app/weekly/page.tsx
 - [ ] T104 [P] Implement tablet responsive layout: condensed table columns, overlay detail panel, drawer filters in src/app/business/page.tsx and src/app/weekly/page.tsx
 - [ ] T105 [P] Create archive/restore UI components (archive button with confirmation, "Show Archived" toggle, restore button) in src/components/ui/archive-restore.tsx
-- [ ] T106 [P] Add sort order drag-and-drop for company groups and business rows in Business Management in src/components/business-table/sort-handle.tsx
+- [x] T106 [P] Add sort order drag-and-drop for company groups in Business Management (DndContext + SortableContext + drag handle on company header, PUT /api/companies/reorder batch endpoint) in src/app/business/page.tsx and src/app/api/companies/reorder/route.ts
 - [ ] T107 Add quick action floating button for mobile (context-sensitive: new company, new business, new action) in src/components/ui/mobile-fab.tsx
 - [ ] T108 Performance optimization: add PostgreSQL indexes per data-model.md, add TanStack Table virtual scrolling for large datasets in src/app/business/page.tsx
 - [ ] T109 Run quickstart.md validation (all 7 verification steps pass end-to-end)
+
+---
+
+## Phase 16: UX Improvements (2026-03-19)
+
+**Purpose**: Search refinement, card interaction, modal usability, sticky layout, stage filtering
+
+### Completed Tasks
+
+- [x] T110 [US2] Default to today's date (YYYY-MM-DD) when creating a progress item without specifying a date in src/app/api/businesses/[id]/progress-items/route.ts
+- [x] T111 [US1] Add company drag-and-drop reordering via DndContext/SortableContext with drag handle on company header row; separate ★ (favorite) from sort order in src/app/business/page.tsx, src/components/business-table/company-group-row.tsx
+- [x] T112 [US1] Create PUT /api/companies/reorder endpoint for batch sortOrder updates (transaction) in src/app/api/companies/reorder/route.ts
+- [x] T113 [US1] Add useReorderCompanies mutation hook in src/hooks/use-companies.ts
+- [x] T114 [US1] Make left columns (company header, business info, stage header "사업 정보") sticky left-0 during horizontal scroll with proper z-index and background in src/app/business/page.tsx, src/components/business-table/company-group-row.tsx, src/components/business-table/business-row.tsx
+- [x] T115 [US2] Enlarge block detail modal to 700×520px default with drag-to-resize from bottom-right corner (min 540×400px); textarea fills available space in src/components/progress-blocks/block-detail.tsx
+- [x] T116 [US6] Separate search into two roles: global search (⌘K) for item navigation with scroll+highlight, local search for card filtering with dimming in src/components/search/search-overlay.tsx, src/app/business/page.tsx
+- [x] T117 [US6] Add searchHighlightId and searchFilterText to Zustand UI store in src/stores/ui-store.ts
+- [x] T118 [US6] Implement card highlight: blue border (current match), red border (visited), fade on mouse hover; dimming for non-matching cards (opacity 25%) in src/components/progress-blocks/mini-block.tsx
+- [x] T119 [US6] Add local filter match navigation: Enter cycles through matches with (n/N) counter, respects visible stages and key-company filter in src/app/business/page.tsx
+- [x] T120 [US6] Add stage column toggle: clickable headers to show/hide stages (300px active → 40px collapsed with vertical text and pill card indicators); search/filter respects visible stages in src/app/business/page.tsx, src/components/progress-blocks/stage-row-dnd.tsx
+- [x] T121 [US1] Differentiate empty state message for "중요기업만" filter ("중요 기업으로 등록된 기업이 없습니다") vs general ("등록된 기업이 없습니다") in src/app/business/page.tsx
 
 ---
 
