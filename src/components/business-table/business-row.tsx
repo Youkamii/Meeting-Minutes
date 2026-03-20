@@ -61,6 +61,7 @@ export function BusinessRow({ business, onClick, visibleStages }: BusinessRowPro
         <div
           className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[var(--background)] px-4 py-3 cursor-pointer"
           onClick={isArchived ? () => setExpanded(!expanded) : onClick}
+          onDoubleClick={isArchived ? onClick : undefined}
         >
           {/* 사업명 */}
           <div className="flex items-center gap-1.5">
