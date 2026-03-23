@@ -127,7 +127,7 @@ export default function BusinessManagementPage() {
   // Build company name lookup for search matching
   const companyNameMap = useMemo(() => {
     const map = new Map<string, string>();
-    for (const c of companies) map.set(c.id, (c as Company).canonicalName.toLowerCase());
+    for (const c of companies) map.set(c.id, c.canonicalName.toLowerCase());
     return map;
   }, [companies]);
 
