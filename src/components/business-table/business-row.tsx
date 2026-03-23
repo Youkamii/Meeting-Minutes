@@ -23,9 +23,10 @@ interface BusinessRowProps {
   };
   onClick: () => void;
   visibleStages?: Set<string>;
+  highlighted?: boolean;
 }
 
-export function BusinessRow({ business, onClick, visibleStages }: BusinessRowProps) {
+export function BusinessRow({ business, onClick, visibleStages, highlighted }: BusinessRowProps) {
   const [selectedBlock, setSelectedBlock] = useState<ProgressItem | null>(null);
   const [expanded, setExpanded] = useState(!business.isArchived);
 
@@ -56,7 +57,10 @@ export function BusinessRow({ business, onClick, visibleStages }: BusinessRowPro
 
   return (
     <>
-      <div className={`flex items-stretch border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors ${isArchived ? "opacity-60" : ""}`}>
+      <div
+        data-business-id={business.id}
+        className={`flex items-stretch border-b hover:bg-[var(--accent)]/50 transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+      >
         {/* Fixed left column */}
         <div
           className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[var(--background)] px-4 py-3 cursor-pointer"
