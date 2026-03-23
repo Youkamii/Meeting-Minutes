@@ -130,6 +130,7 @@ export default function BusinessManagementPage() {
     const lc = search.toLowerCase();
     const ids: string[] = [];
     for (const biz of visibleBusinesses) {
+      if (biz.isArchived) continue;
       const items = (biz as Business & { progressItems?: { id: string; title?: string; content: string; stage: string }[] }).progressItems ?? [];
       for (const item of items) {
         if (!visibleStages.has(item.stage)) continue;
