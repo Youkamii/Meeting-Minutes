@@ -10,25 +10,18 @@ interface NewCompanyDialogProps {
 
 export function NewCompanyDialog({ open, onClose }: NewCompanyDialogProps) {
   const [name, setName] = useState("");
-  const [aliasInput, setAliasInput] = useState("");
   const createCompany = useCreateCompany();
 
   if (!open) return null;
-
-  const aliases = aliasInput
-    .split(",")
-    .map((a) => a.trim())
-    .filter(Boolean);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     createCompany.mutate(
-      { canonicalName: name.trim(), aliases },
+      { canonicalName: name.trim() },
       {
         onSuccess: () => {
           setName("");
-          setAliasInput("");
           onClose();
         },
       },
@@ -55,17 +48,6 @@ export function NewCompanyDialog({ open, onClose }: NewCompanyDialogProps) {
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
             autoFocus
             required
-          />
-        </label>
-
-        <label className="mt-4 block text-sm font-medium">
-          별칭 (쉼표로 구분)
-          <input
-            type="text"
-            value={aliasInput}
-            onChange={(e) => setAliasInput(e.target.value)}
-            placeholder="예: ABC Corp, ABC"
-            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
           />
         </label>
 
