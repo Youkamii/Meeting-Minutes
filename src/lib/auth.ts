@@ -7,8 +7,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
   pages: {
@@ -33,8 +33,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         if (dbUser) {
           session.user.id = dbUser.id;
-          (session.user as unknown as Record<string, unknown>).role = dbUser.role;
-          (session.user as unknown as Record<string, unknown>).status = dbUser.status;
+          session.user.role = dbUser.role as "admin" | "user";
+          session.user.status = dbUser.status as "pending" | "approved" | "rejected";
         }
       }
       return session;
@@ -45,7 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 /** Check if the current session user is an admin */
 export async function isAdmin(): Promise<boolean> {
   const session = await auth();
-  return (session?.user as Record<string, unknown>)?.role === "admin";
+  return session?.user?.role === "admin";
 }
 
 /** Throw if not admin */

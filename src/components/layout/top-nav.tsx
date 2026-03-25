@@ -27,7 +27,7 @@ export function TopNav() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const userRole = (session?.user as Record<string, unknown>)?.role as string | undefined;
+  const userRole = session?.user?.role;
 
   useEffect(() => setMounted(true), []);
 
@@ -90,7 +90,7 @@ export function TopNav() {
                 title="로그아웃"
               >
                 {session.user.image ? (
-                  <img src={session.user.image} alt="" className="h-5 w-5 rounded-full" />
+                  <img src={session.user.image} alt="" className="h-5 w-5 rounded-full" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="h-5 w-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-[10px]">
                     {session.user.name?.charAt(0) ?? "U"}
