@@ -32,7 +32,7 @@ import type { Company, Business } from "@/types";
 import { STAGES, STAGE_LABELS } from "@/lib/constants";
 
 const STAGES_CONFIG = STAGES.map((key) => ({ key, label: STAGE_LABELS[key] }));
-const ALL_STAGE_KEYS = STAGES as readonly string[];
+const ALL_STAGE_KEYS = STAGES;
 
 function SortableCompanyGroup({
   companyId,
