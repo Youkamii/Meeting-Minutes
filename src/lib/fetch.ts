@@ -21,11 +21,17 @@ export async function fetchJson<T>(
 ): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
+    let body: Record<string, unknown> = {};
+    try {
+      body = await res.json();
+    } catch {
+      const text = await res.text().catch(() => "");
+      body = { message: text.slice(0, 200) || `HTTP ${res.status}` };
+    }
     throw new ApiError(
       res.status,
-      body.message || body.error || `Request failed with status ${res.status}`,
-      body.error,
+      (body.message as string) || (body.error as string) || `Request failed with status ${res.status}`,
+      body.error as string | undefined,
     );
   }
   return res.json();

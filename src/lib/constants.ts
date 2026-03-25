@@ -3,7 +3,7 @@ import type { Stage } from "@/types";
 /**
  * Canonical stage definitions used across the app.
  */
-export const STAGES: Stage[] = [
+export const STAGES: readonly Stage[] = [
   "inbound",
   "funnel",
   "pipeline",
@@ -11,9 +11,9 @@ export const STAGES: Stage[] = [
   "contract",
   "build",
   "maintenance",
-];
+] as const;
 
-export const STAGE_LABELS: Record<Stage, string> = {
+export const STAGE_LABELS: Readonly<Record<Stage, string>> = {
   inbound: "Inbound(초도미팅)",
   funnel: "Funnel",
   pipeline: "Pipeline",
