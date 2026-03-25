@@ -23,7 +23,8 @@ export async function createAuditLog({
       entityId,
       action,
       actorId,
-      changes: changes ?? undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      changes: (changes ?? undefined) as any,
       summary,
     },
   });

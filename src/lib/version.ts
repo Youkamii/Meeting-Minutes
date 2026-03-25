@@ -33,11 +33,12 @@ type VersionDelegate = {
 };
 
 function getVersionModel(modelName: VersionModelName): VersionDelegate {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const delegates: Record<VersionModelName, VersionDelegate> = {
-    businessVersion: prisma.businessVersion,
-    progressItemVersion: prisma.progressItemVersion,
-    weeklyActionVersion: prisma.weeklyActionVersion,
-    internalNoteVersion: prisma.internalNoteVersion,
+    businessVersion: prisma.businessVersion as any,
+    progressItemVersion: prisma.progressItemVersion as any,
+    weeklyActionVersion: prisma.weeklyActionVersion as any,
+    internalNoteVersion: prisma.internalNoteVersion as any,
   };
   return delegates[modelName];
 }

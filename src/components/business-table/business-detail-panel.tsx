@@ -57,7 +57,7 @@ export function BusinessDetailPanel({
     if (business && business.id !== syncedIdRef.current) {
       syncedIdRef.current = business.id;
       setName(business.name);
-      setEmbargoName((business as Record<string, unknown>).embargoName as string ?? "");
+      setEmbargoName((business as unknown as Record<string, unknown>).embargoName as string ?? "");
       setVisibility(business.visibility);
       setScale(business.scale ?? "");
       setTimingText(business.timingText ?? "");
@@ -72,7 +72,7 @@ export function BusinessDetailPanel({
     if (!biz) return;
     const changes: Record<string, unknown> = {};
     if (name.trim() && name.trim() !== biz.name) changes.name = name.trim();
-    const bizEmbargoName = (biz as Record<string, unknown>).embargoName as string | null;
+    const bizEmbargoName = (biz as unknown as Record<string, unknown>).embargoName as string | null;
     if (embargoName !== (bizEmbargoName ?? "")) changes.embargoName = embargoName || null;
     if (visibility !== biz.visibility) changes.visibility = visibility;
     if (scale !== (biz.scale ?? "")) changes.scale = scale || null;
