@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
   const { type, ...options } = body;
 
   if (type === "weekly") {
-    return handleWeeklyExport(options);
+    return handleWeeklyExport(options as { cycleId: string; includeCompleted?: boolean; includeCarryover?: boolean; assignedTo?: string });
   } else if (type === "monthly") {
-    return handleMonthlyExport(options);
+    return handleMonthlyExport(options as { year: number; month: number; includeStageStatus?: boolean; includeIncompleteActions?: boolean });
   } else if (type === "current_view") {
-    return handleCurrentViewExport(options);
+    return handleCurrentViewExport(options as { view: "business_management" | "weekly_meeting" });
   }
 
   return NextResponse.json(
