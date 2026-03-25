@@ -1,4 +1,6 @@
 참고디자인/
+*.xlsx
+*.xls
 
 # dependencies
 node_modules/
