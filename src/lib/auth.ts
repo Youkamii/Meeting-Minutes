@@ -1,9 +1,10 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { getPrisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 
-const prisma = getPrisma();
+// Auth needs a standard PrismaClient (not the pg-adapter version)
+const prisma = new PrismaClient();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
