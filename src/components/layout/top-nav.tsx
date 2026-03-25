@@ -34,9 +34,8 @@ export function TopNav() {
   const [mounted, setMounted] = useState(false);
   const userRole = session?.user?.role;
 
-  // Hide nav on login/pending pages or while session is loading
-  if (HIDDEN_PATHS.includes(pathname) || sessionStatus === "loading") return null;
-  if (!session) return null;
+  // Hide nav only on login/pending pages
+  if (HIDDEN_PATHS.includes(pathname)) return null;
 
   useEffect(() => setMounted(true), []);
 
