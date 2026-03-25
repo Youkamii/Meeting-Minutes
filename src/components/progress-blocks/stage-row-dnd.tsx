@@ -88,6 +88,12 @@ function DroppableStage({
   const createItem = useCreateProgressItem();
   const [editingFunnel, setEditingFunnel] = useState(false);
   const [funnelValue, setFunnelValue] = useState(funnelNo ?? "");
+  // Sync when prop changes (after save + refetch)
+  const prevFunnelNo = useRef(funnelNo);
+  if (funnelNo !== prevFunnelNo.current) {
+    prevFunnelNo.current = funnelNo;
+    if (!editingFunnel) setFunnelValue(funnelNo ?? "");
+  }
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
@@ -190,8 +196,11 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
   const handleFunnelNoChange = useCallback((stage: Stage, value: string) => {
     const updated = { ...funnelRef.current, [stage]: value };
     if (!value) delete updated[stage];
-    updateBusiness.mutate({ id: businessId, lockVersion: lockVersion ?? 1, funnelNumbers: updated });
-  }, [businessId, updateBusiness]);
+    updateBusiness.mutate(
+      { id: businessId, lockVersion: lockVersion ?? 1, funnelNumbers: updated },
+      { onError: (err) => console.error("FunnelNo save failed:", err) },
+    );
+  }, [businessId, lockVersion, updateBusiness]);
   const moveItem = useMoveProgressItem();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
 
