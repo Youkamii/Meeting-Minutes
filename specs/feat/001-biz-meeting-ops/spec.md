@@ -610,6 +610,23 @@ The service has the following menu structure:
   dragging the bottom-right corner (min 540×400px). Textarea fills
   available space. Size resets when opening a different card.
 
+### Session 2026-03-25
+
+- Q: Weekly meeting page layout redesign? → A: Redesigned as a company × week
+  table (similar to Excel). Monthly navigation with a month picker, inline
+  Tiptap rich text editing per cell, auto-create weekly cycles for past and
+  future weeks on demand, and week column toggle (collapse/expand individual
+  week columns).
+- Q: FunnelNo. per stage per business? → A: Free text identifier displayed
+  above progress cards for each stage cell. Double-click to edit inline,
+  auto-saves. Stored as JSONB field (`funnelNumbers`) on the Business entity
+  (keyed by stage name).
+- Q: Block detail modal — weekly actions panel? → A: The block detail modal
+  now shows weekly actions (previous week / this week / next week) for the
+  same company in the right panel below the calendar section.
+- Q: Excel source files in repo? → A: `.xlsx` and `.xls` files added to
+  `.gitignore` to prevent accidental commits of data files.
+
 ## Assumptions
 
 - The service targets a small-to-medium internal team (up to ~50

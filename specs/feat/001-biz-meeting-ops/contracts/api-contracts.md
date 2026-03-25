@@ -107,8 +107,9 @@ Get business with progress items grouped by stage.
 ### PUT /api/businesses/:id
 Update business.
 
-**Body**: `{ name?, visibility?, scale?, timing_text?, timing_start?, timing_end?, current_stage?, assigned_to?, sort_order?, lock_version }`
+**Body**: `{ name?, visibility?, scale?, timing_text?, timing_start?, timing_end?, current_stage?, assigned_to?, sort_order?, funnelNumbers?, lock_version }`
 **Response**: `{ data: Business }` | `409 Conflict`
+**Notes**: When the update payload contains **only** `funnelNumbers` (no other fields changed), the `lock_version` check is skipped to allow lightweight inline edits without conflict errors.
 
 ### POST /api/businesses/:id/archive
 ### POST /api/businesses/:id/restore
@@ -163,6 +164,13 @@ current week only)
 Get or create the current week's cycle.
 
 **Response**: `{ data: WeeklyCycle }`
+
+### POST /api/weekly-cycles
+Upsert a weekly cycle (create if not exists for the given year + week_number).
+
+**Body**: `{ year, week_number, start_date, end_date }`
+**Response**: `200 { data: WeeklyCycle }` (existing) or `201 { data: WeeklyCycle }` (created)
+**Notes**: Used by auto-create logic to ensure cycles exist for past and future weeks when navigating the monthly view.
 
 ---
 
