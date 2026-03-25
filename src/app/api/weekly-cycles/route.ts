@@ -32,8 +32,35 @@ export async function GET(request: NextRequest) {
   const cycles = await prisma.weeklyCycle.findMany({
     where,
     orderBy: [{ year: "desc" }, { weekNumber: "desc" }],
-    take: 20,
+    take: 52,
   });
 
   return NextResponse.json({ data: cycles });
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { year, weekNumber } = body;
+
+    if (!year || !weekNumber) {
+      return NextResponse.json(
+        { error: "VALIDATION", message: "year and weekNumber are required" },
+        { status: 400 },
+      );
+    }
+
+    const { startDate, endDate } = getWeekDateRange(year, weekNumber);
+
+    const cycle = await prisma.weeklyCycle.upsert({
+      where: { year_weekNumber: { year, weekNumber } },
+      update: {},
+      create: { year, weekNumber, startDate, endDate },
+    });
+
+    return NextResponse.json({ data: cycle });
+  } catch (error) {
+    console.error("POST /api/weekly-cycles error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
