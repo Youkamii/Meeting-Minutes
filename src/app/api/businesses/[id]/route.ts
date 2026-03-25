@@ -47,16 +47,20 @@ export async function PUT(request: NextRequest, context: Params) {
       );
     }
 
-    try {
-      checkLockVersion(
-        current.lockVersion,
-        lockVersion,
-        JSON.parse(JSON.stringify(current)),
-        body,
-      );
-    } catch (e) {
-      if (e instanceof ConflictError) return conflictResponse(e);
-      throw e;
+    // Skip lock version check for funnelNumbers-only updates
+    const isFunnelOnly = Object.keys(updateData).length === 1 && updateData.funnelNumbers !== undefined;
+    if (!isFunnelOnly) {
+      try {
+        checkLockVersion(
+          current.lockVersion,
+          lockVersion,
+          JSON.parse(JSON.stringify(current)),
+          body,
+        );
+      } catch (e) {
+        if (e instanceof ConflictError) return conflictResponse(e);
+        throw e;
+      }
     }
 
     const data: Record<string, unknown> = { lockVersion: { increment: 1 } };
