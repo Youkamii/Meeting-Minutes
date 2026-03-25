@@ -149,7 +149,8 @@ model Business {
   timingText   String?    @map("timing_text")
   timingStart  DateTime?  @map("timing_start") @db.Date
   timingEnd    DateTime?  @map("timing_end") @db.Date
-  currentStage Stage?     @map("current_stage")
+  funnelNumbers Json?     @map("funnel_numbers") @db.JsonB
+  currentStage  Stage?   @map("current_stage")
   assignedToId String?    @map("assigned_to")
   isArchived   Boolean    @default(false) @map("is_archived")
   archivedAt   DateTime?  @map("archived_at")

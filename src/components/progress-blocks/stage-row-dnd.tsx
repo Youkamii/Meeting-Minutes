@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -21,6 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 import { MiniBlock } from "./mini-block";
 import { useMoveProgressItem, useCreateProgressItem } from "@/hooks/use-progress-items";
+import { useUpdateBusiness } from "@/hooks/use-businesses";
 import type { ProgressItem, Stage } from "@/types";
 
 const STAGES: Stage[] = [
@@ -71,16 +72,22 @@ function DroppableStage({
   items,
   businessId,
   onBlockClick,
+  funnelNo,
+  onFunnelNoChange,
 }: {
   stage: Stage;
   items: ProgressItem[];
   businessId: string;
   onBlockClick?: (item: ProgressItem) => void;
+  funnelNo?: string;
+  onFunnelNoChange?: (stage: Stage, value: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const createItem = useCreateProgressItem();
+  const [editingFunnel, setEditingFunnel] = useState(false);
+  const [funnelValue, setFunnelValue] = useState(funnelNo ?? "");
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
@@ -98,6 +105,37 @@ function DroppableStage({
       }`}
       onClick={(e) => e.stopPropagation()}
     >
+      {/* Funnel No. */}
+      {editingFunnel ? (
+        <input
+          type="text"
+          value={funnelValue}
+          onChange={(e) => setFunnelValue(e.target.value)}
+          onBlur={() => {
+            setEditingFunnel(false);
+            if (funnelValue !== (funnelNo ?? "")) {
+              onFunnelNoChange?.(stage, funnelValue);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") { setFunnelValue(funnelNo ?? ""); setEditingFunnel(false); }
+          }}
+          className="w-full rounded border border-[var(--primary)] bg-[var(--background)] px-1.5 py-0.5 text-[10px] font-mono outline-none mb-1"
+          autoFocus
+        />
+      ) : (
+        <div
+          onDoubleClick={() => { setFunnelValue(funnelNo ?? ""); setEditingFunnel(true); }}
+          className={`text-[10px] font-mono mb-1 px-1 rounded cursor-default select-none min-h-[18px] ${
+            funnelNo ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-transparent hover:text-[var(--muted-foreground)]/30"
+          }`}
+          title="더블클릭하여 Funnel No. 수정"
+        >
+          {funnelNo || "No."}
+        </div>
+      )}
+
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         {items.map((item) => (
           <SortableBlock key={item.id} item={item} onClick={() => onBlockClick?.(item)} />
@@ -136,13 +174,24 @@ interface StageRowDndProps {
   progressItems: ProgressItem[];
   onBlockClick?: (item: ProgressItem) => void;
   visibleStages?: Set<string>;
+  funnelNumbers?: Record<string, string>;
+  lockVersion?: number;
 }
 
-export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleStages }: StageRowDndProps) {
+export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleStages, funnelNumbers, lockVersion }: StageRowDndProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   );
+  const updateBusiness = useUpdateBusiness();
+  const funnelRef = useRef(funnelNumbers ?? {});
+  funnelRef.current = funnelNumbers ?? {};
+
+  const handleFunnelNoChange = useCallback((stage: Stage, value: string) => {
+    const updated = { ...funnelRef.current, [stage]: value };
+    if (!value) delete updated[stage];
+    updateBusiness.mutate({ id: businessId, lockVersion: lockVersion ?? 1, funnelNumbers: updated });
+  }, [businessId, updateBusiness]);
   const moveItem = useMoveProgressItem();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
 
@@ -237,6 +286,8 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
               items={itemsByStage[stage]}
               businessId={businessId}
               onBlockClick={onBlockClick}
+              funnelNo={funnelNumbers?.[stage]}
+              onFunnelNoChange={handleFunnelNoChange}
             />
           );
         })}
