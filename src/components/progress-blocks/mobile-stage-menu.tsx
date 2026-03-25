@@ -1,17 +1,10 @@
 "use client";
 
 import { useMoveProgressItem } from "@/hooks/use-progress-items";
+import { STAGES, STAGE_LABELS } from "@/lib/constants";
 import type { ProgressItem, Stage } from "@/types";
 
-const STAGES: { value: Stage; label: string }[] = [
-  { value: "inbound", label: "Inbound" },
-  { value: "funnel", label: "Funnel" },
-  { value: "pipeline", label: "Pipeline" },
-  { value: "proposal", label: "제안" },
-  { value: "contract", label: "계약" },
-  { value: "build", label: "구축" },
-  { value: "maintenance", label: "유지보수" },
-];
+const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: STAGE_LABELS[s] }));
 
 interface MobileStageMenuProps {
   item: ProgressItem;
@@ -48,7 +41,7 @@ export function MobileStageMenu({
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--muted-foreground)]" />
         <h3 className="text-sm font-bold mb-3">단계 이동</h3>
         <div className="space-y-1">
-          {STAGES.map((stage) => (
+          {STAGE_OPTIONS.map((stage) => (
             <button
               key={stage.value}
               onClick={() => handleMove(stage.value)}

@@ -29,16 +29,10 @@ import { QuickActionsBar } from "@/components/ui/quick-actions";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import type { Company, Business } from "@/types";
 
-const STAGES_CONFIG: { key: string; label: string }[] = [
-  { key: "inbound", label: "Inbound(초도미팅)" },
-  { key: "funnel", label: "Funnel" },
-  { key: "pipeline", label: "Pipeline" },
-  { key: "proposal", label: "제안" },
-  { key: "contract", label: "계약" },
-  { key: "build", label: "구축" },
-  { key: "maintenance", label: "유지보수" },
-];
-const ALL_STAGE_KEYS = STAGES_CONFIG.map((s) => s.key);
+import { STAGES, STAGE_LABELS } from "@/lib/constants";
+
+const STAGES_CONFIG = STAGES.map((key) => ({ key, label: STAGE_LABELS[key] }));
+const ALL_STAGE_KEYS = STAGES;
 
 function SortableCompanyGroup({
   companyId,

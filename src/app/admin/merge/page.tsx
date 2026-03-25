@@ -2,16 +2,8 @@
 
 import { useState } from "react";
 import { useCompanies } from "@/hooks/use-companies";
+import { fetchJson } from "@/lib/fetch";
 import type { Company } from "@/types";
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, ...err };
-  }
-  return res.json();
-}
 
 export default function MergePage() {
   const [search, setSearch] = useState("");

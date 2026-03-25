@@ -1,19 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchJson } from "@/lib/fetch";
 import type { Version, ApiListResponse, ApiResponse } from "@/types";
-
-// TODO: fetchJson is duplicated across 8 hook/page files (use-businesses, use-companies,
-// use-progress-items, use-weekly-actions, use-versions, use-activity, admin/merge, admin/users).
-// Extract to a shared utility like src/lib/fetch-json.ts to reduce duplication.
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, ...err };
-  }
-  return res.json();
-}
 
 export function useVersions(entityType: string, entityId: string | null) {
   const qs = new URLSearchParams();

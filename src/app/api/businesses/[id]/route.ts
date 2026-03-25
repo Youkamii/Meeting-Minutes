@@ -5,10 +5,10 @@ import { createAuditLog } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflict";
 
-const VALID_STAGES = new Set(["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"]);
+import { VALID_STAGES_SET } from "@/lib/constants";
 
 const funnelNumbersSchema = z.record(z.string(), z.string()).refine(
-  (obj) => Object.keys(obj).every((k) => VALID_STAGES.has(k)),
+  (obj) => Object.keys(obj).every((k) => VALID_STAGES_SET.has(k)),
   { message: "Keys must be valid stage names" },
 );
 
