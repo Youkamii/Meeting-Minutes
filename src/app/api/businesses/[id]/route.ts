@@ -69,6 +69,7 @@ export async function PUT(request: NextRequest, context: Params) {
       data.timingStart = updateData.timingStart ? new Date(updateData.timingStart) : null;
     if (updateData.timingEnd !== undefined)
       data.timingEnd = updateData.timingEnd ? new Date(updateData.timingEnd) : null;
+    if (updateData.funnelNumbers !== undefined) data.funnelNumbers = updateData.funnelNumbers;
     if (updateData.currentStage !== undefined) data.currentStage = updateData.currentStage;
     if (updateData.assignedTo !== undefined) data.assignedToId = updateData.assignedTo;
     if (updateData.sortOrder !== undefined) data.sortOrder = updateData.sortOrder;

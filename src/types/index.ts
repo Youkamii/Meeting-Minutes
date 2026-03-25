@@ -77,6 +77,7 @@ export interface Business {
   timingText: string | null;
   timingStart: string | null;
   timingEnd: string | null;
+  funnelNumbers: Record<string, string> | null;
   currentStage: Stage | null;
   assignedTo: string | null;
   isArchived: boolean;
