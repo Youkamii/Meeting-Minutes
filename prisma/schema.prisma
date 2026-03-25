@@ -3,7 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================================
@@ -64,7 +66,7 @@ model User {
   id            String     @id @default(uuid())
   email         String?    @unique
   emailVerified DateTime?  @map("email_verified")
-  name          String
+  name          String?
   image         String?
   role          Role       @default(user)
   status        UserStatus @default(pending)
