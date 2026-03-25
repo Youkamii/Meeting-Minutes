@@ -1,17 +1,19 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = req.auth;
+
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   // Not logged in → redirect to login
-  if (!session) {
+  if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const status = session.user?.status;
-  const role = session.user?.role;
+  const status = token.status as string | undefined;
+  const role = token.role as string | undefined;
 
   // Rejected user → force logout
   if (status === "rejected") {
@@ -34,7 +36,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

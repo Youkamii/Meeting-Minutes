@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -25,17 +26,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async session({ session, user }) {
-      if (session.user) {
+    async jwt({ token, user }) {
+      if (user?.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: { id: true, role: true, status: true },
         });
         if (dbUser) {
-          session.user.id = dbUser.id;
-          session.user.role = dbUser.role as "admin" | "user";
-          session.user.status = dbUser.status as "pending" | "approved" | "rejected";
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.status = dbUser.status;
         }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as "admin" | "user";
+        session.user.status = token.status as "pending" | "approved" | "rejected";
       }
       return session;
     },
