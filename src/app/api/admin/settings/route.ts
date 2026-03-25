@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    requireAdmin(request);
+    await requireAdmin();
   } catch {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "Admin role required" },
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    requireAdmin(request);
+    await requireAdmin();
   } catch {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "Admin role required" },
