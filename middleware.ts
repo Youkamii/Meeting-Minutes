@@ -10,8 +10,15 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  const status = session.user?.status;
+  const role = session.user?.role;
+
+  // Rejected user → force logout
+  if (status === "rejected") {
+    return NextResponse.redirect(new URL("/api/auth/signout", req.url));
+  }
+
   // Pending user → only allow /pending page
-  const status = (session.user as Record<string, unknown>)?.status;
   if (status === "pending" && pathname !== "/pending") {
     return NextResponse.redirect(new URL("/pending", req.url));
   }
@@ -22,11 +29,8 @@ export default auth((req) => {
   }
 
   // Admin routes protection
-  if (pathname.startsWith("/admin")) {
-    const role = (session.user as Record<string, unknown>)?.role;
-    if (role !== "admin") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
+  if (pathname.startsWith("/admin") && role !== "admin") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
