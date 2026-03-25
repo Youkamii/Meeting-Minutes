@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflict";
+
+const VALID_STAGES = new Set(["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"]);
+
+const funnelNumbersSchema = z.record(z.string(), z.string()).refine(
+  (obj) => Object.keys(obj).every((k) => VALID_STAGES.has(k)),
+  { message: "Keys must be valid stage names" },
+);
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -59,7 +67,20 @@ export async function PUT(request: NextRequest, context: Params) {
       throw e;
     }
 
-    const data: Record<string, unknown> = { lockVersion: { increment: 1 } };
+    // Validate funnelNumbers if present
+    if (updateData.funnelNumbers !== undefined && updateData.funnelNumbers !== null) {
+      const parsed = funnelNumbersSchema.safeParse(updateData.funnelNumbers);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: "VALIDATION", message: "Invalid funnelNumbers: keys must be valid stages, values must be strings" },
+          { status: 400 },
+        );
+      }
+    }
+
+    const isFunnelOnly = Object.keys(updateData).length === 1 && updateData.funnelNumbers !== undefined;
+    const data: Record<string, unknown> = isFunnelOnly ? {} : { lockVersion: { increment: 1 } };
+    if (updateData.funnelNumbers !== undefined) data.funnelNumbers = updateData.funnelNumbers;
     if (updateData.name !== undefined) data.name = updateData.name.trim();
     if (updateData.embargoName !== undefined) data.embargoName = updateData.embargoName;
     if (updateData.visibility !== undefined) data.visibility = updateData.visibility;
