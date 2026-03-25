@@ -78,21 +78,29 @@ export default function UsersPage() {
             </span>
 
             <div className="flex gap-1">
+              {user.status !== "approved" && (
+                <button
+                  onClick={() => updateUser(user.id, { status: "approved" })}
+                  className="rounded-md bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+                >
+                  승인
+                </button>
+              )}
+              {user.status !== "rejected" && user.status !== "pending" && (
+                <button
+                  onClick={() => updateUser(user.id, { status: "rejected" })}
+                  className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                >
+                  거절
+                </button>
+              )}
               {user.status === "pending" && (
-                <>
-                  <button
-                    onClick={() => updateUser(user.id, { status: "approved" })}
-                    className="rounded-md bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
-                  >
-                    승인
-                  </button>
-                  <button
-                    onClick={() => updateUser(user.id, { status: "rejected" })}
-                    className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
-                  >
-                    거절
-                  </button>
-                </>
+                <button
+                  onClick={() => updateUser(user.id, { status: "rejected" })}
+                  className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                >
+                  거절
+                </button>
               )}
               {user.role === "user" && (
                 <button
