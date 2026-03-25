@@ -15,11 +15,13 @@ interface BusinessRowProps {
     timingText: string | null;
     timingStart?: string | null;
     timingEnd?: string | null;
+    funnelNumbers?: Record<string, string> | null;
     currentStage: Stage | null;
     assignedTo: string | null;
     isArchived?: boolean;
     companyName?: string;
     progressItems?: ProgressItem[];
+    lockVersion?: number;
   };
   onClick: () => void;
   visibleStages?: Set<string>;
@@ -104,6 +106,8 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
             progressItems={(business.progressItems ?? []) as ProgressItem[]}
             onBlockClick={(item) => setSelectedBlock(item)}
             visibleStages={visibleStages}
+            funnelNumbers={business.funnelNumbers ?? undefined}
+            lockVersion={business.lockVersion}
           />
         )}
       </div>
