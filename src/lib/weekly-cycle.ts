@@ -55,3 +55,33 @@ export function getWeekDateRange(
 export function formatWeekLabel(year: number, weekNumber: number): string {
   return `${year}-W${String(weekNumber).padStart(2, "0")}`;
 }
+
+/**
+ * Get weeks for a given month. Only counts weeks where Monday falls in the month.
+ * Returns array of { year, weekNumber, weekInMonth } sorted chronologically.
+ * weekInMonth is 1-based (1주, 2주, ...).
+ */
+export function getWeeksInMonth(
+  year: number,
+  month: number, // 1-12
+): { year: number; weekNumber: number; weekInMonth: number }[] {
+  const weeks: { year: number; weekNumber: number; weekInMonth: number }[] = [];
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let weekIndex = 0;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day);
+    if (date.getDay() === 1) { // Monday only
+      const wy = getISOWeekYear(date);
+      const wn = getISOWeekNumber(date);
+      weekIndex++;
+      weeks.push({ year: wy, weekNumber: wn, weekInMonth: weekIndex });
+    }
+  }
+
+  return weeks;
+}
+
+export function formatMonthLabel(year: number, month: number): string {
+  return `${year}년 ${month}월`;
+}
