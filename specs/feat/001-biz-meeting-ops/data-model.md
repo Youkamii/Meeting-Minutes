@@ -124,6 +124,7 @@ flag is a favorite marker only and does not affect sort order.
 | created_at     | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()          |
 | updated_at     | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()          |
 | lock_version   | INT          | NOT NULL, DEFAULT 1              |
+| funnelNumbers  | JSONB        | nullable, DEFAULT '{}' (keyed by stage name, e.g. {"funnel":"F-001","pipeline":"P-012"}) |
 
 **Stage enum**: `inbound`, `funnel`, `pipeline`, `proposal`, `contract`,
 `build`, `maintenance`
