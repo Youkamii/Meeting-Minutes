@@ -17,7 +17,9 @@ export default function BusinessError({
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
       <h2 className="text-xl font-bold mb-2">사업관리 로드 오류</h2>
       <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-md">
-        {error.message || "사업관리 페이지를 불러오는 중 오류가 발생했습니다."}
+        {error.digest
+          ? "사업관리 페이지를 불러오는 중 오류가 발생했습니다."
+          : error.message || "사업관리 페이지를 불러오는 중 오류가 발생했습니다."}
       </p>
       <div className="flex gap-2">
         <button
