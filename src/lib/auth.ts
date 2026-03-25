@@ -1,25 +1,14 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
+import { getPrisma } from "@/lib/prisma";
 
-// Auth-specific Prisma client using direct connection
-function createAuthPrisma() {
-  const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
-  if (!url) return new PrismaClient();
-  const pool = new pg.Pool({ connectionString: url });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new PrismaClient({ adapter: new PrismaPg(pool as any) });
-}
-
-const prisma = createAuthPrisma();
+const prisma = getPrisma();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
-  debug: true,
+  debug: process.env.NODE_ENV !== "production",
   session: { strategy: "jwt" },
   providers: [
     Google({
