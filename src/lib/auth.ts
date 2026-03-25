@@ -9,7 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
   debug: process.env.NODE_ENV !== "production",
-  session: { strategy: "jwt", maxAge: 5 * 60 },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
