@@ -22,17 +22,8 @@ import { useDroppable } from "@dnd-kit/core";
 import { MiniBlock } from "./mini-block";
 import { useMoveProgressItem, useCreateProgressItem } from "@/hooks/use-progress-items";
 import { useUpdateBusiness } from "@/hooks/use-businesses";
+import { STAGES } from "@/lib/constants";
 import type { ProgressItem, Stage } from "@/types";
-
-const STAGES: Stage[] = [
-  "inbound",
-  "funnel",
-  "pipeline",
-  "proposal",
-  "contract",
-  "build",
-  "maintenance",
-];
 
 // Sortable block inside a stage
 function SortableBlock({
