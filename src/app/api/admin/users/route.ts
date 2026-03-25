@@ -5,7 +5,7 @@ import { createAuditLog } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
   try {
-    requireAdmin(request);
+    await requireAdmin();
   } catch {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "Admin role required" },
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    requireAdmin(request);
+    await requireAdmin();
   } catch {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "Admin role required" },
@@ -36,6 +36,21 @@ export async function PUT(request: NextRequest) {
   if (!id) {
     return NextResponse.json(
       { error: "VALIDATION", message: "id is required" },
+      { status: 400 },
+    );
+  }
+
+  const VALID_ROLES = ["admin", "user"];
+  const VALID_STATUSES = ["pending", "approved", "rejected"];
+  if (role !== undefined && !VALID_ROLES.includes(role)) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}` },
+      { status: 400 },
+    );
+  }
+  if (status !== undefined && !VALID_STATUSES.includes(status)) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` },
       { status: 400 },
     );
   }
