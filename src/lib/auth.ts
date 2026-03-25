@@ -19,6 +19,7 @@ const prisma = createAuthPrisma();
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
+  debug: true,
   session: { strategy: "jwt" },
   providers: [
     Google({
