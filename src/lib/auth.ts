@@ -30,20 +30,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user }) {
-      // First sign-in: set user id
+    async jwt({ token, user, trigger }) {
+      // First sign-in or explicit update: always fetch from DB
       if (user?.id) {
         token.id = user.id;
-      }
-      // Every request: refresh role/status from DB
-      if (token.id) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
+          where: { id: user.id },
           select: { role: true, status: true },
         });
         if (dbUser) {
           token.role = dbUser.role;
           token.status = dbUser.status;
+        }
+        token.refreshedAt = Date.now();
+        return token;
+      }
+      // Subsequent requests: refresh from DB every 5 minutes
+      const REFRESH_INTERVAL = 5 * 60 * 1000;
+      const lastRefresh = (token.refreshedAt as number) ?? 0;
+      if (trigger === "update" || Date.now() - lastRefresh > REFRESH_INTERVAL) {
+        if (token.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, status: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.status = dbUser.status;
+          }
+          token.refreshedAt = Date.now();
         }
       }
       return token;
