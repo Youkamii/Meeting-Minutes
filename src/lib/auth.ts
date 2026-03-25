@@ -2,12 +2,23 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
-// Auth needs a standard PrismaClient (not the pg-adapter version)
-const prisma = new PrismaClient();
+// Auth-specific Prisma client using direct connection
+function createAuthPrisma() {
+  const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  if (!url) return new PrismaClient();
+  const pool = new pg.Pool({ connectionString: url });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new PrismaClient({ adapter: new PrismaPg(pool as any) });
+}
+
+const prisma = createAuthPrisma();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma as any),
   session: { strategy: "jwt" },
   providers: [
     Google({
@@ -54,13 +65,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-/** Check if the current session user is an admin */
 export async function isAdmin(): Promise<boolean> {
   const session = await auth();
   return session?.user?.role === "admin";
 }
 
-/** Throw if not admin */
 export async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) {
     throw new Error("Forbidden: admin role required");
