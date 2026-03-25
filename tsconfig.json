@@ -36,6 +36,11 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "prisma/fix-dates.ts",
+    "prisma/clean.ts",
+    "prisma/import-excel.ts",
+    "prisma/import-weekly.ts",
+    "prisma/check-empty.ts"
   ]
 }
