@@ -127,14 +127,14 @@ function DroppableStage({
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             if (e.key === "Escape") { setFunnelValue(funnelNo ?? ""); setEditingFunnel(false); }
           }}
-          className="w-full rounded border border-[var(--primary)] bg-[var(--background)] px-1.5 py-0.5 text-xs font-bold font-mono outline-none mb-1"
+          className="w-full rounded border border-transparent bg-[var(--background)] px-1.5 py-0.5 text-xs font-bold font-mono outline-none mb-1 focus:border-[var(--border)]"
           autoFocus
         />
       ) : (
         <div
           onDoubleClick={() => { setFunnelValue(funnelNo ?? ""); setEditingFunnel(true); }}
           className={`text-xs font-bold font-mono mb-1 px-1 rounded cursor-default select-none min-h-[20px] ${
-            funnelNo ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-transparent hover:text-[var(--muted-foreground)]/30"
+            funnelNo ? "text-[var(--primary)]" : "text-transparent hover:text-[var(--muted-foreground)]/30"
           }`}
           title="더블클릭하여 Funnel No. 수정"
         >
