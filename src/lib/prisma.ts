@@ -16,21 +16,22 @@ function createPrismaClient(): PrismaClient {
     );
   }
 
-  const pool = new pg.Pool({ connectionString });
+  const pool = new pg.Pool({
+    connectionString,
+    max: 3, // Limit connections for serverless
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adapter = new PrismaPg(pool as any);
   return new PrismaClient({ adapter });
 }
 
-// Lazy initialization — only create client when first accessed
+// Singleton — reuse across all imports including auth
 let _prisma: PrismaClient | undefined = globalForPrisma.prisma;
 
 export function getPrisma(): PrismaClient {
   if (!_prisma) {
     _prisma = createPrismaClient();
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = _prisma;
-    }
+    globalForPrisma.prisma = _prisma;
   }
   return _prisma;
 }
