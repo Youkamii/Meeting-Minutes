@@ -1,16 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchJson } from "@/lib/fetch";
 import type { WeeklyAction, WeeklyCycle, ApiListResponse } from "@/types";
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, ...err };
-  }
-  return res.json();
-}
 
 // Weekly Cycles
 export function useCurrentCycle() {

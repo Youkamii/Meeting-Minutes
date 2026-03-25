@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 
-const VALID_STAGES = ["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"];
+import { STAGES, isValidStage } from "@/lib/constants";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -74,9 +74,9 @@ export async function POST(request: NextRequest, context: Params) {
     if (body.action === "move") {
       const { targetStage, sortOrder } = body;
 
-      if (!targetStage || !VALID_STAGES.includes(targetStage)) {
+      if (!targetStage || !isValidStage(targetStage)) {
         return NextResponse.json(
-          { error: "VALIDATION", message: `Invalid stage. Must be one of: ${VALID_STAGES.join(", ")}` },
+          { error: "VALIDATION", message: `Invalid stage. Must be one of: ${STAGES.join(", ")}` },
           { status: 400 },
         );
       }

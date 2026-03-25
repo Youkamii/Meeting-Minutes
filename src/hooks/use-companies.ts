@@ -1,16 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchJson } from "@/lib/fetch";
 import type { Company, ApiListResponse, ApiResponse } from "@/types";
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Request failed with status ${res.status}`);
-  }
-  return res.json();
-}
 
 export function useCompanies(params?: {
   search?: string;
