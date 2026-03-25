@@ -8,6 +8,7 @@ import type { Stage, ProgressItem } from "@/types";
 interface BusinessRowProps {
   business: {
     id: string;
+    companyId?: string;
     name: string;
     embargoName?: string | null;
     visibility: string;
@@ -113,6 +114,7 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
           item={selectedBlock}
           open={!!selectedBlock}
           onClose={() => setSelectedBlock(null)}
+          companyId={business.companyId}
         />
       )}
     </>

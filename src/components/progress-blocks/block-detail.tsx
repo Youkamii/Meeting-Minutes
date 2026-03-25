@@ -7,13 +7,17 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Placeholder } from "@tiptap/extension-placeholder";
+import DOMPurify from "dompurify";
 import { useUpdateProgressItem } from "@/hooks/use-progress-items";
-import type { ProgressItem } from "@/types";
+import { useWeeklyActions, useCurrentCycle, useWeeklyCycles } from "@/hooks/use-weekly-actions";
+import { getISOWeekNumber, getISOWeekYear } from "@/lib/weekly-cycle";
+import type { ProgressItem, WeeklyAction } from "@/types";
 
 interface BlockDetailProps {
   item: ProgressItem;
   open: boolean;
   onClose: () => void;
+  companyId?: string;
 }
 
 function MiniCalendar({ onDateClick }: { onDateClick: (day: number, month: number, year: number) => void }) {
@@ -219,10 +223,10 @@ function EditorToolbar({ editor }: { editor: any }) {
 
 const MIN_WIDTH = 540;
 const MIN_HEIGHT = 400;
-const DEFAULT_WIDTH = 860;
-const DEFAULT_HEIGHT = 620;
+const DEFAULT_WIDTH = 1080;
+const DEFAULT_HEIGHT = 780;
 
-export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
+export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps) {
   const [title, setTitle] = useState(item.title ?? "");
   const [date, setDate] = useState(item.date ?? "");
   const [saving, setSaving] = useState(false);
@@ -324,6 +328,40 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
     editor?.commands.setContent(item.content || "");
   }, [item.id, item.content, editor]);
 
+  // Weekly actions for right panel
+  const now = new Date();
+  const currentWeekNum = getISOWeekNumber(now);
+  const currentWeekYear = getISOWeekYear(now);
+  const { data: currentCycleData } = useCurrentCycle();
+  const { data: allCyclesData } = useWeeklyCycles(currentWeekYear);
+  const currentCycle = currentCycleData?.data;
+  const allCycles = allCyclesData?.data ?? [];
+  const prevCycle = allCycles.find(
+    (c) => (c.year === currentWeekYear && c.weekNumber === currentWeekNum - 1) ||
+           (currentWeekNum === 1 && c.year === currentWeekYear - 1 && c.weekNumber >= 52),
+  );
+  const nextCycle = allCycles.find(
+    (c) => (c.year === currentWeekYear && c.weekNumber === currentWeekNum + 1) ||
+           (currentWeekNum >= 52 && c.year === currentWeekYear + 1 && c.weekNumber === 1),
+  );
+
+  const { data: prevWeekActions } = useWeeklyActions(
+    prevCycle ? { cycleId: prevCycle.id } : undefined,
+  );
+  const { data: thisWeekActions } = useWeeklyActions(
+    currentCycle ? { cycleId: currentCycle.id } : undefined,
+  );
+  const { data: nextWeekActions } = useWeeklyActions(
+    nextCycle ? { cycleId: nextCycle.id } : undefined,
+  );
+
+  const filterByCompany = (data: WeeklyAction[]) =>
+    companyId ? data.filter((a) => a.companyId === companyId) : [];
+
+  const prevWeekItems = filterByCompany((prevWeekActions?.data ?? []) as WeeklyAction[]);
+  const thisWeekItems = filterByCompany((thisWeekActions?.data ?? []) as WeeklyAction[]);
+  const nextWeekItems = filterByCompany((nextWeekActions?.data ?? []) as WeeklyAction[]);
+
   if (!open) return null;
 
   const inputClass =
@@ -388,9 +426,39 @@ export function BlockDetail({ item, open, onClose }: BlockDetailProps) {
           </p>
         </div>
 
-        {/* Right: calendar */}
-        <div className="shrink-0 border-l border-[var(--border)] pl-5">
-          <MiniCalendar onDateClick={handleCalendarDateClick} />
+        {/* Right: calendar + weekly actions */}
+        <div className="w-[300px] shrink-0 border-l border-[var(--border)] pl-5 flex flex-col overflow-y-auto">
+          <div className="shrink-0 flex justify-center">
+            <MiniCalendar onDateClick={handleCalendarDateClick} />
+          </div>
+
+          {/* Weekly actions */}
+          <div className="mt-4 pt-4 border-t border-[var(--border)] flex flex-col gap-4 flex-1 min-h-0">
+            {[
+              { label: "지난 주", items: prevWeekItems },
+              { label: "이번 주", items: thisWeekItems },
+              { label: "다음 주", items: nextWeekItems },
+            ].map(({ label, items }) => (
+              <div key={label}>
+                <h4 className="text-xs font-bold text-[var(--muted-foreground)] mb-1.5">
+                  {label}
+                </h4>
+                {items.length === 0 ? (
+                  <p className="text-[10px] text-[var(--muted-foreground)]">내용 없음</p>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {items.map((a) => (
+                      <div
+                        key={a.id}
+                        className="rounded bg-[var(--muted)] px-2 py-1.5 text-xs break-words [&_p]:m-0 [&_ul]:pl-3 [&_ul]:list-disc [&_ol]:pl-3 [&_ol]:list-decimal"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(a.content) }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Resize handle */}

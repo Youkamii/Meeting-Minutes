@@ -108,6 +108,40 @@ export function useArchiveWeeklyAction() {
   });
 }
 
+// Ensure a cycle exists (create if needed), returns cycle id
+export function useEnsureCycle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { year: number; weekNumber: number }) =>
+      fetchJson<{ data: WeeklyCycle }>(`/api/weekly-cycles?current=false&year=${data.year}&week_number=${data.weekNumber}&ensure=true`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["weeklyCycles"] });
+    },
+  });
+}
+
+// Fetch actions for multiple cycles at once (for monthly view)
+export function useWeeklyActionsMultiCycle(cycleIds: string[]) {
+  return useQuery<ApiListResponse<WeeklyAction>>({
+    queryKey: ["weeklyActions", "multi", cycleIds],
+    queryFn: async () => {
+      if (cycleIds.length === 0) return { data: [], total: 0 };
+      const results = await Promise.all(
+        cycleIds.map((id) =>
+          fetchJson<ApiListResponse<WeeklyAction>>(`/api/weekly-actions?cycle_id=${id}`),
+        ),
+      );
+      const allActions = results.flatMap((r) => r.data);
+      return { data: allActions, total: allActions.length };
+    },
+    enabled: cycleIds.length > 0,
+  });
+}
+
 // Carryover
 export function useCarryoverCandidates(sourceCycleId: string | null) {
   return useQuery<{ data: WeeklyAction[] }>({
