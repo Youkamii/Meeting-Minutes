@@ -1,16 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchJson } from "@/lib/fetch";
 import type { User, Role, UserStatus, ApiListResponse } from "@/types";
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, ...err };
-  }
-  return res.json();
-}
 
 const roleBadgeClass: Record<Role, string> = {
   admin: "bg-purple-100 text-purple-800",

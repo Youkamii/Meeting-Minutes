@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
+import { STAGES, isValidStage } from "@/lib/constants";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -28,8 +29,6 @@ export async function POST(request: NextRequest, context: Params) {
   const body = await request.json();
   const { stage, title, content, date, sortOrder } = body;
 
-  const VALID_STAGES = ["inbound", "funnel", "pipeline", "proposal", "contract", "build", "maintenance"];
-
   if (!stage) {
     return NextResponse.json(
       { error: "VALIDATION", message: "stage is required" },
@@ -37,9 +36,9 @@ export async function POST(request: NextRequest, context: Params) {
     );
   }
 
-  if (!VALID_STAGES.includes(stage)) {
+  if (!isValidStage(stage)) {
     return NextResponse.json(
-      { error: "VALIDATION", message: `Invalid stage "${stage}". Must be one of: ${VALID_STAGES.join(", ")}` },
+      { error: "VALIDATION", message: `Invalid stage "${stage}". Must be one of: ${STAGES.join(", ")}` },
       { status: 400 },
     );
   }
