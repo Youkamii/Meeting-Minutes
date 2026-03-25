@@ -108,6 +108,37 @@ export function useArchiveWeeklyAction() {
   });
 }
 
+// Ensure a cycle exists (create if needed via POST), returns cycle
+export function useEnsureCycle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { year: number; weekNumber: number }) =>
+      fetchJson<{ data: WeeklyCycle }>("/api/weekly-cycles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["weeklyCycles"] });
+    },
+  });
+}
+
+// Fetch actions for multiple cycles in a SINGLE request (batch API)
+export function useWeeklyActionsMultiCycle(cycleIds: string[]) {
+  const ids = cycleIds.join(",");
+  return useQuery<ApiListResponse<WeeklyAction>>({
+    queryKey: ["weeklyActions", "multi", cycleIds],
+    queryFn: () => {
+      if (cycleIds.length === 0) return Promise.resolve({ data: [], total: 0 });
+      return fetchJson<ApiListResponse<WeeklyAction>>(
+        `/api/weekly-actions?cycle_ids=${encodeURIComponent(ids)}`,
+      );
+    },
+    enabled: cycleIds.length > 0,
+  });
+}
+
 // Carryover
 export function useCarryoverCandidates(sourceCycleId: string | null) {
   return useQuery<{ data: WeeklyAction[] }>({
