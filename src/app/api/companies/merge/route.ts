@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    requireAdmin(request);
+    await requireAdmin();
   } catch {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "Admin role required" },
