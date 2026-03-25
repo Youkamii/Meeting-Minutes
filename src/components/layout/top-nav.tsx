@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { SearchOverlay } from "@/components/search/search-overlay";
 
@@ -23,8 +24,10 @@ function NavLink({
 
 export function TopNav() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const userRole = (session?.user as Record<string, unknown>)?.role as string | undefined;
 
   useEffect(() => setMounted(true), []);
 
@@ -51,7 +54,7 @@ export function TopNav() {
           <NavLink href="/">홈</NavLink>
           <NavLink href="/business">사업관리</NavLink>
           <NavLink href="/weekly">주간회의</NavLink>
-          <NavLink href="/admin">관리자</NavLink>
+          {userRole === "admin" && <NavLink href="/admin">관리자</NavLink>}
 
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -80,9 +83,29 @@ export function TopNav() {
               {mounted ? (theme === "dark" ? "☀" : "☽") : "◑"}
             </button>
 
-            <div className="h-8 w-8 rounded-full bg-[var(--muted)] flex items-center justify-center text-xs">
-              U
-            </div>
+            {session?.user ? (
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="h-8 rounded-md border border-[var(--border)] px-2 text-xs hover:bg-[var(--muted)] transition-colors flex items-center gap-1.5"
+                title="로그아웃"
+              >
+                {session.user.image ? (
+                  <img src={session.user.image} alt="" className="h-5 w-5 rounded-full" />
+                ) : (
+                  <div className="h-5 w-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-[10px]">
+                    {session.user.name?.charAt(0) ?? "U"}
+                  </div>
+                )}
+                <span className="hidden sm:inline">{session.user.name}</span>
+              </button>
+            ) : (
+              <a
+                href="/login"
+                className="h-8 rounded-md border border-[var(--border)] px-3 text-xs hover:bg-[var(--muted)] transition-colors flex items-center"
+              >
+                로그인
+              </a>
+            )}
           </div>
         </nav>
       </header>
