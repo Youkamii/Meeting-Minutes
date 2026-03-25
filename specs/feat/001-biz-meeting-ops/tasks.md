@@ -328,6 +328,24 @@
 
 ---
 
+## Phase 17: Weekly Table Redesign + FunnelNo. (2026-03-25)
+
+**Purpose**: Weekly meeting page redesign as company × week table with monthly navigation, inline editing, and FunnelNo. per stage
+
+### Completed Tasks
+
+- [x] T122 [US3] Weekly meeting table redesign — company × week layout, monthly navigation with month picker in src/app/weekly/page.tsx
+- [x] T123 [US3] Inline Tiptap rich text editor for weekly cells in src/components/weekly-meeting/tiptap-cell-editor.tsx
+- [x] T124 [US3] Week column toggle — collapse/expand individual week columns in src/app/weekly/page.tsx
+- [x] T125 [US3] Auto-create weekly cycles via POST /api/weekly-cycles (upsert for past/future weeks) in src/app/api/weekly-cycles/route.ts
+- [x] T126 [US3] useWeeklyActionsMultiCycle hook for monthly data fetch (all cycles in visible month) in src/hooks/use-weekly-actions.ts
+- [x] T127 [US2] Block detail modal weekly actions panel — shows prev/this/next week actions for the same company in the right panel below calendar in src/components/progress-blocks/block-detail.tsx
+- [x] T128 [US1] FunnelNo. per stage on business — JSONB field, double-click inline edit, auto-save (skips lockVersion for funnelNumbers-only updates) in src/components/business-table/funnel-number.tsx, src/app/api/businesses/[id]/route.ts
+- [x] T129 Excel data import script for weekly meeting data in prisma/import-weekly.ts
+- [x] T130 .gitignore update — added *.xlsx and *.xls patterns to prevent accidental data file commits
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -414,4 +432,4 @@ After Phase 2 (Foundational) completes:
 - Each user story should be independently completable and testable
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-- Total tasks: 109
+- Total tasks: 118
