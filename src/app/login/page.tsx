@@ -1,27 +1,8 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
-
-  if (status === "loading" || status === "authenticated") {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
       <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 shadow-xl text-center">
@@ -42,6 +23,13 @@ export default function LoginPage() {
           </svg>
           Google로 로그인
         </button>
+
+        <a
+          href="/"
+          className="block mt-4 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+        >
+          이미 로그인했다면 여기를 클릭
+        </a>
       </div>
     </div>
   );
