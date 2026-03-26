@@ -99,11 +99,14 @@ function DroppableStage({
     setFunnelValue(funnelNo ?? "");
   };
 
+  const addingRef = useRef(false);
   const handleAdd = () => {
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || addingRef.current) return;
+    addingRef.current = true;
     createItem.mutate(
       { businessId, stage, title: newTitle.trim() },
-      { onSuccess: () => { setNewTitle(""); setShowAdd(false); } },
+      { onSuccess: () => { setNewTitle(""); setShowAdd(false); addingRef.current = false; },
+        onError: () => { addingRef.current = false; } },
     );
   };
 
