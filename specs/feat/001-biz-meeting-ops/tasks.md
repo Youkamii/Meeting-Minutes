@@ -341,8 +341,7 @@
 - [x] T126 [US3] useWeeklyActionsMultiCycle hook for monthly data fetch (all cycles in visible month) in src/hooks/use-weekly-actions.ts
 - [x] T127 [US2] Block detail modal weekly actions panel — shows prev/this/next week actions for the same company in the right panel below calendar in src/components/progress-blocks/block-detail.tsx
 - [x] T128 [US1] FunnelNo. per stage on business — JSONB field, double-click inline edit, auto-save (skips lockVersion for funnelNumbers-only updates) in src/components/business-table/funnel-number.tsx, src/app/api/businesses/[id]/route.ts
-- [x] T129 Excel data import script for weekly meeting data in prisma/import-weekly.ts
-- [x] T130 .gitignore update — added *.xlsx and *.xls patterns to prevent accidental data file commits
+- [x] T129 .gitignore update — added *.xlsx and *.xls patterns to prevent accidental data file commits
 
 ---
 
