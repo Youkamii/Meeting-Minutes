@@ -323,6 +323,16 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
     onClose();
   }, [title, date, item, saving, updateItem, onClose, editor]);
 
+  // ESC to save and close
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") saveAndClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, saveAndClose]);
+
   // Sync editor content when a different item is selected
   useEffect(() => {
     editor?.commands.setContent(item.content || "");
