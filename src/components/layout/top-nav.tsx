@@ -34,9 +34,6 @@ export function TopNav() {
   const [mounted, setMounted] = useState(false);
   const userRole = session?.user?.role;
 
-  // Hide nav only on login/pending pages
-  if (HIDDEN_PATHS.includes(pathname)) return null;
-
   useEffect(() => setMounted(true), []);
 
   const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
@@ -50,6 +47,9 @@ export function TopNav() {
     document.addEventListener("keydown", handleGlobalKeyDown);
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [handleGlobalKeyDown]);
+
+  // Hide nav on login/pending pages or when not authenticated
+  if (HIDDEN_PATHS.includes(pathname) || !session) return null;
 
   return (
     <>
