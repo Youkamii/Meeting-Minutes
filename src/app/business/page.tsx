@@ -206,7 +206,7 @@ export default function BusinessManagementPage() {
   // Group businesses by company, sorted by sortOrder
   const groupedData = useMemo(() => {
     const sortedCompanies = [...companies].sort(
-      (a, b) => a.sortOrder - b.sortOrder,
+      (a, b) => a.sortOrder - b.sortOrder || a.canonicalName.localeCompare(b.canonicalName),
     );
 
     return sortedCompanies.map((company) => ({
