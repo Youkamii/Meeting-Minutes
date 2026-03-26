@@ -323,15 +323,18 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
     onClose();
   }, [title, date, item, saving, updateItem, onClose, editor]);
 
-  // ESC to save and close
+  // ESC to close without saving (standard cancel behavior)
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") saveAndClose();
+      if (e.key === "Escape") {
+        closedRef.current = true;
+        onClose();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, saveAndClose]);
+  }, [open, onClose]);
 
   // Sync editor content when a different item is selected
   useEffect(() => {
