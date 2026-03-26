@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { SearchOverlay } from "@/components/search/search-overlay";
 
@@ -22,9 +24,12 @@ function NavLink({
   );
 }
 
+const HIDDEN_PATHS = ["/login", "/pending"];
+
 export function TopNav() {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const userRole = session?.user?.role;
@@ -42,6 +47,9 @@ export function TopNav() {
     document.addEventListener("keydown", handleGlobalKeyDown);
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [handleGlobalKeyDown]);
+
+  // Hide nav on login/pending pages or when not authenticated
+  if (HIDDEN_PATHS.includes(pathname) || !session) return null;
 
   return (
     <>
@@ -90,7 +98,7 @@ export function TopNav() {
                 title="로그아웃"
               >
                 {session.user.image ? (
-                  <img src={session.user.image} alt="" className="h-5 w-5 rounded-full" referrerPolicy="no-referrer" />
+                  <Image src={session.user.image} alt="" width={20} height={20} className="rounded-full" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="h-5 w-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-[10px]">
                     {session.user.name?.charAt(0) ?? "U"}

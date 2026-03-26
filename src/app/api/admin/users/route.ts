@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
+import { VALID_ROLES, VALID_STATUSES, isValidRole, isValidStatus } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,15 +41,13 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const VALID_ROLES = ["admin", "user"];
-  const VALID_STATUSES = ["pending", "approved", "rejected"];
-  if (role !== undefined && !VALID_ROLES.includes(role)) {
+  if (role !== undefined && !isValidRole(role)) {
     return NextResponse.json(
       { error: "VALIDATION", message: `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}` },
       { status: 400 },
     );
   }
-  if (status !== undefined && !VALID_STATUSES.includes(status)) {
+  if (status !== undefined && !isValidStatus(status)) {
     return NextResponse.json(
       { error: "VALIDATION", message: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` },
       { status: 400 },

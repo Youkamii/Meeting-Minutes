@@ -1,4 +1,4 @@
-import type { Stage } from "@/types";
+import type { Stage, Role, UserStatus } from "@/types";
 
 /**
  * Canonical stage definitions used across the app.
@@ -27,4 +27,16 @@ export const VALID_STAGES_SET = new Set<string>(STAGES);
 
 export function isValidStage(value: string): value is Stage {
   return VALID_STAGES_SET.has(value);
+}
+
+// User enums
+export const VALID_ROLES: readonly Role[] = ["admin", "user"] as const;
+export const VALID_STATUSES: readonly UserStatus[] = ["pending", "approved", "rejected"] as const;
+
+export function isValidRole(value: string): value is Role {
+  return (VALID_ROLES as readonly string[]).includes(value);
+}
+
+export function isValidStatus(value: string): value is UserStatus {
+  return (VALID_STATUSES as readonly string[]).includes(value);
 }
