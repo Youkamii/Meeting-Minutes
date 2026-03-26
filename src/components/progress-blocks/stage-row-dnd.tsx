@@ -99,11 +99,14 @@ function DroppableStage({
     setFunnelValue(funnelNo ?? "");
   };
 
+  const addingRef = useRef(false);
   const handleAdd = () => {
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || addingRef.current) return;
+    addingRef.current = true;
     createItem.mutate(
       { businessId, stage, title: newTitle.trim() },
-      { onSuccess: () => { setNewTitle(""); setShowAdd(false); } },
+      { onSuccess: () => { setNewTitle(""); setShowAdd(false); addingRef.current = false; },
+        onError: () => { addingRef.current = false; } },
     );
   };
 
@@ -162,18 +165,20 @@ function DroppableStage({
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-[var(--ring)]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAdd();
+              if (e.key === "Escape") { setNewTitle(""); setShowAdd(false); }
+            }}
+            onBlur={() => { if (newTitle.trim()) handleAdd(); else setShowAdd(false); }}
+            className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[var(--ring)]"
             placeholder="제목..."
             autoFocus
           />
-          <button onClick={handleAdd} className="shrink-0 text-xs text-[var(--primary)]">✓</button>
-          <button onClick={() => setShowAdd(false)} className="shrink-0 text-xs text-[var(--muted-foreground)]">✕</button>
         </div>
       ) : (
         <button
           onClick={() => setShowAdd(true)}
-          className="text-[10px] text-[var(--muted-foreground)]/50 hover:text-[var(--primary)] transition-colors mt-1"
+          className="text-xs text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors mt-1 px-2 py-1 rounded hover:bg-[var(--muted)]"
         >
           + 추가
         </button>

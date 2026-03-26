@@ -61,10 +61,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // New companies go to the end of the list
+    const maxSort = await prisma.company.aggregate({ _max: { sortOrder: true } });
+    const nextSortOrder = (maxSort._max.sortOrder ?? -1) + 1;
+
     const company = await prisma.company.create({
       data: {
         canonicalName: canonicalName.trim(),
         isKey,
+        sortOrder: nextSortOrder,
         aliases: {
           create: aliases
             .filter((a: string) => a.trim())
