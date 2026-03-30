@@ -78,8 +78,7 @@ export async function PUT(request: NextRequest, context: Params) {
       }
     }
 
-    const isFunnelOnly = Object.keys(updateData).length === 1 && updateData.funnelNumbers !== undefined;
-    const data: Record<string, unknown> = isFunnelOnly ? {} : { lockVersion: { increment: 1 } };
+    const data: Record<string, unknown> = { lockVersion: { increment: 1 } };
     if (updateData.funnelNumbers !== undefined) data.funnelNumbers = updateData.funnelNumbers;
     if (updateData.name !== undefined) data.name = updateData.name.trim();
     if (updateData.embargoName !== undefined) data.embargoName = updateData.embargoName;

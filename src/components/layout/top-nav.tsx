@@ -48,8 +48,8 @@ export function TopNav() {
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [handleGlobalKeyDown]);
 
-  // Hide nav on login/pending pages or when not authenticated
-  if (HIDDEN_PATHS.includes(pathname) || !session) return null;
+  // Hide nav only on login/pending pages
+  if (HIDDEN_PATHS.includes(pathname)) return null;
 
   return (
     <>
@@ -91,7 +91,9 @@ export function TopNav() {
               {mounted ? (theme === "dark" ? "☀" : "☽") : "◑"}
             </button>
 
-            {session?.user ? (
+            {sessionStatus === "loading" ? (
+              <div className="h-8 w-20 animate-pulse rounded-md bg-[var(--muted)]" />
+            ) : session?.user ? (
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className="h-8 rounded-md border border-[var(--border)] px-2 text-xs hover:bg-[var(--muted)] transition-colors flex items-center gap-1.5"
