@@ -1,12 +1,16 @@
-// TODO: Add authentication/authorization middleware.
-// Currently unauthenticated — acceptable for internal tooling, but must be
-// secured before any external or multi-tenant exposure.
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "UNAUTHORIZED", message: "Authentication required" },
+      { status: 401 },
+    );
+  }
   const body = await request.json();
   const { entityType, entityIds, assignedTo } = body;
 

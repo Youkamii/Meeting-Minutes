@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, context: Params) {
       entityType: "progressItem",
       entityId: id,
       snapshot: JSON.parse(JSON.stringify(updated)),
-    }).catch((err) => console.error("Version snapshot failed:", err));
+    });
 
     await createAuditLog({
       entityType: "progress_item",
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, context: Params) {
         before: JSON.parse(JSON.stringify(current)),
         after: JSON.parse(JSON.stringify(updated)),
       },
-    }).catch((err) => console.error("Audit log failed:", err));
+    });
 
     return NextResponse.json({ data: updated });
   } catch (e) {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, context: Params) {
         entityType: "progressItem",
         entityId: id,
         snapshot: JSON.parse(JSON.stringify(updated)),
-      }).catch((err) => console.error("Version snapshot failed:", err));
+      });
 
       await createAuditLog({
         entityType: "progress_item",
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest, context: Params) {
         action: "move",
         changes: { fromStage, toStage: targetStage },
         summary: `Moved from ${fromStage} to ${targetStage}`,
-      }).catch((err) => console.error("Audit log failed:", err));
+      });
 
       return NextResponse.json({ data: updated });
     }
@@ -136,7 +136,7 @@ export async function DELETE(_request: NextRequest, context: Params) {
       entityId: id,
       action: "delete",
       changes: JSON.parse(JSON.stringify(item)),
-    }).catch((err) => console.error("Audit log failed:", err));
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (e) {
