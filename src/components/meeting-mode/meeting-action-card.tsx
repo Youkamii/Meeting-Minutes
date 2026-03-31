@@ -34,28 +34,25 @@ export function MeetingActionCard({ action }: MeetingActionCardProps) {
   const currentStatus = STATUS_OPTIONS.find((o) => o.value === action.status)!;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5">
-      <p className="text-lg leading-relaxed">{action.content}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+      <div
+        className="text-xl leading-relaxed break-words [&_p]:m-0 [&_ul]:pl-5 [&_ul]:list-disc [&_ol]:pl-5 [&_ol]:list-decimal"
+        dangerouslySetInnerHTML={{ __html: action.content }}
+      />
 
       {action.business && (
-        <p className="mt-1 text-base text-[var(--muted-foreground)]">
+        <p className="mt-2 text-lg text-[var(--muted-foreground)]">
           → {action.business.name}
         </p>
       )}
 
-      {action.carryoverCount > 0 && (
-        <span className="mt-2 inline-block rounded bg-orange-100 px-2 py-1 text-sm font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-          ↻ {action.carryoverCount}회 이월
-        </span>
-      )}
-
       {/* Large tap targets for status */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-3">
         {STATUS_OPTIONS.map((opt) => (
           <button
             key={opt.value}
             onClick={() => handleStatusChange(opt.value)}
-            className={`rounded-lg px-4 py-2 text-base font-medium transition-all ${
+            className={`rounded-lg px-5 py-2.5 text-lg font-medium transition-all ${
               action.status === opt.value
                 ? `${opt.color} text-white shadow-md scale-105`
                 : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
@@ -67,12 +64,12 @@ export function MeetingActionCard({ action }: MeetingActionCardProps) {
       </div>
 
       {/* Priority selector */}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-4 flex gap-2">
         {PRIORITY_OPTIONS.map((opt) => (
           <button
             key={opt.value}
             onClick={() => handlePriorityChange(opt.value)}
-            className={`rounded px-3 py-1 text-sm transition-colors ${
+            className={`rounded-md px-4 py-1.5 text-base transition-colors ${
               action.priority === opt.value
                 ? "bg-[var(--foreground)] text-[var(--background)] font-medium"
                 : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"

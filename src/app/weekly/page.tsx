@@ -22,7 +22,7 @@ import { useUIStore } from "@/stores/ui-store";
 import { getWeeksInMonth, formatMonthLabel, formatWeekLabel, type WeekEntry } from "@/lib/weekly-cycle";
 import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
 
-const WEEK_COL_WIDTH = 320;
+const WEEK_COL_WIDTH = 480;
 
 /* --- Status helpers --- */
 const STATUS_COLORS: Record<string, string> = {
@@ -42,7 +42,7 @@ const STATUS_LABELS: Record<string, string> = {
 function StatusBadge({ status, onClick }: { status: string; onClick?: () => void }) {
   return (
     <span
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       className={`inline-block text-[9px] text-white px-1.5 py-0.5 rounded-full leading-none ${STATUS_COLORS[status] ?? "bg-gray-400"} ${onClick ? "cursor-pointer hover:opacity-80" : ""}`}
     >
       {STATUS_LABELS[status] ?? status}
@@ -224,7 +224,7 @@ function WeeklyCompanyRow({
           return (
             <div
               key={wKey}
-              className="w-[320px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 cursor-pointer min-h-[48px]"
+              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 cursor-pointer min-h-[48px]"
               onClick={() => {
                 if (!editingCell) {
                   onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
@@ -274,7 +274,7 @@ function WeeklyCompanyRow({
               {editingCell?.companyId === company.id &&
                editingCell?.weekYear === w.year &&
                editingCell?.weekNumber === w.weekNumber &&
-               !editingCell?.actionId && (
+               !editingCell?.actionId ? (
                 <InlineEditor
                   content=""
                   placeholder="TASK 입력..."
@@ -283,6 +283,16 @@ function WeeklyCompanyRow({
                   status={editingCell.status}
                   onStatusChange={onStatusChange}
                 />
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
+                  }}
+                  className="w-full rounded border border-dashed border-[var(--border)] py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  + 추가
+                </button>
               )}
             </div>
           );
@@ -578,8 +588,8 @@ export default function WeeklyMeetingPage() {
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                       : isAdjacentMonth
-                        ? "w-[320px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
-                        : "w-[320px] px-3 py-2 hover:bg-[var(--muted)]"
+                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
+                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]"
                   }`}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
