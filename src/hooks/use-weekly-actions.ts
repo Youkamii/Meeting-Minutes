@@ -13,10 +13,10 @@ export function useCurrentCycle() {
 }
 
 export function useWeeklyCycles(year?: number) {
-  const qs = year ? `?year=${year}` : "";
   return useQuery<{ data: WeeklyCycle[] }>({
     queryKey: ["weeklyCycles", year],
-    queryFn: () => fetchJson(`/api/weekly-cycles${qs}`),
+    queryFn: () => fetchJson(`/api/weekly-cycles?year=${year}`),
+    enabled: year !== undefined,
   });
 }
 

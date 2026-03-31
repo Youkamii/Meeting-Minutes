@@ -22,6 +22,8 @@ import { useUIStore } from "@/stores/ui-store";
 import { getWeeksInMonth, formatMonthLabel, formatWeekLabel, type WeekEntry } from "@/lib/weekly-cycle";
 import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
 
+const WEEK_COL_WIDTH = 320;
+
 /* --- Status helpers --- */
 const STATUS_COLORS: Record<string, string> = {
   scheduled: "bg-gray-400",
@@ -306,6 +308,7 @@ export default function WeeklyMeetingPage() {
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
 
   const meetingModeActive = useUIStore((s) => s.meetingModeActive);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const toggleWeek = (key: string) => {
     setCollapsedWeeks((prev) => {
@@ -321,6 +324,14 @@ export default function WeeklyMeetingPage() {
     () => getWeeksInMonth(viewYear, viewMonth, { includeAdjacent: true }),
     [viewYear, viewMonth],
   );
+
+  // Auto-scroll to hide 60% of previous month column
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const hasPrev = weeksInMonth[0]?.monthPosition === "prev";
+    el.scrollLeft = hasPrev ? WEEK_COL_WIDTH * 0.6 : 0;
+  }, [weeksInMonth]);
 
   // Fetch all cycles and find matching ones
   const { data: currentCycleData } = useCurrentCycle();
@@ -531,15 +542,7 @@ export default function WeeklyMeetingPage() {
 
       {/* Table view */}
       <div
-        ref={useCallback((el: HTMLDivElement | null) => {
-          if (!el) return;
-          // If first column is prev month, scroll to show ~40% of it (hide 60%)
-          const hasPrev = monthCycles[0]?.monthPosition === "prev";
-          if (hasPrev) {
-            const prevColWidth = 320; // w-[320px]
-            el.scrollLeft = prevColWidth * 0.6;
-          }
-        }, [monthCycles])}
+        ref={tableRef}
         className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
         {isLoading && (
           <div className="flex items-center justify-center p-8">
