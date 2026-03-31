@@ -15,14 +15,14 @@ import { useCompanies } from "@/hooks/use-companies";
 import { InlineEditor } from "@/components/editor/inline-editor";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { NewActionDialog } from "@/components/weekly-meeting/new-action-dialog";
-import { CarryoverDialog } from "@/components/weekly-meeting/carryover-dialog";
-import { WeekEndActions } from "@/components/weekly-meeting/week-end-actions";
 import { QuickActionsBar } from "@/components/ui/quick-actions";
 import { MeetingModeToggle } from "@/components/meeting-mode/meeting-mode-toggle";
 import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
 import { useUIStore } from "@/stores/ui-store";
-import { getWeeksInMonth, formatMonthLabel, formatWeekLabel } from "@/lib/weekly-cycle";
+import { getWeeksInMonth, formatMonthLabel, formatWeekLabel, type WeekEntry } from "@/lib/weekly-cycle";
 import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
+
+const WEEK_COL_WIDTH = 320;
 
 /* --- Status helpers --- */
 const STATUS_COLORS: Record<string, string> = {
@@ -136,7 +136,7 @@ function MonthPicker({
 }
 
 /* --- Types --- */
-type MonthCycle = { year: number; weekNumber: number; weekInMonth: number; cycleId: string | null };
+type MonthCycle = { year: number; weekNumber: number; weekInMonth: number; cycleId: string | null; monthPosition: "prev" | "current" | "next" };
 type EditingCell = {
   companyId: string;
   cycleId: string;
@@ -178,7 +178,7 @@ function WeeklyCompanyRow({
   });
 
   return (
-    <div className="border-b-2 border-[var(--border)]">
+    <div className="border-b-2 border-[var(--border)] min-w-fit">
       <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
         {/* Company name - sticky */}
         <div
@@ -304,11 +304,11 @@ export default function WeeklyMeetingPage() {
   const [viewMonth, setViewMonth] = useState(now.getMonth() + 1);
   const [showExcelDownload, setShowExcelDownload] = useState(false);
   const [showNewAction, setShowNewAction] = useState(false);
-  const [showCarryover, setShowCarryover] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
 
   const meetingModeActive = useUIStore((s) => s.meetingModeActive);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const toggleWeek = (key: string) => {
     setCollapsedWeeks((prev) => {
@@ -321,22 +321,37 @@ export default function WeeklyMeetingPage() {
 
   // Weeks in current month
   const weeksInMonth = useMemo(
-    () => getWeeksInMonth(viewYear, viewMonth),
+    () => getWeeksInMonth(viewYear, viewMonth, { includeAdjacent: true }),
     [viewYear, viewMonth],
   );
 
+  // Auto-scroll to hide 60% of previous month column
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const hasPrev = weeksInMonth[0]?.monthPosition === "prev";
+    el.scrollLeft = hasPrev ? WEEK_COL_WIDTH * 0.6 : 0;
+  }, [weeksInMonth]);
+
   // Fetch all cycles and find matching ones
   const { data: currentCycleData } = useCurrentCycle();
+  // Fetch adjacent years too for boundary weeks (e.g. Dec→Jan, Jan→Dec)
+  const adjYear = viewMonth === 1 ? viewYear - 1 : viewMonth === 12 ? viewYear + 1 : null;
   const { data: cyclesData } = useWeeklyCycles(viewYear);
+  const { data: cyclesDataAdj } = useWeeklyCycles(adjYear ?? undefined);
   const currentCycle = currentCycleData?.data;
-  const allCycles = cyclesData?.data ?? [];
+  const allCycles = useMemo(() => {
+    const main = cyclesData?.data ?? [];
+    const adj = adjYear ? (cyclesDataAdj?.data ?? []) : [];
+    return [...main, ...adj];
+  }, [cyclesData, cyclesDataAdj, adjYear]);
 
   const monthCycles = useMemo(() => {
     return weeksInMonth.map((w) => {
       const cycle = allCycles.find(
         (c) => c.year === w.year && c.weekNumber === w.weekNumber,
       );
-      return { ...w, cycleId: cycle?.id ?? null };
+      return { ...w, cycleId: cycle?.id ?? null, monthPosition: w.monthPosition };
     });
   }, [weeksInMonth, allCycles]);
 
@@ -405,16 +420,6 @@ export default function WeeklyMeetingPage() {
     if (viewMonth === 12) { setViewYear(viewYear + 1); setViewMonth(1); }
     else setViewMonth(viewMonth + 1);
   };
-
-  // Find previous cycle for carryover
-  const prevCycle = useMemo(() => {
-    if (!currentCycle) return null;
-    return allCycles.find(
-      (c) =>
-        (c.year === currentCycle.year && c.weekNumber === currentCycle.weekNumber - 1) ||
-        (currentCycle.weekNumber === 1 && c.year === currentCycle.year - 1 && c.weekNumber >= 52),
-    );
-  }, [allCycles, currentCycle]);
 
   const weekLabel = currentCycle
     ? formatWeekLabel(currentCycle.year, currentCycle.weekNumber)
@@ -519,9 +524,6 @@ export default function WeeklyMeetingPage() {
             엑셀
           </button>
           <MeetingModeToggle />
-          {prevCycle && (
-            <WeekEndActions onCarryover={() => setShowCarryover(true)} />
-          )}
           <QuickActionsBar
             actions={[
               { label: "액션", onClick: () => setShowNewAction(true) },
@@ -539,7 +541,9 @@ export default function WeeklyMeetingPage() {
       )}
 
       {/* Table view */}
-      <div className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
+      <div
+        ref={tableRef}
+        className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
@@ -557,6 +561,15 @@ export default function WeeklyMeetingPage() {
             {monthCycles.map((w) => {
               const wKey = `${w.year}-${w.weekNumber}`;
               const collapsed = collapsedWeeks.has(wKey);
+              const isAdjacentMonth = w.monthPosition !== "current";
+              const adjMonth = w.monthPosition === "prev"
+                ? (viewMonth === 1 ? 12 : viewMonth - 1)
+                : w.monthPosition === "next"
+                  ? (viewMonth === 12 ? 1 : viewMonth + 1)
+                  : viewMonth;
+              const label = isAdjacentMonth
+                ? `${adjMonth}월 ${w.weekInMonth}주`
+                : `${viewMonth}월 ${w.weekInMonth}주`;
               return (
                 <div
                   key={wKey}
@@ -564,15 +577,17 @@ export default function WeeklyMeetingPage() {
                   className={`shrink-0 border-r border-[var(--border)] cursor-pointer select-none transition-all ${
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
-                      : "w-[320px] px-3 py-2 hover:bg-[var(--muted)]"
+                      : isAdjacentMonth
+                        ? "w-[320px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
+                        : "w-[320px] px-3 py-2 hover:bg-[var(--muted)]"
                   }`}
-                  title={collapsed ? `${viewMonth}월 ${w.weekInMonth}주 표시` : `${viewMonth}월 ${w.weekInMonth}주 숨기기`}
+                  title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
                   <span
-                    className="text-sm font-bold text-[var(--muted-foreground)]"
+                    className={`text-sm font-bold ${isAdjacentMonth ? "text-[var(--muted-foreground)]/50" : "text-[var(--muted-foreground)]"}`}
                     style={collapsed ? { writingMode: "vertical-rl", textOrientation: "mixed" } : undefined}
                   >
-                    {viewMonth}월 {w.weekInMonth}주
+                    {label}
                   </span>
                 </div>
               );
@@ -611,17 +626,6 @@ export default function WeeklyMeetingPage() {
           onClose={() => setShowNewAction(false)}
           cycleId={activeCycleId}
           companies={companies as Company[]}
-        />
-      )}
-
-      {prevCycle && activeCycleId && currentCycle && (
-        <CarryoverDialog
-          open={showCarryover}
-          onClose={() => setShowCarryover(false)}
-          sourceCycleId={prevCycle.id}
-          targetCycleId={activeCycleId}
-          sourceLabel={formatWeekLabel(prevCycle.year, prevCycle.weekNumber)}
-          targetLabel={formatWeekLabel(currentCycle.year, currentCycle.weekNumber)}
         />
       )}
 
