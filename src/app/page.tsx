@@ -5,7 +5,6 @@ import { useCurrentCycle, useWeeklyActions } from "@/hooks/use-weekly-actions";
 import { KeyCompaniesCard } from "@/components/home/key-companies-card";
 import { IncompleteActionsCard } from "@/components/home/incomplete-actions-card";
 import { ActivityFeed } from "@/components/home/activity-feed";
-import { QuickActionsBar } from "@/components/ui/quick-actions";
 import { formatWeekLabel } from "@/lib/weekly-cycle";
 import type { Company, ActionStatus } from "@/types";
 
@@ -29,21 +28,13 @@ export default function HomePage() {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">홈</h1>
-          {currentCycle && (
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {formatWeekLabel(currentCycle.year, currentCycle.weekNumber)}
-            </p>
-          )}
-        </div>
-        <QuickActionsBar
-          actions={[
-            { label: "기업", onClick: () => (window.location.href = "/business") },
-            { label: "액션", onClick: () => (window.location.href = "/weekly") },
-          ]}
-        />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">홈</h1>
+        {currentCycle && (
+          <p className="text-sm text-[var(--muted-foreground)]">
+            {formatWeekLabel(currentCycle.year, currentCycle.weekNumber)}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
