@@ -5,17 +5,21 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
+  pointerWithin,
   PointerSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
+  type DragOverEvent,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
@@ -25,15 +29,17 @@ import { useUpdateBusiness } from "@/hooks/use-businesses";
 import { STAGES } from "@/lib/constants";
 import type { ProgressItem, Stage } from "@/types";
 
-// Sortable block inside a stage
+// ── Sortable block ──────────────────────────────────────────────
 function SortableBlock({
   item,
   onClick,
+  isDragging,
 }: {
   item: ProgressItem;
   onClick?: () => void;
+  isDragging?: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+  const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id, data: { stage: item.stage } });
 
   const style = {
@@ -57,7 +63,7 @@ function SortableBlock({
   );
 }
 
-// Droppable stage column
+// ── Droppable stage column ──────────────────────────────────────
 function DroppableStage({
   stage,
   items,
@@ -65,6 +71,7 @@ function DroppableStage({
   onBlockClick,
   funnelNo,
   onFunnelNoChange,
+  activeId,
 }: {
   stage: Stage;
   items: ProgressItem[];
@@ -72,6 +79,7 @@ function DroppableStage({
   onBlockClick?: (item: ProgressItem) => void;
   funnelNo?: string;
   onFunnelNoChange?: (stage: Stage, value: string) => void;
+  activeId?: string | null;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
@@ -155,7 +163,12 @@ function DroppableStage({
 
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         {items.map((item) => (
-          <SortableBlock key={item.id} item={item} onClick={() => onBlockClick?.(item)} />
+          <SortableBlock
+            key={item.id}
+            item={item}
+            onClick={() => onBlockClick?.(item)}
+            isDragging={item.id === activeId}
+          />
         ))}
       </SortableContext>
 
@@ -187,7 +200,42 @@ function DroppableStage({
   );
 }
 
-// Main component: wraps all stage columns in one DndContext for cross-stage drag
+// ── Helpers ─────────────────────────────────────────────────────
+function getStageForId(id: string, itemsByStage: Record<Stage, ProgressItem[]>): Stage | null {
+  if (id.startsWith("stage-")) return id.replace("stage-", "") as Stage;
+  for (const stage of STAGES) {
+    if (itemsByStage[stage].some((i) => i.id === id)) return stage;
+  }
+  return null;
+}
+
+function buildItemsByStage(items: ProgressItem[]): Record<Stage, ProgressItem[]> {
+  return STAGES.reduce((acc, stage) => {
+    acc[stage] = items
+      .filter((p) => p.stage === stage)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    return acc;
+  }, {} as Record<Stage, ProgressItem[]>);
+}
+
+// Cards first, but always include stage containers for cross-stage moves
+const itemsFirstCollision: CollisionDetection = (args) => {
+  const pointer = pointerWithin(args);
+  const center = closestCenter(args);
+
+  // If pointer is inside a card, use that
+  const pointerCard = pointer.find((c) => !String(c.id).startsWith("stage-"));
+  if (pointerCard) return [pointerCard];
+
+  // If pointer is inside a stage container, use it (enables cross-stage)
+  const pointerStage = pointer.find((c) => String(c.id).startsWith("stage-"));
+  if (pointerStage) return [pointerStage];
+
+  // Fallback to closestCenter
+  return center.length > 0 ? [center[0]] : [];
+};
+
+// ── Main component ──────────────────────────────────────────────
 interface StageRowDndProps {
   businessId: string;
   progressItems: ProgressItem[];
@@ -205,6 +253,22 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
   const moveItem = useMoveProgressItem();
   const updateBusiness = useUpdateBusiness();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
+  const [localItems, setLocalItems] = useState<ProgressItem[]>(progressItems);
+
+  // Ref to track current local items in event handlers without re-render loops
+  const localItemsRef = useRef(localItems);
+  localItemsRef.current = localItems;
+
+  // Track origin for "did it actually move?" check
+  const originRef = useRef<{ stage: Stage; index: number } | null>(null);
+
+  // Gate to prevent onDragOver re-entry during SortableContext re-measure
+  const dragOverLock = useRef(false);
+
+  // Sync from props when not dragging and no mutation in-flight
+  useEffect(() => {
+    if (!activeItem && !moveItem.isPending) setLocalItems(progressItems);
+  }, [progressItems, activeItem, moveItem.isPending]);
 
   const handleFunnelNoChange = useCallback(
     (stage: Stage, value: string) => {
@@ -223,67 +287,130 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
     [businessId, funnelNumbers, lockVersion, updateBusiness],
   );
 
-  const itemsByStage = STAGES.reduce(
-    (acc, stage) => {
-      acc[stage] = progressItems.filter((p) => p.stage === stage);
-      return acc;
-    },
-    {} as Record<Stage, ProgressItem[]>,
-  );
+  const itemsByStage = buildItemsByStage(localItems);
 
+  // ── Drag start ──
   const handleDragStart = (event: DragStartEvent) => {
-    const item = progressItems.find((p) => p.id === event.active.id);
-    setActiveItem(item ?? null);
+    const item = localItems.find((p) => p.id === event.active.id);
+    if (!item) return;
+    setActiveItem(item);
+    const stageItems = itemsByStage[item.stage];
+    originRef.current = {
+      stage: item.stage,
+      index: stageItems.findIndex((i) => i.id === item.id),
+    };
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveItem(null);
+  // ── Drag over (real-time reorder for both same-stage and cross-stage) ──
+  const lastOverIdRef = useRef<string | null>(null);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over) return;
+    if (!over || dragOverLock.current) return;
 
-    const activeItemData = progressItems.find((p) => p.id === active.id);
-    if (!activeItemData) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (activeId === overId) return;
 
-    // Determine target stage
-    let targetStage: Stage | null = null;
+    // Prevent oscillation: don't process the same over target twice in a row
+    if (lastOverIdRef.current === overId) return;
 
-    // Dropped on a stage droppable
-    if (String(over.id).startsWith("stage-")) {
-      targetStage = String(over.id).replace("stage-", "") as Stage;
+    const currentByStage = buildItemsByStage(localItemsRef.current);
+    const fromStage = getStageForId(activeId, currentByStage);
+    const toStage = getStageForId(overId, currentByStage);
+    if (!fromStage || !toStage) return;
+
+    let nextItems: ProgressItem[] | null = null;
+
+    if (fromStage === toStage) {
+      // Same stage reorder
+      const stageItems = currentByStage[fromStage];
+      const oldIdx = stageItems.findIndex((i) => i.id === activeId);
+      const newIdx = overId.startsWith("stage-")
+        ? stageItems.length - 1
+        : stageItems.findIndex((i) => i.id === overId);
+      if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return;
+
+      const reordered = arrayMove(stageItems, oldIdx, newIdx);
+      const rest = localItemsRef.current.filter((p) => p.stage !== fromStage);
+      nextItems = [...rest, ...reordered.map((item, i) => ({ ...item, sortOrder: i }))];
+    } else {
+      // Cross-stage move
+      const sourceItems = [...currentByStage[fromStage]];
+      const destItems = [...currentByStage[toStage]];
+      const srcIdx = sourceItems.findIndex((i) => i.id === activeId);
+      if (srcIdx === -1) return;
+
+      const [moved] = sourceItems.splice(srcIdx, 1);
+      const movedItem = { ...moved, stage: toStage };
+
+      let destIdx: number;
+      if (overId.startsWith("stage-")) {
+        destIdx = destItems.length;
+      } else {
+        const overIdx = destItems.findIndex((i) => i.id === overId);
+        destIdx = overIdx === -1 ? destItems.length : overIdx;
+      }
+      destItems.splice(destIdx, 0, movedItem);
+
+      const rest = localItemsRef.current.filter((p) => p.stage !== fromStage && p.stage !== toStage);
+      nextItems = [
+        ...rest,
+        ...sourceItems.map((item, i) => ({ ...item, sortOrder: i })),
+        ...destItems.map((item, i) => ({ ...item, sortOrder: i })),
+      ];
     }
-    // Dropped on another block — find that block's stage
-    else {
-      const overItem = progressItems.find((p) => p.id === over.id);
-      if (overItem) {
-        targetStage = overItem.stage;
+
+    if (nextItems) {
+      lastOverIdRef.current = overId;
+      dragOverLock.current = true;
+      setLocalItems(nextItems);
+      requestAnimationFrame(() => { dragOverLock.current = false; });
+    }
+  }, []);
+
+  // ── Drag end (commit to server) ──
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active } = event;
+    setActiveItem(null);
+    lastOverIdRef.current = null;
+
+    const activeId = String(active.id);
+    const origin = originRef.current;
+    originRef.current = null;
+
+    // Find final position from local state (already updated by handleDragOver)
+    const finalByStage = buildItemsByStage(localItemsRef.current);
+    let finalStage: Stage | null = null;
+    let finalIndex = 0;
+    for (const stage of STAGES) {
+      const idx = finalByStage[stage].findIndex((i) => i.id === activeId);
+      if (idx !== -1) {
+        finalStage = stage;
+        finalIndex = idx;
+        break;
       }
     }
+    if (!finalStage) return;
 
-    if (!targetStage) return;
+    // Skip if nothing changed
+    if (origin && origin.stage === finalStage && origin.index === finalIndex) return;
 
-    // If same stage and same position, skip
-    if (targetStage === activeItemData.stage && active.id === over.id) return;
-
-    // Calculate sort order
-    const targetItems = itemsByStage[targetStage].filter((i) => i.id !== activeItemData.id);
-    const overIndex = over.id === `stage-${targetStage}`
-      ? targetItems.length
-      : targetItems.findIndex((i) => i.id === over.id);
-    const sortOrder = overIndex >= 0 ? overIndex : targetItems.length;
-
+    const item = localItemsRef.current.find((p) => p.id === activeId);
     moveItem.mutate({
-      id: activeItemData.id,
-      targetStage,
-      sortOrder,
-      lockVersion: activeItemData.lockVersion,
+      id: activeId,
+      targetStage: finalStage,
+      sortOrder: finalIndex,
+      lockVersion: item?.lockVersion,
     });
   };
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={itemsFirstCollision}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="flex">
@@ -316,12 +443,13 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
               onBlockClick={onBlockClick}
               funnelNo={funnelNumbers?.[stage]}
               onFunnelNoChange={handleFunnelNoChange}
+              activeId={activeItem?.id}
             />
           );
         })}
       </div>
 
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeItem && (
           <div className="opacity-80 rotate-2 scale-105">
             <MiniBlock

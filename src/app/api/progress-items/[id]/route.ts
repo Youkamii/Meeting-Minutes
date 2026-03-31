@@ -88,14 +88,29 @@ export async function POST(request: NextRequest, context: Params) {
 
       const fromStage = current.stage;
 
+      // Reorder siblings in target stage to make room
+      const targetSiblings = await prisma.progressItem.findMany({
+        where: { businessId: current.businessId, stage: targetStage, id: { not: id } },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true },
+      });
+
+      const insertAt = Math.min(sortOrder ?? 0, targetSiblings.length);
+      const reorderOps = targetSiblings.map((s, i) => {
+        const newOrder = i >= insertAt ? i + 1 : i;
+        return prisma.progressItem.update({ where: { id: s.id }, data: { sortOrder: newOrder } });
+      });
+
       const updated = await prisma.progressItem.update({
         where: { id },
         data: {
           stage: targetStage,
-          sortOrder: sortOrder ?? 0,
+          sortOrder: insertAt,
           lockVersion: { increment: 1 },
         },
       });
+
+      await Promise.all(reorderOps);
 
       await createVersionSnapshot({
         entityType: "progressItem",
