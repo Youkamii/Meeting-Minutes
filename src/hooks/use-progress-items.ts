@@ -75,7 +75,7 @@ export function useMoveProgressItem() {
       id: string;
       targetStage: Stage;
       sortOrder?: number;
-      lockVersion?: number; // ignored now
+      lockVersion?: number;
     }) =>
       fetchJson(`/api/progress-items/${data.id}`, {
         method: "POST",
@@ -86,7 +86,36 @@ export function useMoveProgressItem() {
           sortOrder: data.sortOrder,
         }),
       }),
-    onSuccess: () => {
+    onMutate: async (data) => {
+      await qc.cancelQueries({ queryKey: ["businesses"] });
+      const prev = qc.getQueriesData({ queryKey: ["businesses"] });
+
+      qc.setQueriesData({ queryKey: ["businesses"] }, (old: unknown) => {
+        if (!old || typeof old !== "object" || !("data" in old)) return old;
+        const cast = old as { data: Array<{ progressItems?: ProgressItem[]; [k: string]: unknown }>; [k: string]: unknown };
+        return {
+          ...cast,
+          data: cast.data.map((biz) => {
+            const items = biz.progressItems;
+            if (!items || !items.some((p) => p.id === data.id)) return biz;
+            const moved = items.find((p) => p.id === data.id)!;
+            const rest = items.filter((p) => p.id !== data.id);
+            const updated = { ...moved, stage: data.targetStage, sortOrder: data.sortOrder ?? 0 };
+            return { ...biz, progressItems: [...rest, updated].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) };
+          }),
+        };
+      });
+
+      return { prev };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.prev) {
+        for (const [key, value] of context.prev) {
+          qc.setQueryData(key, value);
+        }
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["progressItems"] });
       qc.invalidateQueries({ queryKey: ["businesses"] });
     },

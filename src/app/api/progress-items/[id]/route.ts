@@ -88,14 +88,31 @@ export async function POST(request: NextRequest, context: Params) {
 
       const fromStage = current.stage;
 
-      const updated = await prisma.progressItem.update({
-        where: { id },
-        data: {
-          stage: targetStage,
-          sortOrder: sortOrder ?? 0,
-          lockVersion: { increment: 1 },
-        },
+      // Reorder siblings in target stage to make room (atomic transaction)
+      const targetSiblings = await prisma.progressItem.findMany({
+        where: { businessId: current.businessId, stage: targetStage, id: { not: id } },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true },
       });
+
+      const insertAt = Math.min(sortOrder ?? 0, targetSiblings.length);
+
+      const updated = await prisma.$transaction([
+        ...targetSiblings.map((s, i) =>
+          prisma.progressItem.update({
+            where: { id: s.id },
+            data: { sortOrder: i >= insertAt ? i + 1 : i },
+          })
+        ),
+        prisma.progressItem.update({
+          where: { id },
+          data: {
+            stage: targetStage,
+            sortOrder: insertAt,
+            lockVersion: { increment: 1 },
+          },
+        }),
+      ]).then((results) => results[results.length - 1]);
 
       await createVersionSnapshot({
         entityType: "progressItem",
