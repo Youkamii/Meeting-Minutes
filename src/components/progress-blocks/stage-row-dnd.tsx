@@ -29,17 +29,23 @@ import type { ProgressItem, Stage } from "@/types";
 function SortableBlock({
   item,
   onClick,
+  hidden,
 }: {
   item: ProgressItem;
   onClick?: () => void;
+  hidden?: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+  const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id, data: { stage: item.stage } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
+    transition: hidden ? "none" : transition,
+    opacity: hidden ? 0 : 1,
+    height: hidden ? 0 : undefined,
+    overflow: hidden ? "hidden" as const : undefined,
+    margin: hidden ? 0 : undefined,
+    padding: hidden ? 0 : undefined,
   };
 
   return (
@@ -65,6 +71,7 @@ function DroppableStage({
   onBlockClick,
   funnelNo,
   onFunnelNoChange,
+  draggingId,
 }: {
   stage: Stage;
   items: ProgressItem[];
@@ -72,6 +79,7 @@ function DroppableStage({
   onBlockClick?: (item: ProgressItem) => void;
   funnelNo?: string;
   onFunnelNoChange?: (stage: Stage, value: string) => void;
+  draggingId?: string | null;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
@@ -155,7 +163,7 @@ function DroppableStage({
 
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         {items.map((item) => (
-          <SortableBlock key={item.id} item={item} onClick={() => onBlockClick?.(item)} />
+          <SortableBlock key={item.id} item={item} onClick={() => onBlockClick?.(item)} hidden={item.id === draggingId} />
         ))}
       </SortableContext>
 
@@ -205,6 +213,23 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
   const moveItem = useMoveProgressItem();
   const updateBusiness = useUpdateBusiness();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
+  const [localItems, setLocalItems] = useState<ProgressItem[]>(progressItems);
+  const [hiddenId, setHiddenId] = useState<string | null>(null);
+
+  // Sync from props when server data updates (and not mid-drag)
+  useEffect(() => {
+    if (!activeItem) {
+      setLocalItems(progressItems);
+    }
+  }, [progressItems, activeItem]);
+
+  // Clear hiddenId one frame after localItems updates
+  useEffect(() => {
+    if (hiddenId && !activeItem) {
+      const raf = requestAnimationFrame(() => setHiddenId(null));
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [localItems, hiddenId, activeItem]);
 
   const handleFunnelNoChange = useCallback(
     (stage: Stage, value: string) => {
@@ -225,24 +250,32 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
 
   const itemsByStage = STAGES.reduce(
     (acc, stage) => {
-      acc[stage] = progressItems.filter((p) => p.stage === stage);
+      acc[stage] = localItems.filter((p) => p.stage === stage);
       return acc;
     },
     {} as Record<Stage, ProgressItem[]>,
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    const item = progressItems.find((p) => p.id === event.active.id);
+    const item = localItems.find((p) => p.id === event.active.id);
     setActiveItem(item ?? null);
+    setHiddenId(String(event.active.id));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveItem(null);
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      setActiveItem(null);
+      setHiddenId(null);
+      return;
+    }
 
-    const activeItemData = progressItems.find((p) => p.id === active.id);
-    if (!activeItemData) return;
+    const activeItemData = localItems.find((p) => p.id === active.id);
+    if (!activeItemData) {
+      setActiveItem(null);
+      setHiddenId(null);
+      return;
+    }
 
     // Determine target stage
     let targetStage: Stage | null = null;
@@ -253,16 +286,24 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
     }
     // Dropped on another block — find that block's stage
     else {
-      const overItem = progressItems.find((p) => p.id === over.id);
+      const overItem = localItems.find((p) => p.id === over.id);
       if (overItem) {
         targetStage = overItem.stage;
       }
     }
 
-    if (!targetStage) return;
+    if (!targetStage) {
+      setActiveItem(null);
+      setHiddenId(null);
+      return;
+    }
 
     // If same stage and same position, skip
-    if (targetStage === activeItemData.stage && active.id === over.id) return;
+    if (targetStage === activeItemData.stage && active.id === over.id) {
+      setActiveItem(null);
+      setHiddenId(null);
+      return;
+    }
 
     // Calculate sort order
     const targetItems = itemsByStage[targetStage].filter((i) => i.id !== activeItemData.id);
@@ -270,6 +311,26 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
       ? targetItems.length
       : targetItems.findIndex((i) => i.id === over.id);
     const sortOrder = overIndex >= 0 ? overIndex : targetItems.length;
+
+    // Update local items and clear overlay — hiddenId stays until next frame
+    setLocalItems((prev) => {
+      const rest = prev.filter((p) => p.id !== activeItemData.id);
+      const moved = { ...activeItemData, stage: targetStage!, sortOrder };
+      const result: ProgressItem[] = [];
+      let inserted = false;
+      for (const item of rest) {
+        if (item.stage === targetStage && !inserted && (item.sortOrder ?? 0) >= sortOrder) {
+          result.push(moved);
+          inserted = true;
+        }
+        result.push(item);
+      }
+      if (!inserted) result.push(moved);
+      return result;
+    });
+    setActiveItem(null);
+    // hiddenId is NOT cleared here — the useEffect will clear it
+    // after localItems re-render is committed to DOM
 
     moveItem.mutate({
       id: activeItemData.id,
@@ -316,12 +377,13 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
               onBlockClick={onBlockClick}
               funnelNo={funnelNumbers?.[stage]}
               onFunnelNoChange={handleFunnelNoChange}
+              draggingId={hiddenId}
             />
           );
         })}
       </div>
 
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeItem && (
           <div className="opacity-80 rotate-2 scale-105">
             <MiniBlock
