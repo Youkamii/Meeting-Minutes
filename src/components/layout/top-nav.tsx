@@ -30,7 +30,7 @@ export function TopNav() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: session, status: sessionStatus } = useSession();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const userRole = session?.user?.role;
 
@@ -84,11 +84,11 @@ export function TopNav() {
             </button>
 
             <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               className="h-8 w-8 rounded-md border border-[var(--border)] text-sm hover:bg-[var(--accent)] transition-colors"
               aria-label="테마 전환"
             >
-              {mounted ? (theme === "dark" ? "☀" : "☽") : "◑"}
+              {mounted ? (resolvedTheme === "dark" ? "☀" : "☽") : "◑"}
             </button>
 
             {sessionStatus === "loading" ? (
