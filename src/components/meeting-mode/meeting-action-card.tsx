@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "dompurify";
 import { useUpdateWeeklyAction } from "@/hooks/use-weekly-actions";
 import type { ActionStatus, Priority, WeeklyActionWithRelations } from "@/types";
 
@@ -37,7 +38,7 @@ export function MeetingActionCard({ action }: MeetingActionCardProps) {
     <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
       <div
         className="text-xl leading-relaxed break-words [&_p]:m-0 [&_ul]:pl-5 [&_ul]:list-disc [&_ol]:pl-5 [&_ol]:list-decimal"
-        dangerouslySetInnerHTML={{ __html: action.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.content) }}
       />
 
       {action.business && (
