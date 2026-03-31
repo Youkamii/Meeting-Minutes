@@ -176,7 +176,7 @@ function WeeklyCompanyRow({
   });
 
   return (
-    <div className="border-b-2 border-[var(--border)]">
+    <div className="border-b-2 border-[var(--border)] min-w-fit">
       <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
         {/* Company name - sticky */}
         <div
@@ -530,7 +530,17 @@ export default function WeeklyMeetingPage() {
       )}
 
       {/* Table view */}
-      <div className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
+      <div
+        ref={useCallback((el: HTMLDivElement | null) => {
+          if (!el) return;
+          // If first column is prev month, scroll to show ~40% of it (hide 60%)
+          const hasPrev = monthCycles[0]?.monthPosition === "prev";
+          if (hasPrev) {
+            const prevColWidth = 320; // w-[320px]
+            el.scrollLeft = prevColWidth * 0.6;
+          }
+        }, [monthCycles])}
+        className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
