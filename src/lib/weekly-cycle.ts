@@ -56,30 +56,74 @@ export function formatWeekLabel(year: number, weekNumber: number): string {
   return `${year}-W${String(weekNumber).padStart(2, "0")}`;
 }
 
+export type WeekEntry = {
+  year: number;
+  weekNumber: number;
+  weekInMonth: number;
+  /** Which month this week belongs to: "prev" | "current" | "next" */
+  monthPosition: "prev" | "current" | "next";
+};
+
 /**
  * Get weeks for a given month. Only counts weeks where Monday falls in the month.
- * Returns array of { year, weekNumber, weekInMonth } sorted chronologically.
- * weekInMonth is 1-based (1주, 2주, ...).
+ * When includeAdjacent is true, prepends previous month's last week and appends
+ * next month's first week for context.
  */
 export function getWeeksInMonth(
   year: number,
   month: number, // 1-12
-): { year: number; weekNumber: number; weekInMonth: number }[] {
-  const weeks: { year: number; weekNumber: number; weekInMonth: number }[] = [];
-  const daysInMonth = new Date(year, month, 0).getDate();
-  let weekIndex = 0;
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month - 1, day);
-    if (date.getDay() === 1) { // Monday only
-      const wy = getISOWeekYear(date);
-      const wn = getISOWeekNumber(date);
-      weekIndex++;
-      weeks.push({ year: wy, weekNumber: wn, weekInMonth: weekIndex });
+  options?: { includeAdjacent?: boolean },
+): WeekEntry[] {
+  const collectWeeks = (y: number, m: number) => {
+    const result: { year: number; weekNumber: number; weekInMonth: number }[] = [];
+    const daysInMonth = new Date(y, m, 0).getDate();
+    let weekIndex = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(y, m - 1, day);
+      if (date.getDay() === 1) {
+        weekIndex++;
+        result.push({
+          year: getISOWeekYear(date),
+          weekNumber: getISOWeekNumber(date),
+          weekInMonth: weekIndex,
+        });
+      }
     }
-  }
+    return result;
+  };
 
-  return weeks;
+  const currentWeeks = collectWeeks(year, month).map((w) => ({
+    ...w,
+    monthPosition: "current" as const,
+  }));
+
+  if (!options?.includeAdjacent) return currentWeeks;
+
+  // Previous month's last week
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const prevWeeks = collectWeeks(prevYear, prevMonth);
+  const lastPrevWeek = prevWeeks.length > 0
+    ? [{ ...prevWeeks[prevWeeks.length - 1], monthPosition: "prev" as const }]
+    : [];
+
+  // Next month's first week
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextWeeks = collectWeeks(nextYear, nextMonth);
+  const firstNextWeek = nextWeeks.length > 0
+    ? [{ ...nextWeeks[0], monthPosition: "next" as const }]
+    : [];
+
+  // Deduplicate (edge case: last prev week = first current week)
+  const result = [...lastPrevWeek, ...currentWeeks, ...firstNextWeek];
+  const seen = new Set<string>();
+  return result.filter((w) => {
+    const key = `${w.year}-${w.weekNumber}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function formatMonthLabel(year: number, month: number): string {
