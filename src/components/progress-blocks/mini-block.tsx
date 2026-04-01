@@ -22,9 +22,7 @@ interface MiniBlockProps {
   stage: Stage;
   date?: string | null;
   createdAt: string;
-  lockVersion?: number;
   onClick?: () => void;
-  onDelete?: (id: string, lockVersion: number) => void;
 }
 
 export function MiniBlock({
@@ -33,9 +31,7 @@ export function MiniBlock({
   content,
   stage,
   date,
-  lockVersion,
   onClick,
-  onDelete,
 }: MiniBlockProps) {
   const displayDate = date || "";
   const ref = useRef<HTMLDivElement>(null);
@@ -93,23 +89,9 @@ export function MiniBlock({
         onClick?.();
       }}
       onMouseEnter={handleMouseEnter}
-      className={`group/card relative cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
+      className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
       title={undefined}
     >
-      {onDelete && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm("이 카드를 삭제하시겠습니까?")) {
-              onDelete(id, lockVersion ?? 1);
-            }
-          }}
-          className="absolute top-1.5 right-1.5 hidden group-hover/card:flex items-center justify-center w-5 h-5 rounded text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-xs"
-          title="삭제"
-        >
-          &times;
-        </button>
-      )}
       {title && <p className="font-semibold text-[15px] text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
       {content ? (
         /<[a-z][\s\S]*>/i.test(content) ? (

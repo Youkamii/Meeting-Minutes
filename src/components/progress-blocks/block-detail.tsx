@@ -8,7 +8,7 @@ import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import DOMPurify from "dompurify";
-import { useUpdateProgressItem } from "@/hooks/use-progress-items";
+import { useUpdateProgressItem, useDeleteProgressItem } from "@/hooks/use-progress-items";
 import { useWeeklyActions, useCurrentCycle, useWeeklyCycles } from "@/hooks/use-weekly-actions";
 import { getISOWeekNumber, getISOWeekYear } from "@/lib/weekly-cycle";
 import type { ProgressItem, WeeklyAction } from "@/types";
@@ -231,6 +231,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
   const [date, setDate] = useState(item.date ?? "");
   const [saving, setSaving] = useState(false);
   const updateItem = useUpdateProgressItem();
+  const deleteItem = useDeleteProgressItem();
   const titleRef = useRef<HTMLInputElement>(null);
   const closedRef = useRef(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -409,9 +410,24 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
             <span className="text-xs text-[var(--muted-foreground)] capitalize">
               {item.stage}
             </span>
-            <button onClick={saveAndClose} disabled={saving} className="text-sm hover:opacity-70">
-              {saving ? "저장 중..." : "✕"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (confirm("이 카드를 삭제하시겠습니까?")) {
+                    deleteItem.mutate(
+                      { id: item.id, lockVersion: item.lockVersion },
+                      { onSuccess: () => { closedRef.current = true; onClose(); } },
+                    );
+                  }
+                }}
+                className="text-xs text-[var(--muted-foreground)] hover:text-red-500 transition-colors px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                삭제
+              </button>
+              <button onClick={saveAndClose} disabled={saving} className="text-sm hover:opacity-70">
+                {saving ? "저장 중..." : "✕"}
+              </button>
+            </div>
           </div>
 
           <input
