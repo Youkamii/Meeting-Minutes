@@ -24,7 +24,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 import { MiniBlock } from "./mini-block";
-import { useMoveProgressItem, useCreateProgressItem } from "@/hooks/use-progress-items";
+import { useMoveProgressItem, useCreateProgressItem, useDeleteProgressItem } from "@/hooks/use-progress-items";
 import { useUpdateBusiness } from "@/hooks/use-businesses";
 import { STAGES } from "@/lib/constants";
 import type { ProgressItem, Stage } from "@/types";
@@ -34,10 +34,12 @@ function SortableBlock({
   item,
   onClick,
   isDragging,
+  onDelete,
 }: {
   item: ProgressItem;
   onClick?: () => void;
   isDragging?: boolean;
+  onDelete?: (id: string, lockVersion: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id, data: { stage: item.stage } });
@@ -57,7 +59,9 @@ function SortableBlock({
         stage={item.stage}
         date={item.date}
         createdAt={item.createdAt}
+        lockVersion={item.lockVersion}
         onClick={onClick}
+        onDelete={onDelete}
       />
     </div>
   );
@@ -72,6 +76,7 @@ function DroppableStage({
   funnelNo,
   onFunnelNoChange,
   activeId,
+  onDelete,
 }: {
   stage: Stage;
   items: ProgressItem[];
@@ -80,6 +85,7 @@ function DroppableStage({
   funnelNo?: string;
   onFunnelNoChange?: (stage: Stage, value: string) => void;
   activeId?: string | null;
+  onDelete?: (id: string, lockVersion: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
@@ -121,7 +127,7 @@ function DroppableStage({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[300px] w-[300px] shrink-0 flex-col gap-2.5 border-r border-[var(--border)] p-3 transition-colors ${
+      className={`flex min-w-[360px] w-[360px] shrink-0 flex-col gap-2.5 border-r border-[var(--border)] p-3 transition-colors ${
         isOver ? "bg-[var(--primary)]/10" : "bg-[var(--muted)]/30"
       }`}
       onClick={(e) => e.stopPropagation()}
@@ -168,6 +174,7 @@ function DroppableStage({
             item={item}
             onClick={() => onBlockClick?.(item)}
             isDragging={item.id === activeId}
+            onDelete={onDelete}
           />
         ))}
       </SortableContext>
@@ -251,6 +258,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
     useSensor(KeyboardSensor),
   );
   const moveItem = useMoveProgressItem();
+  const deleteItem = useDeleteProgressItem();
   const updateBusiness = useUpdateBusiness();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
   const [localItems, setLocalItems] = useState<ProgressItem[]>(progressItems);
@@ -444,6 +452,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
               funnelNo={funnelNumbers?.[stage]}
               onFunnelNoChange={handleFunnelNoChange}
               activeId={activeItem?.id}
+              onDelete={(id, lv) => deleteItem.mutate({ id, lockVersion: lv })}
             />
           );
         })}

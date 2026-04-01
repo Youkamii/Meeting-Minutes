@@ -388,10 +388,14 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
     setDate((prev) => (prev ? `${prev} ${dateStr}` : dateStr));
   };
 
+  // Track mousedown origin to distinguish click-outside from drag-out
+  const mouseDownOnBackdrop = useRef(false);
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
-      onClick={saveAndClose}
+      onMouseDown={(e) => { mouseDownOnBackdrop.current = e.target === e.currentTarget; }}
+      onClick={(e) => { if (e.target === e.currentTarget && mouseDownOnBackdrop.current) saveAndClose(); }}
     >
       <div
         ref={modalRef}

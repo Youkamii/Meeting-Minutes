@@ -22,7 +22,9 @@ interface MiniBlockProps {
   stage: Stage;
   date?: string | null;
   createdAt: string;
+  lockVersion?: number;
   onClick?: () => void;
+  onDelete?: (id: string, lockVersion: number) => void;
 }
 
 export function MiniBlock({
@@ -31,7 +33,9 @@ export function MiniBlock({
   content,
   stage,
   date,
+  lockVersion,
   onClick,
+  onDelete,
 }: MiniBlockProps) {
   const displayDate = date || "";
   const ref = useRef<HTMLDivElement>(null);
@@ -89,18 +93,34 @@ export function MiniBlock({
         onClick?.();
       }}
       onMouseEnter={handleMouseEnter}
-      className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
+      className={`group/card relative cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
       title={undefined}
     >
-      {title && <p className="font-semibold text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
-      {content && /<[a-z][\s\S]*>/i.test(content) ? (
-        <div
-          className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
-        />
-      ) : (
-        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm("이 카드를 삭제하시겠습니까?")) {
+              onDelete(id, lockVersion ?? 1);
+            }
+          }}
+          className="absolute top-1.5 right-1.5 hidden group-hover/card:flex items-center justify-center w-5 h-5 rounded text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-xs"
+          title="삭제"
+        >
+          &times;
+        </button>
       )}
+      {title && <p className="font-semibold text-[15px] text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
+      {content ? (
+        /<[a-z][\s\S]*>/i.test(content) ? (
+          <div
+            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+          />
+        ) : (
+          <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)] mt-0.5">{content}</p>
+        )
+      ) : null}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
   );
