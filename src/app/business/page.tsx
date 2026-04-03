@@ -471,7 +471,6 @@ export default function BusinessManagementPage() {
       <ExcelDownloadDialog
         open={showExcelDownload}
         onClose={() => setShowExcelDownload(false)}
-        defaultType="monthly"
       />
     </div>
   );

@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createWorkbook, styleHeader, generateFilename, workbookToBuffer } from "@/lib/excel";
+import { createWorkbook, generateFilename, workbookToBuffer } from "@/lib/excel";
 import { createAuditLog } from "@/lib/audit";
+import { getWeeksInMonth } from "@/lib/weekly-cycle";
+import type ExcelJS from "exceljs";
+
+const STAGE_COLUMNS: { key: string; label: string }[] = [
+  { key: "inbound", label: "Inbound(초도미팅)" },
+  { key: "funnel", label: "Funnel" },
+  { key: "pipeline", label: "PipeLine" },
+  { key: "proposal", label: "제안" },
+  { key: "contract", label: "계약" },
+  { key: "build", label: "구축" },
+  { key: "maintenance", label: "유지보수" },
+];
+
+const THIN_BORDER: Partial<ExcelJS.Borders> = {
+  top: { style: "thin" },
+  bottom: { style: "thin" },
+  left: { style: "thin" },
+  right: { style: "thin" },
+};
+
+const HEADER_FILL: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFE8E8E8" },
+};
 
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
@@ -15,110 +40,139 @@ export async function POST(request: NextRequest) {
   }
   const { type, ...options } = body;
 
-  if (type === "weekly") {
-    return handleWeeklyExport(options as { cycleId: string; includeCompleted?: boolean; includeCarryover?: boolean; assignedTo?: string });
-  } else if (type === "monthly") {
-    return handleMonthlyExport(options as { year: number; month: number; includeStageStatus?: boolean; includeIncompleteActions?: boolean });
-  } else if (type === "current_view") {
-    return handleCurrentViewExport(options as { view: "business_management" | "weekly_meeting" });
+  if (type === "monthly") {
+    return handleMonthlyExport(options as { year: number; month: number });
+  } else if (type === "yearly") {
+    return handleYearlyExport(options as { year: number });
   }
 
   return NextResponse.json(
-    { error: "VALIDATION", message: "type must be weekly, monthly, or current_view" },
+    { error: "VALIDATION", message: "type must be monthly or yearly" },
     { status: 400 },
   );
 }
 
-async function handleWeeklyExport(options: {
-  cycleId: string;
-  includeCompleted?: boolean;
-  includeCarryover?: boolean;
-  assignedTo?: string;
-}) {
-  if (!options.cycleId) {
-    return NextResponse.json(
-      { error: "VALIDATION", message: "cycleId is required for weekly export" },
-      { status: 400 },
-    );
-  }
+// ── 사업관리 시트 (공통) ──────────────────────────────────────
 
-  const where = {
-    cycleId: options.cycleId,
-    isArchived: false,
-    ...(options.includeCompleted ? {} : { status: { not: "completed" as const } }),
-    ...(options.assignedTo ? { assignedToId: options.assignedTo } : {}),
-  };
-
-  const actions = await prisma.weeklyAction.findMany({
-    where,
-    include: { company: true, business: true, cycle: true },
-    orderBy: [{ companyId: "asc" }, { sortOrder: "asc" }],
-  });
-
-  const wb = createWorkbook();
-  const ws = wb.addWorksheet("Weekly Actions");
-
+function buildBusinessSheet(ws: ExcelJS.Worksheet, companies: CompanyWithBiz[]) {
   ws.columns = [
-    { header: "Company", key: "company", width: 20 },
-    { header: "Business", key: "business", width: 20 },
-    { header: "Action", key: "content", width: 40 },
-    { header: "Status", key: "status", width: 12 },
-    { header: "Priority", key: "priority", width: 10 },
-    { header: "Carryover", key: "carryover", width: 10 },
+    { width: 12 }, { width: 22 }, { width: 30 }, { width: 15 }, { width: 12 },
+    { width: 30 }, { width: 25 }, { width: 25 }, { width: 25 }, { width: 20 }, { width: 20 }, { width: 20 },
   ];
 
-  styleHeader(ws.getRow(1));
+  // Row 1: Header row 1 — A~E merged down, F~L merged across
+  const h1 = ws.addRow(["공개여부", "고객사명", "사업명", "사업시기", "사업규모", "Progress Status", "", "", "", "", "", ""]);
+  // Row 2: Header row 2 — stage sub-headers
+  const h2 = ws.addRow(["", "", "", "", "", ...STAGE_COLUMNS.map((s) => s.label)]);
 
-  for (const a of actions) {
-    ws.addRow({
-      company: a.company.canonicalName,
-      business: a.business?.name ?? "",
-      content: a.content,
-      status: a.status,
-      priority: a.priority,
-      carryover: a.carryoverCount > 0 ? `↻${a.carryoverCount}` : "",
+  // Merge header cells
+  ws.mergeCells("F1:L1");
+  for (let col = 1; col <= 5; col++) {
+    ws.mergeCells(1, col, 2, col);
+  }
+
+  // Style headers
+  for (const row of [h1, h2]) {
+    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      if (colNum <= 12) {
+        cell.font = { bold: true, size: 11 };
+        cell.fill = HEADER_FILL;
+        cell.border = THIN_BORDER;
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      }
     });
   }
 
-  const filename = generateFilename("weekly");
-  const buffer = await workbookToBuffer(wb);
+  // Data rows
+  for (const company of companies) {
+    if (company.businesses.length === 0) {
+      const row = ws.addRow(["공개", company.canonicalName, "", "", "", "", "", "", "", "", "", ""]);
+      applyDataBorder(row);
+    } else {
+      for (const biz of company.businesses) {
+        const stageData = STAGE_COLUMNS.map((s) => {
+          const items = biz.progressItems.filter((p: { stage: string }) => p.stage === s.key);
+          return items.map((p: { content: string }) => p.content).join("\n");
+        });
 
-  try {
-    await createAuditLog({
-      entityType: "export",
-      entityId: options.cycleId,
-      action: "download",
-      changes: { type: "weekly", ...options, filename },
-    });
-  } catch (e) {
-    console.error("Audit log failed (weekly export):", e);
+        const row = ws.addRow([
+          biz.visibility === "private" ? "비공개" : "공개",
+          company.canonicalName,
+          biz.name,
+          biz.timingText ?? "",
+          biz.scale ?? "",
+          ...stageData,
+        ]);
+
+        for (let col = 6; col <= 12; col++) {
+          row.getCell(col).alignment = { wrapText: true, vertical: "top" };
+        }
+        applyDataBorder(row);
+      }
+    }
   }
-
-  return new NextResponse(buffer as unknown as BodyInit, {
-    headers: {
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
-  });
 }
 
-const STAGE_COLUMNS: { key: string; label: string }[] = [
-  { key: "inbound", label: "Inbound(초도미팅)" },
-  { key: "funnel", label: "Funnel" },
-  { key: "pipeline", label: "PipeLine" },
-  { key: "proposal", label: "제안" },
-  { key: "contract", label: "계약" },
-  { key: "build", label: "구축" },
-  { key: "maintenance", label: "유지보수" },
-];
+// ── 주간회의 시트 (공통) ──────────────────────────────────────
 
-async function handleMonthlyExport(options: {
-  year: number;
-  month: number;
-  includeStageStatus?: boolean;
-  includeIncompleteActions?: boolean;
-}) {
+function buildWeeklySheet(
+  ws: ExcelJS.Worksheet,
+  companies: { id: string; canonicalName: string }[],
+  weekLabels: string[],
+  cycleIds: string[],
+  actionsByCycleCompany: Map<string, string[]>,
+  rowsPerCompany: number,
+) {
+  const colCount = 1 + weekLabels.length;
+  ws.columns = [
+    { width: 22 },
+    ...weekLabels.map(() => ({ width: 40 })),
+  ];
+
+  // Row 1: Header row 1
+  const h1 = ws.addRow(["구분", ...weekLabels]);
+  // Row 2: Header row 2
+  const h2 = ws.addRow(["고객사", ...weekLabels.map(() => "TASK/이슈사항")]);
+
+  for (const row of [h1, h2]) {
+    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      if (colNum <= colCount) {
+        cell.font = { bold: true, size: 11 };
+        cell.fill = HEADER_FILL;
+        cell.border = THIN_BORDER;
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      }
+    });
+  }
+
+  // Data rows — each company gets `rowsPerCompany` rows, A column merged
+  for (const company of companies) {
+    const startRow = ws.rowCount + 1;
+    for (let r = 0; r < rowsPerCompany; r++) {
+      const rowData: string[] = [r === 0 ? company.canonicalName : ""];
+      for (let w = 0; w < cycleIds.length; w++) {
+        const key = `${cycleIds[w]}_${company.id}`;
+        const actions = actionsByCycleCompany.get(key) ?? [];
+        rowData.push(actions[r] ?? "");
+      }
+      const row = ws.addRow(rowData);
+      row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        if (colNum <= colCount) {
+          cell.border = THIN_BORDER;
+          cell.alignment = { wrapText: true, vertical: "top" };
+        }
+      });
+    }
+    if (rowsPerCompany > 1) {
+      ws.mergeCells(startRow, 1, startRow + rowsPerCompany - 1, 1);
+      ws.getCell(startRow, 1).alignment = { vertical: "middle" };
+    }
+  }
+}
+
+// ── 월간 Export ───────────────────────────────────────────────
+
+async function handleMonthlyExport(options: { year: number; month: number }) {
   const year = Number(options.year);
   const month = Number(options.month);
   if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
@@ -141,108 +195,68 @@ async function handleMonthlyExport(options: {
   });
 
   const wb = createWorkbook();
-  const ws = wb.addWorksheet("사업관리");
 
-  // Column widths: 공개여부, 고객사명, 사업명, 사업시기, 사업규모, 7 stages
-  ws.columns = [
-    { width: 12 },  // A: 공개여부
-    { width: 20 },  // B: 고객사명
-    { width: 30 },  // C: 사업명
-    { width: 15 },  // D: 사업시기
-    { width: 12 },  // E: 사업규모
-    { width: 30 },  // F: Inbound
-    { width: 25 },  // G: Funnel
-    { width: 25 },  // H: PipeLine
-    { width: 25 },  // I: 제안
-    { width: 20 },  // J: 계약
-    { width: 20 },  // K: 구축
-    { width: 20 },  // L: 유지보수
-  ];
+  // Sheet 1: 사업관리
+  buildBusinessSheet(wb.addWorksheet("사업관리"), companies);
 
-  // Row 1: Title
-  const titleRow = ws.addRow(["사업관리"]);
-  titleRow.getCell(1).font = { bold: true, size: 14 };
+  // Sheet 2: 주간회의
+  const weeks = getWeeksInMonth(year, month);
+  const weekLabels = weeks.map((w) => `${month}월 ${w.weekInMonth}주`);
 
-  // Row 2: Empty
-  ws.addRow([]);
+  const cycles = await prisma.weeklyCycle.findMany({
+    where: {
+      OR: weeks.map((w) => ({ year: w.year, weekNumber: w.weekNumber })),
+    },
+  });
 
-  // Row 3: Main headers with merged "Progress Status"
-  const headerRow = ws.addRow([
-    "공개여부", "고객사명", "사업명", "사업시기", "사업규모",
-    "Progress Status", "", "", "", "", "", "",
-  ]);
-  ws.mergeCells(3, 6, 3, 12); // Merge F3:L3 for "Progress Status"
+  const cycleMap = new Map(cycles.map((c) => [`${c.year}-${c.weekNumber}`, c.id]));
+  const cycleIds = weeks.map((w) => cycleMap.get(`${w.year}-${w.weekNumber}`) ?? "");
+  const validCycleIds = cycleIds.filter(Boolean);
 
-  // Row 4: Sub-headers for stages
-  const subHeaderRow = ws.addRow([
-    "", "", "", "", "",
-    ...STAGE_COLUMNS.map((s) => s.label),
-  ]);
+  const actions = validCycleIds.length > 0
+    ? await prisma.weeklyAction.findMany({
+        where: { cycleId: { in: validCycleIds }, isArchived: false },
+        orderBy: [{ companyId: "asc" }, { sortOrder: "asc" }],
+      })
+    : [];
 
-  // Style header rows
-  const headerFill = { type: "pattern" as const, pattern: "solid" as const, fgColor: { argb: "FFE8E8E8" } };
-  const headerFont = { bold: true, size: 11 };
-  const thinBorder = {
-    top: { style: "thin" as const },
-    bottom: { style: "thin" as const },
-    left: { style: "thin" as const },
-    right: { style: "thin" as const },
-  };
-
-  for (const row of [headerRow, subHeaderRow]) {
-    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      if (colNumber <= 12) {
-        cell.font = headerFont;
-        cell.fill = headerFill;
-        cell.border = thinBorder;
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-      }
-    });
+  // Group actions by cycle+company
+  const actionsByCycleCompany = new Map<string, string[]>();
+  for (const a of actions) {
+    const key = `${a.cycleId}_${a.companyId}`;
+    if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
+    actionsByCycleCompany.get(key)!.push(a.content);
   }
 
-  // Data rows
-  for (const company of companies) {
-    if (company.businesses.length === 0) {
-      // Company with no businesses: just show company name
-      const row = ws.addRow([
-        "공개", company.canonicalName, "", "", "",
-        "", "", "", "", "", "", "",
-      ]);
-      applyDataBorder(row);
-    } else {
-      for (const biz of company.businesses) {
-        const stageData: string[] = STAGE_COLUMNS.map((s) => {
-          const items = biz.progressItems.filter((p) => p.stage === s.key);
-          return items.map((p) => p.content).join("\n");
-        });
-
-        const row = ws.addRow([
-          biz.visibility === "private" ? "비공개" : "공개",
-          company.canonicalName,
-          biz.name,
-          biz.timingText ?? "",
-          biz.scale ?? "",
-          ...stageData,
-        ]);
-
-        // Enable text wrap for stage cells
-        for (let col = 6; col <= 12; col++) {
-          row.getCell(col).alignment = { wrapText: true, vertical: "top" };
-        }
-        applyDataBorder(row);
-      }
+  // Max actions per company across all cycles (minimum 4 rows like reference)
+  const companiesForWeekly = companies.map((c) => ({ id: c.id, canonicalName: c.canonicalName }));
+  let maxActions = 4;
+  for (const company of companiesForWeekly) {
+    for (const cid of validCycleIds) {
+      const key = `${cid}_${company.id}`;
+      const count = actionsByCycleCompany.get(key)?.length ?? 0;
+      if (count > maxActions) maxActions = count;
     }
   }
 
-  const filename = generateFilename(`사업관리_${options.year}-${String(options.month).padStart(2, "0")}`);
+  buildWeeklySheet(
+    wb.addWorksheet("주간회의"),
+    companiesForWeekly,
+    weekLabels,
+    cycleIds,
+    actionsByCycleCompany,
+    maxActions,
+  );
+
+  const filename = generateFilename(`사업관리_${year}-${String(month).padStart(2, "0")}`);
   const buffer = await workbookToBuffer(wb);
 
   try {
     await createAuditLog({
       entityType: "export",
-      entityId: `${options.year}-${options.month}`,
+      entityId: `${year}-${month}`,
       action: "download",
-      changes: { type: "monthly", ...options, filename },
+      changes: { type: "monthly", year, month, filename },
     });
   } catch (e) {
     console.error("Audit log failed (monthly export):", e);
@@ -250,40 +264,130 @@ async function handleMonthlyExport(options: {
 
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
     },
   });
 }
 
-function applyDataBorder(row: import("exceljs").Row) {
-  const thinBorder = {
-    top: { style: "thin" as const },
-    bottom: { style: "thin" as const },
-    left: { style: "thin" as const },
-    right: { style: "thin" as const },
-  };
-  row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-    if (colNumber <= 12) {
-      cell.border = thinBorder;
-      cell.alignment = { ...cell.alignment, vertical: "top" };
+// ── 연간 Export ───────────────────────────────────────────────
+
+async function handleYearlyExport(options: { year: number }) {
+  const year = Number(options.year);
+  if (!Number.isFinite(year)) {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "year must be a valid number" },
+      { status: 400 },
+    );
+  }
+
+  const companies = await prisma.company.findMany({
+    where: { isArchived: false },
+    include: {
+      businesses: {
+        where: { isArchived: false },
+        include: { progressItems: { orderBy: { sortOrder: "asc" } } },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const wb = createWorkbook();
+
+  // Sheet 1: 사업관리
+  buildBusinessSheet(wb.addWorksheet("사업관리"), companies);
+
+  // Sheet 2: 주간회의 — all weeks in the year (12 months)
+  const allWeeks: { year: number; weekNumber: number; label: string }[] = [];
+  for (let m = 1; m <= 12; m++) {
+    const weeks = getWeeksInMonth(year, m);
+    for (const w of weeks) {
+      const key = `${w.year}-${w.weekNumber}`;
+      if (!allWeeks.some((aw) => `${aw.year}-${aw.weekNumber}` === key)) {
+        allWeeks.push({ year: w.year, weekNumber: w.weekNumber, label: `${m}월 ${w.weekInMonth}주` });
+      }
     }
+  }
+
+  const weekLabels = allWeeks.map((w) => w.label);
+
+  const cycles = await prisma.weeklyCycle.findMany({
+    where: {
+      OR: allWeeks.map((w) => ({ year: w.year, weekNumber: w.weekNumber })),
+    },
+  });
+
+  const cycleMap = new Map(cycles.map((c) => [`${c.year}-${c.weekNumber}`, c.id]));
+  const cycleIds = allWeeks.map((w) => cycleMap.get(`${w.year}-${w.weekNumber}`) ?? "");
+  const validCycleIds = cycleIds.filter(Boolean);
+
+  const actions = validCycleIds.length > 0
+    ? await prisma.weeklyAction.findMany({
+        where: { cycleId: { in: validCycleIds }, isArchived: false },
+        orderBy: [{ companyId: "asc" }, { sortOrder: "asc" }],
+      })
+    : [];
+
+  const actionsByCycleCompany = new Map<string, string[]>();
+  for (const a of actions) {
+    const key = `${a.cycleId}_${a.companyId}`;
+    if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
+    actionsByCycleCompany.get(key)!.push(a.content);
+  }
+
+  const companiesForWeekly = companies.map((c) => ({ id: c.id, canonicalName: c.canonicalName }));
+  let maxActions = 4;
+  for (const company of companiesForWeekly) {
+    for (const cid of validCycleIds) {
+      const key = `${cid}_${company.id}`;
+      const count = actionsByCycleCompany.get(key)?.length ?? 0;
+      if (count > maxActions) maxActions = count;
+    }
+  }
+
+  buildWeeklySheet(
+    wb.addWorksheet("주간회의"),
+    companiesForWeekly,
+    weekLabels,
+    cycleIds,
+    actionsByCycleCompany,
+    maxActions,
+  );
+
+  const filename = generateFilename(`사업관리_${year}년`);
+  const buffer = await workbookToBuffer(wb);
+
+  try {
+    await createAuditLog({
+      entityType: "export",
+      entityId: String(year),
+      action: "download",
+      changes: { type: "yearly", year, filename },
+    });
+  } catch (e) {
+    console.error("Audit log failed (yearly export):", e);
+  }
+
+  return new NextResponse(buffer as unknown as BodyInit, {
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+    },
   });
 }
 
-async function handleCurrentViewExport(options: {
-  view: "business_management" | "weekly_meeting";
-}) {
-  if (options.view === "business_management") {
-    return handleMonthlyExport({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 });
-  }
-  // Default to weekly for current week
-  const cycle = await prisma.weeklyCycle.findFirst({
-    orderBy: { createdAt: "desc" },
+// ── Helpers ───────────────────────────────────────────────────
+
+type CompanyWithBiz = Awaited<ReturnType<typeof prisma.company.findMany<{
+  include: { businesses: { include: { progressItems: true } } };
+}>>>[number];
+
+function applyDataBorder(row: ExcelJS.Row) {
+  row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+    if (colNum <= 12) {
+      cell.border = THIN_BORDER;
+      cell.alignment = { ...cell.alignment, vertical: "top" };
+    }
   });
-  if (!cycle) {
-    return NextResponse.json({ error: "NOT_FOUND", message: "No cycle found" }, { status: 404 });
-  }
-  return handleWeeklyExport({ cycleId: cycle.id, includeCompleted: true });
 }
