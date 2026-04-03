@@ -66,7 +66,7 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
       >
         {/* Fixed left column */}
         <div
-          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[var(--muted)]/20 px-4 py-3 cursor-pointer"
+          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[#fafafa] dark:bg-[#191919] px-4 py-3 cursor-pointer"
           onClick={isArchived ? () => setExpanded(!expanded) : onClick}
           onDoubleClick={isArchived ? onClick : undefined}
         >
