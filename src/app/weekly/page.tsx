@@ -10,6 +10,7 @@ import {
   useCreateWeeklyAction,
   useUpdateWeeklyAction,
   useEnsureCycle,
+  useArchiveWeeklyAction,
 } from "@/hooks/use-weekly-actions";
 import { useCompanies } from "@/hooks/use-companies";
 import { InlineEditor } from "@/components/editor/inline-editor";
@@ -154,6 +155,7 @@ function WeeklyCompanyRow({
   onCancelEdit,
   onStatusChange,
   onActionStatusChange,
+  onDeleteAction,
 }: {
   company: Company;
   monthCycles: MonthCycle[];
@@ -165,6 +167,7 @@ function WeeklyCompanyRow({
   onCancelEdit: () => void;
   onStatusChange: (status: string) => void;
   onActionStatusChange: (actionId: string, lockVersion: number, newStatus: string) => void;
+  onDeleteAction: (actionId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
@@ -220,12 +223,7 @@ function WeeklyCompanyRow({
           return (
             <div
               key={wKey}
-              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 cursor-pointer min-h-[48px]"
-              onClick={() => {
-                if (!editingCell) {
-                  onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
-                }
-              }}
+              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
             >
               {cellActions.map((action) => {
                 const isEditing = editingCell?.actionId === action.id;
@@ -252,13 +250,23 @@ function WeeklyCompanyRow({
                       <StatusBadge
                         status={action.status}
                         onClick={() => {
-                          // Cycle through statuses on click
                           const statuses = ["scheduled", "in_progress", "completed", "on_hold"];
                           const idx = statuses.indexOf(action.status);
                           const next = statuses[(idx + 1) % statuses.length];
                           onActionStatusChange(action.id, action.lockVersion, next);
                         }}
                       />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("이 액션을 삭제하시겠습니까?")) {
+                            onDeleteAction(action.id);
+                          }
+                        }}
+                        className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        삭제
+                      </button>
                     </div>
                     <div
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.content) }}
@@ -433,6 +441,7 @@ export default function WeeklyMeetingPage() {
   // Inline editing
   const createAction = useCreateWeeklyAction();
   const updateAction = useUpdateWeeklyAction();
+  const archiveAction = useArchiveWeeklyAction();
   const ensureCycle = useEnsureCycle();
   const [editingCell, setEditingCell] = useState<EditingCell>(null);
 
@@ -605,6 +614,7 @@ export default function WeeklyMeetingPage() {
                   setEditingCell((prev) => prev ? { ...prev, status } : null)
                 }
                 onActionStatusChange={handleActionStatusChange}
+                onDeleteAction={(id) => archiveAction.mutate({ id, action: "archive" })}
               />
             );
           })}
