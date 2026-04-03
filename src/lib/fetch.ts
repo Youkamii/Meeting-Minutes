@@ -34,5 +34,6 @@ export async function fetchJson<T>(
       body.error as string | undefined,
     );
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }

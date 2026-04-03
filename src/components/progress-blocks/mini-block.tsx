@@ -98,9 +98,11 @@ export function MiniBlock({
           className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
         />
-      ) : (
-        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content || "내용 없음"}</p>
-      )}
+      ) : content ? (
+        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content}</p>
+      ) : !title ? (
+        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">내용 없음</p>
+      ) : null}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
   );
