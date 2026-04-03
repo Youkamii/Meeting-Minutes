@@ -20,9 +20,9 @@
   --radius: 0.5rem;
 
   /* Table header/sidebar tints */
-  --table-header: #f4f4f5;
-  --table-header-active: #ededee;
-  --table-sidebar: #f8f8f9;
+  --table-header: #f0f0f1;
+  --table-header-active: #e9e9ea;
+  --table-sidebar: #f4f4f5;
 
   /* Status colors */
   --status-scheduled: #3b82f6;
@@ -63,9 +63,9 @@
   --popover-foreground: #ededed;
   --ring: #3b82f6;
 
-  --table-header: #161616;
-  --table-header-active: #1a1a1a;
-  --table-sidebar: #0e0e0e;
+  --table-header: #141414;
+  --table-header-active: #181818;
+  --table-sidebar: #101010;
 
   --status-scheduled: #60a5fa;
   --status-in-progress: #fbbf24;
