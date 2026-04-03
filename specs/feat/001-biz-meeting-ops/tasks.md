@@ -154,11 +154,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T056 [US5] Create Meeting Mode toggle button and Zustand state integration in src/components/meeting-mode/meeting-mode-toggle.tsx
-- [ ] T057 [US5] Create Meeting Mode layout (large font, simplified cards, hidden advanced filters/admin) in src/components/meeting-mode/meeting-mode-view.tsx
-- [ ] T058 [US5] Create Meeting Mode action card (large status badge, one-tap status change, assignee picker, quick memo add, priority adjust) in src/components/meeting-mode/meeting-action-card.tsx
-- [ ] T059 [US5] Add Meeting Mode carryover shortcut (inline "move to next week" button per action) in src/components/meeting-mode/meeting-mode-view.tsx
-- [ ] T060 [US5] Integrate Meeting Mode as an alternate view on the Weekly Meeting page in src/app/weekly/page.tsx
+- [x] ~~T056-T060 [US5] Meeting Mode~~ (Removed — 2026-04-03. Components deleted.)
 
 **Checkpoint**: Meeting Mode toggleable, edits persist, simplified UI works on projector/large screen
 
@@ -212,11 +208,11 @@
 
 ### Implementation for User Story 10
 
-- [ ] T075 [P] [US10] Create ExcelJS utility helpers (worksheet creation, styling, header formatting, timestamp) in src/lib/excel.ts
-- [ ] T076 [P] [US10] Create export API routes: POST current-view, POST weekly (with cycle_id, include_completed, include_carryover, assigned_to filters), POST monthly (with year, month, include_stage_status, include_change_history, include_incomplete_actions) in src/app/api/export/route.ts
-- [ ] T077 [US10] Create Excel download dialog (type selector: current view/weekly/monthly, option checkboxes, assignee filter, download button) in src/components/export/excel-download-dialog.tsx
-- [ ] T078 [US10] Add Excel download button to Business Management and Weekly Meeting toolbars in src/app/business/page.tsx and src/app/weekly/page.tsx
-- [ ] T079 [US10] Add audit log entry for every download (log download type, filters used, filename) in src/app/api/export/route.ts
+- [x] T075 [P] [US10] Create ExcelJS utility helpers (worksheet creation, styling, header formatting, timestamp) in src/lib/excel.ts
+- [x] T076 [P] [US10] Create export API routes: POST monthly, POST yearly — two sheets (사업관리 + 주간회의) matching reference format with richText in src/app/api/export/route.ts (Updated 2026-04-03: weekly/current_view removed, monthly/yearly only)
+- [x] T077 [US10] Create Excel download dialog (type: monthly/yearly, year/month selector) in src/components/export/excel-download-dialog.tsx
+- [x] T078 [US10] Add Excel download button to Business Management and Weekly Meeting toolbars in src/app/business/page.tsx and src/app/weekly/page.tsx
+- [x] T079 [US10] Add audit log entry for every download in src/app/api/export/route.ts
 
 **Checkpoint**: Excel downloads work for all three types with proper formatting and audit trail
 
@@ -230,11 +226,7 @@
 
 ### Implementation for User Story 7
 
-- [ ] T080 [P] [US7] Create company merge API endpoint (POST merge with canonical_id, merge_ids; re-links businesses, actions, notes, logs; retains aliases) in src/app/api/companies/merge/route.ts
-- [ ] T081 [US7] Create duplicate company detection query (similar canonical names/aliases) in src/app/api/companies/merge/route.ts
-- [ ] T082 [US7] Create admin company merge page (search for duplicates, select companies, designate canonical, preview affected data, confirm merge) in src/app/admin/merge/page.tsx
-- [ ] T083 [US7] Create merge confirmation dialog (lists affected businesses, actions, notes count) in src/components/admin/merge-confirmation-dialog.tsx
-- [ ] T084 [US7] Add admin role check middleware (verify role=admin for admin routes) in src/lib/auth.ts
+- [x] ~~T080-T084 [US7] Company Merge~~ (Removed from UI — 2026-04-03. API remains but admin menu removed.)
 
 **Checkpoint**: Admin can merge companies, all data re-linked, aliases searchable
 
@@ -342,6 +334,32 @@
 - [x] T127 [US2] Block detail modal weekly actions panel — shows prev/this/next week actions for the same company in the right panel below calendar in src/components/progress-blocks/block-detail.tsx
 - [x] T128 [US1] FunnelNo. per stage on business — JSONB field, double-click inline edit, auto-save (skips lockVersion for funnelNumbers-only updates) in src/components/business-table/funnel-number.tsx, src/app/api/businesses/[id]/route.ts
 - [x] T129 .gitignore update — added *.xlsx and *.xls patterns to prevent accidental data file commits
+
+---
+
+## Phase 18: Bug Fixes & UI Polish (2026-04-03)
+
+**Purpose**: Critical bug fixes, security hardening, UI cleanup, data import
+
+### Completed Tasks
+
+- [x] T130 Fix TopNav header disappearing during session loading (bg-[var(--background)] → show skeleton during loading) in src/components/layout/top-nav.tsx
+- [x] T131 Add auth check to /api/bulk/assign endpoint (was unauthenticated) in src/app/api/bulk/assign/route.ts
+- [x] T132 Fix Business funnelNumbers update skipping lockVersion increment in src/app/api/businesses/[id]/route.ts
+- [x] T133 Fix progress-items API swallowing audit/version errors (.catch removed) in src/app/api/progress-items/[id]/route.ts
+- [x] T134 Fix KST date hardcoding (+9h → Intl.DateTimeFormat Asia/Seoul) in src/app/api/businesses/[id]/progress-items/route.ts
+- [x] T135 Fix card delete — FK constraint (delete versions first in $transaction), 204 response parsing, delete button in modal in src/app/api/progress-items/[id]/route.ts, src/lib/fetch.ts, src/components/progress-blocks/block-detail.tsx
+- [x] T136 Remove "내용 없음" text from mini-block in src/components/progress-blocks/mini-block.tsx
+- [x] T137 Configure Vercel Preview environment variables (DATABASE_URL, DIRECT_URL, etc.)
+- [x] T138 Rewrite Excel export — monthly/yearly with reference format (사업관리 + 주간회의 sheets), richText formatting, card separators in src/app/api/export/route.ts, src/components/export/excel-download-dialog.tsx
+- [x] T139 Fix search HTML tag exposure — strip HTML in search API, business page filter, mini-block dim, search overlay display in src/app/api/search/route.ts, src/app/business/page.tsx, src/components/progress-blocks/mini-block.tsx, src/components/search/search-overlay.tsx
+- [x] T140 Import weekly meeting data from reference Excel with company similarity matching in scripts/import-weekly.ts
+- [x] T141 Remove Meeting Mode (toggle, view, QuickActionsBar components deleted) in src/app/weekly/page.tsx, src/app/business/page.tsx
+- [x] T142 Remove Company Merge from admin sidebar in src/app/admin/layout.tsx
+- [x] T143 Add table header/sidebar background colors via CSS variables (--table-header, --table-header-active, --table-sidebar) in src/app/globals.css
+- [x] T144 Increase border color contrast (--border: #d0d0d0 light, #333333 dark) in src/app/globals.css
+- [x] T145 Add weekly action card delete button (hover, confirm, archive) in src/app/weekly/page.tsx
+- [x] T146 Remove empty-cell click-to-create behavior in weekly meeting in src/app/weekly/page.tsx
 
 ---
 

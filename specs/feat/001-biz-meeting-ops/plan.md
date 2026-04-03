@@ -89,7 +89,7 @@ src/
 │   ├── business-table/     # TanStack Table for Business Mgmt
 │   ├── progress-blocks/    # dnd-kit progress stage blocks
 │   ├── weekly-meeting/     # Weekly Meeting components
-│   ├── meeting-mode/       # Meeting Mode view
+│   ├── meeting-mode/       # Meeting Mode (removed 2026-04-03, meeting-action-card.tsx remains)
 │   ├── search/             # Global search + quick actions
 │   ├── notes/              # Internal notes timeline
 │   ├── version-diff/       # Version comparison UI

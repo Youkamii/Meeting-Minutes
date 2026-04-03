@@ -43,7 +43,7 @@ The service is an internal operations tool connecting two domains:
 - Business Management and Weekly Meeting are separate screens.
 - Company is a shared master entity.
 - Weekly Meeting is organized by weekly cycle.
-- Meeting Mode is a separate view but MUST allow editing.
+- ~~Meeting Mode is a separate view but MUST allow editing.~~ (Removed — 2026-04-03)
 - No email or push notifications.
 - Roles: Admin and User only (no read-only role).
 - No real-time co-editing; conflict detection only.
@@ -183,28 +183,9 @@ to Week 2, and verify the carryover flow works.
 
 ---
 
-### User Story 5 - Meeting Mode Editing (Priority: P2)
+### ~~User Story 5 - Meeting Mode Editing~~ (Removed — 2026-04-03)
 
-A user activates Meeting Mode during a weekly meeting to view actions in a
-simplified, large-font layout while still being able to edit statuses,
-assignees, and memos.
-
-**Why this priority**: Meeting Mode is a high-value UX differentiator for
-the weekly meeting use case.
-
-**Independent Test**: Activate Meeting Mode, change an action's status and
-assignee, verify changes persist after exiting Meeting Mode.
-
-**Acceptance Scenarios**:
-
-1. **Given** the Weekly Meeting screen is open, **When** a user activates
-   Meeting Mode, **Then** the UI switches to a large-font, simplified view
-   with advanced filters and admin features hidden.
-2. **Given** Meeting Mode is active, **When** a user changes an action's
-   status from "Scheduled" to "Completed", **Then** the change persists and
-   is audit-logged.
-3. **Given** Meeting Mode is active, **When** a user adds a memo to an
-   action, **Then** the memo appears in the action's memo timeline.
+Meeting Mode has been removed. The weekly meeting table view is sufficient.
 
 ---
 
@@ -232,26 +213,9 @@ one of its businesses directly from the search result.
 
 ---
 
-### User Story 7 - Company Merge (Priority: P3)
+### ~~User Story 7 - Company Merge~~ (Removed — 2026-04-03)
 
-An admin merges duplicate companies, designates a canonical name, retains
-aliases, and re-links all associated businesses, weekly actions, and logs.
-
-**Why this priority**: Duplicate management is an admin-only maintenance task,
-not part of daily operations.
-
-**Independent Test**: Create two companies with overlapping businesses, merge
-them, and verify all data is consolidated under the canonical name.
-
-**Acceptance Scenarios**:
-
-1. **Given** two companies with similar names exist, **When** an admin
-   selects them for merge and designates one as canonical, **Then** all
-   businesses, actions, and logs are re-linked to the canonical company.
-2. **Given** a merge is complete, **When** searching by the old company name
-   (now an alias), **Then** the canonical company appears in results.
-3. **Given** a non-admin user is logged in, **When** they attempt to merge
-   companies, **Then** the merge option is not available.
+Company merge has been removed from the UI. API endpoint remains but is not exposed.
 
 ---
 
@@ -303,27 +267,26 @@ Weekly Meeting, then verify the Home screen reflects all recent activity.
 
 ---
 
-### User Story 10 - Excel Download (Priority: P2)
+### User Story 10 - Excel Download (Priority: P2) — Updated 2026-04-03
 
-A user downloads weekly or monthly Excel reports with configurable options
-(include completed items, carryover items, assignee filter, etc.).
+A user downloads monthly or yearly Excel reports matching the reference
+format (`.참고자료/신사업담당_사업관리_3월5주차.xlsx`).
 
-**Why this priority**: Excel download is the primary output/sharing mechanism
-for stakeholders who do not use the service directly.
-
-**Independent Test**: Configure a weekly download with specific filters and
-verify the downloaded file contains the correct data.
+**Changes**: Weekly download removed. Monthly/yearly only. Two sheets per
+file: 사업관리 (business pipeline) + 주간회의 (weekly actions by company).
+Rich text formatting (bold, italic, color) preserved. Cards separated by
+`────────────` dividers with `(date) title` headers.
 
 **Acceptance Scenarios**:
 
-1. **Given** the Weekly Meeting screen is open, **When** a user clicks "Excel
-   Download" and selects weekly options (week, include completed, assignee
-   filter), **Then** an .xlsx file is generated with matching data and
-   auto-generated filename including timestamp.
-2. **Given** the Business Management screen is open, **When** a user clicks
-   "Excel Download" with monthly options, **Then** the file includes stage
-   status summaries and optionally change history.
-3. **Given** any download is initiated, **When** it completes, **Then** a
+1. **Given** any screen is open, **When** a user clicks "엑셀" and selects
+   monthly with year/month, **Then** an .xlsx file is generated with two
+   sheets (사업관리 + 주간회의) matching the reference format.
+2. **Given** yearly is selected, **Then** the 주간회의 sheet includes all
+   weeks across 12 months.
+3. **Given** progress items contain HTML formatting, **Then** the Excel
+   output preserves bold, italic, and color via ExcelJS richText.
+4. **Given** any download is initiated, **When** it completes, **Then** a
    download audit log entry is created.
 
 ---
@@ -483,10 +446,7 @@ and role fields; verify all entities have created_by/updated_by fields.
   changes and recently viewed items with filters (All / Changes / My
   Views). When authenticated, store per-user; otherwise, use browser
   local storage.
-- **FR-15**: Admin MUST be able to merge duplicate companies: query
-  suspected duplicates, merge two or more, designate canonical name,
-  retain aliases, re-link all associated data. Lists/detail/Excel use
-  canonical name; search matches both canonical and alias.
+- ~~**FR-15**: Admin MUST be able to merge duplicate companies~~ (Removed — 2026-04-03)
 - **FR-16**: System MUST support assignee changes for business owner and
   weekly action assignee via single change, multi-select bulk change,
   search result quick change, weekly meeting inline change, and business
@@ -495,16 +455,13 @@ and role fields; verify all entities have created_by/updated_by fields.
   business, new weekly action), Business Management context, Weekly
   Meeting context, and search result context — all as enumerated in the
   requirements document.
-- **FR-18**: System MUST provide Meeting Mode with large font, simplified
-  UI, hidden advanced filters/admin features, while allowing: status
-  change, assignee change, action add, carryover, memo add, priority
-  adjust.
+- ~~**FR-18**: System MUST provide Meeting Mode~~ (Removed — 2026-04-03)
 - **FR-19**: System MUST provide Excel download only (no upload). Download
-  types: current view, weekly, monthly. Weekly options: target week,
-  include completed, include carryover, assignee filter. Monthly options:
-  target month, include stage status, include change history, include
-  incomplete actions. All downloads MUST auto-generate filenames with
-  timestamps and create audit log entries.
+  types: monthly and yearly. Each file contains two sheets: 사업관리
+  (business pipeline with merged headers) and 주간회의 (company × week
+  table with row grouping). Rich text formatting preserved via ExcelJS
+  richText. All downloads MUST auto-generate filenames with timestamps
+  and create audit log entries.
 - **FR-20**: System MUST support light and dark mode with global toggle,
   persist user preference, apply across all screens, and ensure status
   badges and priority indicators remain clearly distinguishable in dark
