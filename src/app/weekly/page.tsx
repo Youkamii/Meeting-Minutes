@@ -541,7 +541,7 @@ export default function WeeklyMeetingPage() {
           </div>
         )}
 
-        <div className="min-w-full">
+        <div className="min-w-fit">
           {/* Header */}
           <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--muted)]/40">
             <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--muted)]/40 px-3 py-2">
