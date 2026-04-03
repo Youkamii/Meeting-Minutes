@@ -103,6 +103,16 @@ async function handleWeeklyExport(options: {
   });
 }
 
+const STAGE_COLUMNS: { key: string; label: string }[] = [
+  { key: "inbound", label: "Inbound(초도미팅)" },
+  { key: "funnel", label: "Funnel" },
+  { key: "pipeline", label: "PipeLine" },
+  { key: "proposal", label: "제안" },
+  { key: "contract", label: "계약" },
+  { key: "build", label: "구축" },
+  { key: "maintenance", label: "유지보수" },
+];
+
 async function handleMonthlyExport(options: {
   year: number;
   month: number;
@@ -118,41 +128,113 @@ async function handleMonthlyExport(options: {
     );
   }
 
-  const businesses = await prisma.business.findMany({
+  const companies = await prisma.company.findMany({
     where: { isArchived: false },
     include: {
-      company: true,
-      progressItems: { orderBy: { stage: "asc" } },
+      businesses: {
+        where: { isArchived: false },
+        include: { progressItems: { orderBy: { sortOrder: "asc" } } },
+        orderBy: { sortOrder: "asc" },
+      },
     },
-    orderBy: [{ companyId: "asc" }, { sortOrder: "asc" }],
+    orderBy: { sortOrder: "asc" },
   });
 
   const wb = createWorkbook();
-  const ws = wb.addWorksheet("Monthly Report");
+  const ws = wb.addWorksheet("사업관리");
 
+  // Column widths: 공개여부, 고객사명, 사업명, 사업시기, 사업규모, 7 stages
   ws.columns = [
-    { header: "Company", key: "company", width: 20 },
-    { header: "Business", key: "name", width: 25 },
-    { header: "Scale", key: "scale", width: 15 },
-    { header: "Timing", key: "timing", width: 15 },
-    { header: "Stage", key: "stage", width: 12 },
-    { header: "Progress Items", key: "progress", width: 40 },
+    { width: 12 },  // A: 공개여부
+    { width: 20 },  // B: 고객사명
+    { width: 30 },  // C: 사업명
+    { width: 15 },  // D: 사업시기
+    { width: 12 },  // E: 사업규모
+    { width: 30 },  // F: Inbound
+    { width: 25 },  // G: Funnel
+    { width: 25 },  // H: PipeLine
+    { width: 25 },  // I: 제안
+    { width: 20 },  // J: 계약
+    { width: 20 },  // K: 구축
+    { width: 20 },  // L: 유지보수
   ];
 
-  styleHeader(ws.getRow(1));
+  // Row 1: Title
+  const titleRow = ws.addRow(["사업관리"]);
+  titleRow.getCell(1).font = { bold: true, size: 14 };
 
-  for (const b of businesses) {
-    ws.addRow({
-      company: b.company.canonicalName,
-      name: b.name,
-      scale: b.scale ?? "",
-      timing: b.timingText ?? "",
-      stage: b.currentStage ?? "",
-      progress: b.progressItems.map((p) => `[${p.stage}] ${p.content}`).join("; "),
+  // Row 2: Empty
+  ws.addRow([]);
+
+  // Row 3: Main headers with merged "Progress Status"
+  const headerRow = ws.addRow([
+    "공개여부", "고객사명", "사업명", "사업시기", "사업규모",
+    "Progress Status", "", "", "", "", "", "",
+  ]);
+  ws.mergeCells(3, 6, 3, 12); // Merge F3:L3 for "Progress Status"
+
+  // Row 4: Sub-headers for stages
+  const subHeaderRow = ws.addRow([
+    "", "", "", "", "",
+    ...STAGE_COLUMNS.map((s) => s.label),
+  ]);
+
+  // Style header rows
+  const headerFill = { type: "pattern" as const, pattern: "solid" as const, fgColor: { argb: "FFE8E8E8" } };
+  const headerFont = { bold: true, size: 11 };
+  const thinBorder = {
+    top: { style: "thin" as const },
+    bottom: { style: "thin" as const },
+    left: { style: "thin" as const },
+    right: { style: "thin" as const },
+  };
+
+  for (const row of [headerRow, subHeaderRow]) {
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      if (colNumber <= 12) {
+        cell.font = headerFont;
+        cell.fill = headerFill;
+        cell.border = thinBorder;
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      }
     });
   }
 
-  const filename = generateFilename(`monthly_${options.year}-${String(options.month).padStart(2, "0")}`);
+  // Data rows
+  for (const company of companies) {
+    if (company.businesses.length === 0) {
+      // Company with no businesses: just show company name
+      const row = ws.addRow([
+        "공개", company.canonicalName, "", "", "",
+        "", "", "", "", "", "", "",
+      ]);
+      applyDataBorder(row);
+    } else {
+      for (const biz of company.businesses) {
+        const stageData: string[] = STAGE_COLUMNS.map((s) => {
+          const items = biz.progressItems.filter((p) => p.stage === s.key);
+          return items.map((p) => p.content).join("\n");
+        });
+
+        const row = ws.addRow([
+          biz.visibility === "private" ? "비공개" : "공개",
+          company.canonicalName,
+          biz.name,
+          biz.timingText ?? "",
+          biz.scale ?? "",
+          ...stageData,
+        ]);
+
+        // Enable text wrap for stage cells
+        for (let col = 6; col <= 12; col++) {
+          row.getCell(col).alignment = { wrapText: true, vertical: "top" };
+        }
+        applyDataBorder(row);
+      }
+    }
+  }
+
+  const filename = generateFilename(`사업관리_${options.year}-${String(options.month).padStart(2, "0")}`);
   const buffer = await workbookToBuffer(wb);
 
   try {
@@ -170,8 +252,23 @@ async function handleMonthlyExport(options: {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
     },
+  });
+}
+
+function applyDataBorder(row: import("exceljs").Row) {
+  const thinBorder = {
+    top: { style: "thin" as const },
+    bottom: { style: "thin" as const },
+    left: { style: "thin" as const },
+    right: { style: "thin" as const },
+  };
+  row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    if (colNumber <= 12) {
+      cell.border = thinBorder;
+      cell.alignment = { ...cell.alignment, vertical: "top" };
+    }
   });
 }
 

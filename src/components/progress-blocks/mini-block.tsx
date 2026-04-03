@@ -92,16 +92,16 @@ export function MiniBlock({
       className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
       title={undefined}
     >
-      {title && <p className="font-semibold text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
-      {content && /<[a-z][\s\S]*>/i.test(content) ? (
-        <div
-          className="text-[var(--muted-foreground)] break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
-        />
-      ) : content ? (
-        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content}</p>
-      ) : !title ? (
-        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">내용 없음</p>
+      {title && <p className="font-semibold text-[15px] text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
+      {content ? (
+        /<[a-z][\s\S]*>/i.test(content) ? (
+          <div
+            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+          />
+        ) : (
+          <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)] mt-0.5">{content}</p>
+        )
       ) : null}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>
