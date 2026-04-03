@@ -146,7 +146,10 @@ export async function DELETE(_request: NextRequest, context: Params) {
       return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
     }
 
-    await prisma.progressItem.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.progressItemVersion.deleteMany({ where: { progressItemId: id } }),
+      prisma.progressItem.delete({ where: { id } }),
+    ]);
 
     await createAuditLog({
       entityType: "progress_item",
