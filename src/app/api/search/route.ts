@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q")?.trim();
   const types = searchParams.get("types")?.split(",");
 
-  // Strip HTML tags (complete and incomplete) from query
+  // Strip HTML tags from query to prevent matching against markup
   const cleaned = q?.replace(/<[^>]*>?/g, "").trim();
 
   if (!cleaned) {
