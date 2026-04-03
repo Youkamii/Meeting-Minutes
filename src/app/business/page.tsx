@@ -129,6 +129,7 @@ export default function BusinessManagementPage() {
   const { filterMatchIds, matchBizIds } = useMemo(() => {
     if (search.length < 2) return { filterMatchIds: [] as string[], matchBizIds: [] as string[] };
     const lc = search.toLowerCase();
+    const strip = (html: string) => html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ");
     const cardIds: string[] = [];
     const bizIds: string[] = [];
 
@@ -145,7 +146,7 @@ export default function BusinessManagementPage() {
         if (!visibleStages.has(item.stage)) continue;
         if (
           (item.title ?? "").toLowerCase().includes(lc) ||
-          item.content.toLowerCase().includes(lc)
+          strip(item.content).toLowerCase().includes(lc)
         ) {
           cardIds.push(item.id);
         }
