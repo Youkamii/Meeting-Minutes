@@ -240,13 +240,27 @@ function buildBusinessSheet(ws: ExcelJS.Worksheet, companies: CompanyWithBiz[]) 
 
         // Set richText for stage columns
         STAGE_COLUMNS.forEach((s, i) => {
-          const items = biz.progressItems.filter((p: { stage: string }) => p.stage === s.key);
+          const items = biz.progressItems.filter(
+            (p: { stage: string }) => p.stage === s.key,
+          ) as { title: string; content: string; date: string | null; stage: string }[];
           if (items.length === 0) return;
+
           const allRich: ExcelJS.RichText[] = [];
-          items.forEach((p: { content: string }, idx: number) => {
-            if (idx > 0) allRich.push({ text: "\n" });
-            allRich.push(...htmlToRichText(p.content));
+          items.forEach((p, idx) => {
+            if (idx > 0) {
+              allRich.push({ font: { size: 10, color: { argb: "FF999999" } }, text: "\n────────────\n" });
+            }
+            // Date + title header
+            const header = [p.date ? `(${p.date})` : "", p.title].filter(Boolean).join(" ");
+            if (header) {
+              allRich.push({ font: { size: 10, bold: true }, text: header + "\n" });
+            }
+            // Content with rich formatting
+            if (p.content) {
+              allRich.push(...htmlToRichText(p.content));
+            }
           });
+
           const cell = row.getCell(6 + i);
           cell.value = { richText: allRich };
           cell.alignment = { wrapText: true, vertical: "top" };
