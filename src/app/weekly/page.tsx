@@ -15,10 +15,6 @@ import { useCompanies } from "@/hooks/use-companies";
 import { InlineEditor } from "@/components/editor/inline-editor";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { NewActionDialog } from "@/components/weekly-meeting/new-action-dialog";
-import { QuickActionsBar } from "@/components/ui/quick-actions";
-import { MeetingModeToggle } from "@/components/meeting-mode/meeting-mode-toggle";
-import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
-import { useUIStore } from "@/stores/ui-store";
 import { getWeeksInMonth, formatMonthLabel, formatWeekLabel, type WeekEntry } from "@/lib/weekly-cycle";
 import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
 
@@ -317,7 +313,6 @@ export default function WeeklyMeetingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
 
-  const meetingModeActive = useUIStore((s) => s.meetingModeActive);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const toggleWeek = (key: string) => {
@@ -533,27 +528,13 @@ export default function WeeklyMeetingPage() {
           >
             엑셀
           </button>
-          <MeetingModeToggle />
-          <QuickActionsBar
-            actions={[
-              { label: "액션", onClick: () => setShowNewAction(true) },
-            ]}
-          />
         </div>
       </div>
-
-      {/* Meeting Mode */}
-      {meetingModeActive && (
-        <MeetingModeView
-          actions={currentActions}
-          weekLabel={weekLabel}
-        />
-      )}
 
       {/* Table view */}
       <div
         ref={tableRef}
-        className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
+        className="flex-1 overflow-auto">
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
@@ -562,8 +543,8 @@ export default function WeeklyMeetingPage() {
 
         <div className="min-w-full">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--background)]">
-            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--background)] px-3 py-2">
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--muted)]/40">
+            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--muted)]/40 px-3 py-2">
               <span className="text-sm font-bold text-[var(--muted-foreground)]">
                 고객사
               </span>
