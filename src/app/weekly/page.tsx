@@ -10,15 +10,12 @@ import {
   useCreateWeeklyAction,
   useUpdateWeeklyAction,
   useEnsureCycle,
+  useArchiveWeeklyAction,
 } from "@/hooks/use-weekly-actions";
 import { useCompanies } from "@/hooks/use-companies";
 import { InlineEditor } from "@/components/editor/inline-editor";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { NewActionDialog } from "@/components/weekly-meeting/new-action-dialog";
-import { QuickActionsBar } from "@/components/ui/quick-actions";
-import { MeetingModeToggle } from "@/components/meeting-mode/meeting-mode-toggle";
-import { MeetingModeView } from "@/components/meeting-mode/meeting-mode-view";
-import { useUIStore } from "@/stores/ui-store";
 import { getWeeksInMonth, formatMonthLabel, formatWeekLabel, type WeekEntry } from "@/lib/weekly-cycle";
 import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
 
@@ -158,6 +155,7 @@ function WeeklyCompanyRow({
   onCancelEdit,
   onStatusChange,
   onActionStatusChange,
+  onDeleteAction,
 }: {
   company: Company;
   monthCycles: MonthCycle[];
@@ -169,6 +167,7 @@ function WeeklyCompanyRow({
   onCancelEdit: () => void;
   onStatusChange: (status: string) => void;
   onActionStatusChange: (actionId: string, lockVersion: number, newStatus: string) => void;
+  onDeleteAction: (actionId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
@@ -182,7 +181,7 @@ function WeeklyCompanyRow({
       <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--background)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--table-sidebar)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
           onClick={() => setExpanded(!expanded)}
         >
           <span className="text-xs text-[var(--muted-foreground)] mt-0.5">
@@ -224,12 +223,7 @@ function WeeklyCompanyRow({
           return (
             <div
               key={wKey}
-              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 cursor-pointer min-h-[48px]"
-              onClick={() => {
-                if (!editingCell) {
-                  onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
-                }
-              }}
+              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
             >
               {cellActions.map((action) => {
                 const isEditing = editingCell?.actionId === action.id;
@@ -256,13 +250,23 @@ function WeeklyCompanyRow({
                       <StatusBadge
                         status={action.status}
                         onClick={() => {
-                          // Cycle through statuses on click
                           const statuses = ["scheduled", "in_progress", "completed", "on_hold"];
                           const idx = statuses.indexOf(action.status);
                           const next = statuses[(idx + 1) % statuses.length];
                           onActionStatusChange(action.id, action.lockVersion, next);
                         }}
                       />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("이 액션을 삭제하시겠습니까?")) {
+                            onDeleteAction(action.id);
+                          }
+                        }}
+                        className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        삭제
+                      </button>
                     </div>
                     <div
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.content) }}
@@ -317,7 +321,6 @@ export default function WeeklyMeetingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
 
-  const meetingModeActive = useUIStore((s) => s.meetingModeActive);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const toggleWeek = (key: string) => {
@@ -438,6 +441,7 @@ export default function WeeklyMeetingPage() {
   // Inline editing
   const createAction = useCreateWeeklyAction();
   const updateAction = useUpdateWeeklyAction();
+  const archiveAction = useArchiveWeeklyAction();
   const ensureCycle = useEnsureCycle();
   const [editingCell, setEditingCell] = useState<EditingCell>(null);
 
@@ -533,37 +537,23 @@ export default function WeeklyMeetingPage() {
           >
             엑셀
           </button>
-          <MeetingModeToggle />
-          <QuickActionsBar
-            actions={[
-              { label: "액션", onClick: () => setShowNewAction(true) },
-            ]}
-          />
         </div>
       </div>
-
-      {/* Meeting Mode */}
-      {meetingModeActive && (
-        <MeetingModeView
-          actions={currentActions}
-          weekLabel={weekLabel}
-        />
-      )}
 
       {/* Table view */}
       <div
         ref={tableRef}
-        className={`flex-1 overflow-auto ${meetingModeActive ? "hidden" : ""}`}>
+        className="flex-1 overflow-auto">
         {isLoading && (
           <div className="flex items-center justify-center p-8">
             <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
           </div>
         )}
 
-        <div className="min-w-full">
+        <div className="min-w-fit">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--background)]">
-            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--background)] px-3 py-2">
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--table-header)]">
+            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--table-header)] px-3 py-2">
               <span className="text-sm font-bold text-[var(--muted-foreground)]">
                 고객사
               </span>
@@ -588,8 +578,8 @@ export default function WeeklyMeetingPage() {
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                       : isAdjacentMonth
-                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
-                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]"
+                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--table-header)]"
+                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--table-header-active)]"
                   }`}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
@@ -602,6 +592,7 @@ export default function WeeklyMeetingPage() {
                 </div>
               );
             })}
+            <div className="flex-1 bg-[var(--table-header)]" />
           </div>
 
           {/* Company rows */}
@@ -623,6 +614,7 @@ export default function WeeklyMeetingPage() {
                   setEditingCell((prev) => prev ? { ...prev, status } : null)
                 }
                 onActionStatusChange={handleActionStatusChange}
+                onDeleteAction={(id) => archiveAction.mutate({ id, action: "archive" })}
               />
             );
           })}
