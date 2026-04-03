@@ -72,7 +72,6 @@ function DroppableStage({
   funnelNo,
   onFunnelNoChange,
   activeId,
-  onDelete,
 }: {
   stage: Stage;
   items: ProgressItem[];
