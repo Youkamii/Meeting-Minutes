@@ -570,7 +570,7 @@ export default function WeeklyMeetingPage() {
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                       : isAdjacentMonth
                         ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
-                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]"
+                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]/60 bg-[var(--muted)]/40"
                   }`}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
@@ -583,6 +583,7 @@ export default function WeeklyMeetingPage() {
                 </div>
               );
             })}
+            <div className="flex-1 bg-[var(--muted)]/40" />
           </div>
 
           {/* Company rows */}
