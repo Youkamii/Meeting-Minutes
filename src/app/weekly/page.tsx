@@ -642,7 +642,6 @@ export default function WeeklyMeetingPage() {
       <ExcelDownloadDialog
         open={showExcelDownload}
         onClose={() => setShowExcelDownload(false)}
-        defaultType="weekly"
       />
     </div>
   );

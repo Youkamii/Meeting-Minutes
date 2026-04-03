@@ -73,7 +73,7 @@ export function MiniBlock({
     !hasHighlight &&
     searchText !== null &&
     !(title ?? "").toLowerCase().includes(searchText) &&
-    !content.toLowerCase().includes(searchText);
+    !content.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>\s*<p[^>]*>/gi, " ").replace(/<[^>]*>/g, "").toLowerCase().includes(searchText);
 
   const borderClass = isCurrent
     ? "border-[3px] border-blue-500 border-l-blue-500"

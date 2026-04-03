@@ -5,19 +5,15 @@ import { useState } from "react";
 interface ExcelDownloadDialogProps {
   open: boolean;
   onClose: () => void;
-  defaultType?: "weekly" | "monthly" | "current_view";
-  cycleId?: string;
 }
 
 export function ExcelDownloadDialog({
   open,
   onClose,
-  defaultType = "weekly",
-  cycleId,
 }: ExcelDownloadDialogProps) {
-  const [type, setType] = useState(defaultType);
-  const [includeCompleted, setIncludeCompleted] = useState(false);
-  const [includeCarryover, setIncludeCarryover] = useState(true);
+  const [type, setType] = useState<"monthly" | "yearly">("monthly");
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [downloading, setDownloading] = useState(false);
 
   if (!open) return null;
@@ -25,18 +21,8 @@ export function ExcelDownloadDialog({
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const body: Record<string, unknown> = { type };
-
-      if (type === "weekly" && cycleId) {
-        body.cycleId = cycleId;
-        body.includeCompleted = includeCompleted;
-        body.includeCarryover = includeCarryover;
-      } else if (type === "monthly") {
-        body.year = new Date().getFullYear();
-        body.month = new Date().getMonth() + 1;
-      } else if (type === "current_view") {
-        body.view = "business_management";
-      }
+      const body: Record<string, unknown> = { type, year };
+      if (type === "monthly") body.month = month;
 
       const res = await fetch("/api/export", {
         method: "POST",
@@ -47,9 +33,9 @@ export function ExcelDownloadDialog({
       if (!res.ok) throw new Error("Export failed");
 
       const blob = await res.blob();
-      const filename =
-        res.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") ??
-        "export.xlsx";
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\s]+)/);
+      const filename = match ? decodeURIComponent(match[1]) : "export.xlsx";
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -80,33 +66,36 @@ export function ExcelDownloadDialog({
             onChange={(e) => setType(e.target.value as typeof type)}
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
           >
-            <option value="current_view">현재 보기</option>
-            <option value="weekly">주간</option>
             <option value="monthly">월간</option>
+            <option value="yearly">연간</option>
           </select>
         </label>
 
-        {type === "weekly" && (
-          <div className="mt-4 space-y-2">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeCompleted}
-                onChange={(e) => setIncludeCompleted(e.target.checked)}
-                className="rounded"
-              />
-              완료 항목 포함
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeCarryover}
-                onChange={(e) => setIncludeCarryover(e.target.checked)}
-                className="rounded"
-              />
-              이월 항목 포함
-            </label>
-          </div>
+        <label className="mt-4 block text-sm font-medium">
+          연도
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
+          />
+        </label>
+
+        {type === "monthly" && (
+          <label className="mt-4 block text-sm font-medium">
+            월
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ring)]"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}월
+                </option>
+              ))}
+            </select>
+          </label>
         )}
 
         <div className="mt-6 flex justify-end gap-3">
