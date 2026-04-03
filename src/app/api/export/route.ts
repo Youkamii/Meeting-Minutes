@@ -5,6 +5,20 @@ import { createAuditLog } from "@/lib/audit";
 import { getWeeksInMonth } from "@/lib/weekly-cycle";
 import type ExcelJS from "exceljs";
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
 const STAGE_COLUMNS: { key: string; label: string }[] = [
   { key: "inbound", label: "Inbound(초도미팅)" },
   { key: "funnel", label: "Funnel" },
@@ -92,7 +106,7 @@ function buildBusinessSheet(ws: ExcelJS.Worksheet, companies: CompanyWithBiz[]) 
       for (const biz of company.businesses) {
         const stageData = STAGE_COLUMNS.map((s) => {
           const items = biz.progressItems.filter((p: { stage: string }) => p.stage === s.key);
-          return items.map((p: { content: string }) => p.content).join("\n");
+          return items.map((p: { content: string }) => stripHtml(p.content)).join("\n");
         });
 
         const row = ws.addRow([
@@ -225,7 +239,7 @@ async function handleMonthlyExport(options: { year: number; month: number }) {
   for (const a of actions) {
     const key = `${a.cycleId}_${a.companyId}`;
     if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
-    actionsByCycleCompany.get(key)!.push(a.content);
+    actionsByCycleCompany.get(key)!.push(stripHtml(a.content));
   }
 
   // Max actions per company across all cycles (minimum 4 rows like reference)
@@ -333,7 +347,7 @@ async function handleYearlyExport(options: { year: number }) {
   for (const a of actions) {
     const key = `${a.cycleId}_${a.companyId}`;
     if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
-    actionsByCycleCompany.get(key)!.push(a.content);
+    actionsByCycleCompany.get(key)!.push(stripHtml(a.content));
   }
 
   const companiesForWeekly = companies.map((c) => ({ id: c.id, canonicalName: c.canonicalName }));
