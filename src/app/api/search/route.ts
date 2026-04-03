@@ -6,14 +6,17 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q")?.trim();
   const types = searchParams.get("types")?.split(",");
 
-  if (!q) {
+  // Strip HTML tags from query to prevent matching against markup
+  const cleaned = q?.replace(/<[^>]*>/g, "").trim();
+
+  if (!cleaned) {
     return NextResponse.json({
       data: { companies: [], businesses: [], progressItems: [], weeklyActions: [], notes: [] },
       total: 0,
     });
   }
 
-  const search = { contains: q, mode: "insensitive" as const };
+  const search = { contains: cleaned, mode: "insensitive" as const };
   const shouldSearch = (type: string) => !types || types.includes(type);
 
   const [companies, businesses, progressItems, weeklyActions, notes] =
