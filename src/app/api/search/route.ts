@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const types = searchParams.get("types")?.split(",");
 
   // Strip HTML tags from query to prevent matching against markup
-  const cleaned = q?.replace(/<[^>]*>/g, "").trim();
+  const cleaned = q?.replace(/<[^>]*>?/g, "").trim();
 
   if (!cleaned) {
     return NextResponse.json({
