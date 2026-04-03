@@ -100,8 +100,6 @@ export function MiniBlock({
         />
       ) : content ? (
         <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">{content}</p>
-      ) : !title ? (
-        <p className="whitespace-pre-wrap break-words text-[var(--muted-foreground)]">내용 없음</p>
       ) : null}
       <span className="text-xs text-[var(--muted-foreground)] mt-1 block">{displayDate}</span>
     </div>

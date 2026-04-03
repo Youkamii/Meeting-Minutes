@@ -408,11 +408,13 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
             </span>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (confirm("이 카드를 삭제하시겠습니까?")) {
+                    closedRef.current = true;
                     deleteItem.mutate(
                       { id: item.id, lockVersion: item.lockVersion },
-                      { onSuccess: () => { closedRef.current = true; onClose(); } },
+                      { onSuccess: () => onClose() },
                     );
                   }
                 }}
