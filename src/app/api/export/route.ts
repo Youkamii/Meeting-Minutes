@@ -5,18 +5,143 @@ import { createAuditLog } from "@/lib/audit";
 import { getWeeksInMonth } from "@/lib/weekly-cycle";
 import type ExcelJS from "exceljs";
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>\s*<p>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
+function decodeEntities(s: string): string {
+  return s
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .trim();
+    .replace(/&nbsp;/g, " ");
+}
+
+function stripHtml(html: string): string {
+  return decodeEntities(
+    html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>\s*<p>/gi, "\n")
+      .replace(/<[^>]*>/g, "")
+  ).trim();
+}
+
+interface RichSegment {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  color?: string;
+  highlight?: string;
+}
+
+function htmlToRichText(html: string): ExcelJS.RichText[] {
+  if (!html || !/<[a-z][\s\S]*>/i.test(html)) {
+    return [{ text: decodeEntities(html || "") }];
+  }
+
+  // Normalize block breaks
+  let normalized = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<\/li>\s*<li[^>]*>/gi, "\n")
+    .replace(/<\/?(?:p|div|ul|ol|li|h[1-6])[^>]*>/gi, "");
+
+  const segments: RichSegment[] = [];
+  const tagStack: { bold?: boolean; italic?: boolean; color?: string; highlight?: string }[] = [{}];
+
+  const getCurrentStyle = () => {
+    const style: RichSegment = { text: "" };
+    for (const s of tagStack) {
+      if (s.bold) style.bold = true;
+      if (s.italic) style.italic = true;
+      if (s.color) style.color = s.color;
+      if (s.highlight) style.highlight = s.highlight;
+    }
+    return style;
+  };
+
+  // Simple HTML tag parser
+  const regex = /(<[^>]+>)|([^<]+)/g;
+  let match;
+  while ((match = regex.exec(normalized)) !== null) {
+    if (match[2]) {
+      // Text node
+      const text = decodeEntities(match[2]);
+      if (text) {
+        segments.push({ ...getCurrentStyle(), text });
+      }
+    } else if (match[1]) {
+      const tag = match[1];
+      // Closing tag
+      if (tag.startsWith("</")) {
+        if (tagStack.length > 1) tagStack.pop();
+        continue;
+      }
+      // Self-closing
+      if (tag.endsWith("/>")) continue;
+
+      // Opening tag — extract style info
+      const entry: RichSegment = { text: "" };
+      const tagName = (tag.match(/<(\w+)/)?.[1] ?? "").toLowerCase();
+
+      if (tagName === "strong" || tagName === "b") entry.bold = true;
+      if (tagName === "em" || tagName === "i") entry.italic = true;
+
+      // color from style="color: ..."
+      const colorMatch = tag.match(/style="[^"]*color:\s*([^;"]+)/i);
+      if (colorMatch) entry.color = colorMatch[1].trim();
+
+      // highlight from <mark> with data-color or style background
+      if (tagName === "mark") {
+        const bgMatch = tag.match(/data-color="([^"]+)"/i)
+          || tag.match(/style="[^"]*background-color:\s*([^;"]+)/i);
+        entry.highlight = bgMatch ? bgMatch[1].trim() : "yellow";
+      }
+
+      // span with color
+      if (tagName === "span") {
+        const spanColor = tag.match(/style="[^"]*color:\s*([^;"]+)/i);
+        if (spanColor) entry.color = spanColor[1].trim();
+      }
+
+      tagStack.push(entry);
+    }
+  }
+
+  if (segments.length === 0) return [{ text: stripHtml(html) }];
+
+  // Convert to ExcelJS RichText
+  return segments.map((seg) => {
+    const font: Partial<ExcelJS.Font> = { size: 10 };
+    if (seg.bold) font.bold = true;
+    if (seg.italic) font.italic = true;
+    if (seg.color) font.color = { argb: cssColorToArgb(seg.color) };
+    return { font, text: seg.text };
+  });
+}
+
+function cssColorToArgb(color: string): string {
+  // hex
+  if (color.startsWith("#")) {
+    const hex = color.slice(1);
+    if (hex.length === 3) {
+      return "FF" + hex.split("").map((c) => c + c).join("");
+    }
+    return "FF" + hex.toUpperCase().padEnd(6, "0");
+  }
+  // rgb(r, g, b)
+  const rgbMatch = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  if (rgbMatch) {
+    const r = Number(rgbMatch[1]).toString(16).padStart(2, "0");
+    const g = Number(rgbMatch[2]).toString(16).padStart(2, "0");
+    const b = Number(rgbMatch[3]).toString(16).padStart(2, "0");
+    return `FF${r}${g}${b}`.toUpperCase();
+  }
+  // named colors fallback
+  const named: Record<string, string> = {
+    red: "FFFF0000", blue: "FF0000FF", green: "FF008000",
+    yellow: "FFFFFF00", orange: "FFFF8C00", purple: "FF800080",
+    black: "FF000000", white: "FFFFFFFF", gray: "FF808080", grey: "FF808080",
+  };
+  return named[color.toLowerCase()] ?? "FF000000";
 }
 
 const STAGE_COLUMNS: { key: string; label: string }[] = [
@@ -104,23 +229,29 @@ function buildBusinessSheet(ws: ExcelJS.Worksheet, companies: CompanyWithBiz[]) 
       applyDataBorder(row);
     } else {
       for (const biz of company.businesses) {
-        const stageData = STAGE_COLUMNS.map((s) => {
-          const items = biz.progressItems.filter((p: { stage: string }) => p.stage === s.key);
-          return items.map((p: { content: string }) => stripHtml(p.content)).join("\n");
-        });
-
         const row = ws.addRow([
           biz.visibility === "private" ? "비공개" : "공개",
           company.canonicalName,
           biz.name,
           biz.timingText ?? "",
           biz.scale ?? "",
-          ...stageData,
+          "", "", "", "", "", "", "",
         ]);
 
-        for (let col = 6; col <= 12; col++) {
-          row.getCell(col).alignment = { wrapText: true, vertical: "top" };
-        }
+        // Set richText for stage columns
+        STAGE_COLUMNS.forEach((s, i) => {
+          const items = biz.progressItems.filter((p: { stage: string }) => p.stage === s.key);
+          if (items.length === 0) return;
+          const allRich: ExcelJS.RichText[] = [];
+          items.forEach((p: { content: string }, idx: number) => {
+            if (idx > 0) allRich.push({ text: "\n" });
+            allRich.push(...htmlToRichText(p.content));
+          });
+          const cell = row.getCell(6 + i);
+          cell.value = { richText: allRich };
+          cell.alignment = { wrapText: true, vertical: "top" };
+        });
+
         applyDataBorder(row);
       }
     }
@@ -163,13 +294,17 @@ function buildWeeklySheet(
   for (const company of companies) {
     const startRow = ws.rowCount + 1;
     for (let r = 0; r < rowsPerCompany; r++) {
-      const rowData: string[] = [r === 0 ? company.canonicalName : ""];
+      const row = ws.addRow([r === 0 ? company.canonicalName : "", ...cycleIds.map(() => "")]);
+      // Set richText for each week column
       for (let w = 0; w < cycleIds.length; w++) {
         const key = `${cycleIds[w]}_${company.id}`;
         const actions = actionsByCycleCompany.get(key) ?? [];
-        rowData.push(actions[r] ?? "");
+        const htmlContent = actions[r];
+        if (htmlContent) {
+          const cell = row.getCell(2 + w);
+          cell.value = { richText: htmlToRichText(htmlContent) };
+        }
       }
-      const row = ws.addRow(rowData);
       row.eachCell({ includeEmpty: true }, (cell, colNum) => {
         if (colNum <= colCount) {
           cell.border = THIN_BORDER;
@@ -239,7 +374,7 @@ async function handleMonthlyExport(options: { year: number; month: number }) {
   for (const a of actions) {
     const key = `${a.cycleId}_${a.companyId}`;
     if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
-    actionsByCycleCompany.get(key)!.push(stripHtml(a.content));
+    actionsByCycleCompany.get(key)!.push(a.content);
   }
 
   // Max actions per company across all cycles (minimum 4 rows like reference)
@@ -347,7 +482,7 @@ async function handleYearlyExport(options: { year: number }) {
   for (const a of actions) {
     const key = `${a.cycleId}_${a.companyId}`;
     if (!actionsByCycleCompany.has(key)) actionsByCycleCompany.set(key, []);
-    actionsByCycleCompany.get(key)!.push(stripHtml(a.content));
+    actionsByCycleCompany.get(key)!.push(a.content);
   }
 
   const companiesForWeekly = companies.map((c) => ({ id: c.id, canonicalName: c.canonicalName }));
