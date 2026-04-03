@@ -145,7 +145,7 @@ export default function BusinessManagementPage() {
         if (!visibleStages.has(item.stage)) continue;
         if (
           (item.title ?? "").toLowerCase().includes(lc) ||
-          item.content.toLowerCase().includes(lc)
+          item.content.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>\s*<p[^>]*>/gi, " ").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").toLowerCase().includes(lc)
         ) {
           cardIds.push(item.id);
         }
