@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/admin/users", label: "사용자" },
-  { href: "/admin/merge", label: "기업 병합" },
   { href: "/admin/logs", label: "감사 로그" },
   { href: "/admin/settings", label: "설정" },
 ];

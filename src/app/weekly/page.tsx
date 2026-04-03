@@ -178,7 +178,7 @@ function WeeklyCompanyRow({
       <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--background)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--muted)]/20 px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
           onClick={() => setExpanded(!expanded)}
         >
           <span className="text-xs text-[var(--muted-foreground)] mt-0.5">
@@ -569,8 +569,8 @@ export default function WeeklyMeetingPage() {
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                       : isAdjacentMonth
-                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/30"
-                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]/60 bg-[var(--muted)]/40"
+                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--muted)]/25"
+                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]/80 bg-[var(--muted)]/60"
                   }`}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
