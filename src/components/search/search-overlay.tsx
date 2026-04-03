@@ -10,6 +10,8 @@ interface SearchOverlayProps {
   onClose: () => void;
 }
 
+const strip = (html: string) => html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
 export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState("");
   const setHighlightId = useUIStore((s) => s.setSearchHighlightId);
@@ -109,7 +111,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 {results.weeklyActions.map((a) => (
                   <ResultItem
                     key={a.id}
-                    title={(a as unknown as { content: string }).content}
+                    title={strip((a as unknown as { content: string }).content)}
                     subtitle="주간 액션"
                     href="/weekly"
                     onClose={onClose}
@@ -123,7 +125,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 {results.progressItems.map((p) => (
                   <ResultItem
                     key={p.id}
-                    title={p.content}
+                    title={strip(p.content)}
                     subtitle={`진행 · ${p.stage}`}
                     onClick={() => goToCard(p.id)}
                   />
@@ -136,7 +138,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 {results.notes.map((n) => (
                   <ResultItem
                     key={n.id}
-                    title={n.title ?? n.body.slice(0, 60)}
+                    title={n.title ?? strip(n.body).slice(0, 60)}
                     subtitle="메모"
                     href="/business"
                     onClose={onClose}
