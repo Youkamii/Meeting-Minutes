@@ -129,7 +129,7 @@ export default function BusinessManagementPage() {
   const { filterMatchIds, matchBizIds } = useMemo(() => {
     if (search.length < 2) return { filterMatchIds: [] as string[], matchBizIds: [] as string[] };
     const lc = search.toLowerCase();
-    const strip = (html: string) => html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ");
+    const strip = (html: string) => html.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>\s*<p[^>]*>/gi, " ").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
     const cardIds: string[] = [];
     const bizIds: string[] = [];
 
