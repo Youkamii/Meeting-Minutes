@@ -250,10 +250,13 @@ function buildBusinessSheet(ws: ExcelJS.Worksheet, companies: CompanyWithBiz[]) 
             if (idx > 0) {
               allRich.push({ font: { size: 10, color: { argb: "FF999999" } }, text: "\n────────────\n" });
             }
-            // Date + title header
-            const header = [p.date ? `(${p.date})` : "", p.title].filter(Boolean).join(" ");
-            if (header) {
-              allRich.push({ font: { size: 10, bold: true }, text: header + "\n" });
+            // Date
+            if (p.date) {
+              allRich.push({ font: { size: 10, bold: true }, text: `(${p.date})\n` });
+            }
+            // Title
+            if (p.title) {
+              allRich.push({ font: { size: 10, bold: true }, text: p.content ? p.title + "\n\n" : p.title });
             }
             // Content with rich formatting
             if (p.content) {
