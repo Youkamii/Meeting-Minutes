@@ -178,7 +178,7 @@ function WeeklyCompanyRow({
       <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[#fafafa] dark:bg-[#262626] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[#fafafa] dark:bg-[#0f0f0f] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
           onClick={() => setExpanded(!expanded)}
         >
           <span className="text-xs text-[var(--muted-foreground)] mt-0.5">
@@ -543,8 +543,8 @@ export default function WeeklyMeetingPage() {
 
         <div className="min-w-fit">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[#f7f7f7] dark:bg-[#2a2a2a]">
-            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[#f7f7f7] dark:bg-[#2a2a2a] px-3 py-2">
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[#f7f7f7] dark:bg-[#111111]">
+            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[#f7f7f7] dark:bg-[#111111] px-3 py-2">
               <span className="text-sm font-bold text-[var(--muted-foreground)]">
                 고객사
               </span>
@@ -569,8 +569,8 @@ export default function WeeklyMeetingPage() {
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                       : isAdjacentMonth
-                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[#fafafa] dark:bg-[#262626]"
-                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[#f0f0f0] dark:bg-[#2e2e2e]"
+                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[#fafafa] dark:bg-[#0f0f0f]"
+                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[#f0f0f0] dark:bg-[#141414]"
                   }`}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
@@ -583,7 +583,7 @@ export default function WeeklyMeetingPage() {
                 </div>
               );
             })}
-            <div className="flex-1 bg-[#f7f7f7] dark:bg-[#2a2a2a]" />
+            <div className="flex-1 bg-[#f7f7f7] dark:bg-[#111111]" />
           </div>
 
           {/* Company rows */}
