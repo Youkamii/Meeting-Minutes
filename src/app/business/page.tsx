@@ -364,6 +364,7 @@ export default function BusinessManagementPage() {
                         ? "w-[360px] px-2 py-2 hover:bg-[var(--muted)]"
                         : "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
                     }`}
+                    style={active ? { background: "var(--table-header)" } : undefined}
                     title={active ? `${label} 숨기기` : `${label} 표시`}
                   >
                     <span className={`text-xs font-semibold text-[var(--muted-foreground)] uppercase ${
