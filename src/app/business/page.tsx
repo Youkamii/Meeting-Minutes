@@ -347,8 +347,8 @@ export default function BusinessManagementPage() {
         <div className="w-max min-w-full">
           {/* Stage column headers */}
           {groupedData.length > 0 && (
-            <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--table-header)]">
-              <div className="sticky left-0 z-20 w-[280px] shrink-0 border-r border-[var(--border)] bg-[var(--table-header)] px-4 py-2">
+            <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
+              <div className="sticky left-0 z-20 w-[280px] shrink-0 border-r border-[var(--border)] px-4 py-2" style={{ background: "var(--table-header)" }}>
                 <span className="text-sm font-semibold text-[var(--muted-foreground)]">
                   사업 정보
                 </span>
