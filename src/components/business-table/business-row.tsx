@@ -62,7 +62,8 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
     <>
       <div
         data-business-id={business.id}
-        className={`flex items-stretch border-b hover:bg-[var(--accent)]/50 transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+        className={`flex items-stretch border-b transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+        style={{ background: "var(--background)" }}
       >
         {/* Fixed left column */}
         <div

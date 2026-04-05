@@ -177,8 +177,8 @@ function WeeklyCompanyRow({
   });
 
   return (
-    <div className="border-b-2 border-[var(--border)] min-w-fit">
-      <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
+    <div className="border-b-2 border-[var(--border)] min-w-fit" style={{ background: "var(--background)" }}>
+      <div className="flex transition-colors">
         {/* Company name - sticky */}
         <div
           className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
