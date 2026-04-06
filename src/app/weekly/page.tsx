@@ -545,12 +545,6 @@ export default function WeeklyMeetingPage() {
       <div
         ref={tableRef}
         className="flex-1 overflow-auto">
-        {isLoading && (
-          <div className="flex items-center justify-center p-8">
-            <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
-          </div>
-        )}
-
         <div className="min-w-fit">
           {/* Header */}
           <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
@@ -596,6 +590,11 @@ export default function WeeklyMeetingPage() {
           </div>
 
           {/* Company rows */}
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
+            </div>
+          ) : null}
           {companyRows.map(({ company }) => {
             const cycleMap = actionMap.get(company.id);
 
