@@ -96,7 +96,7 @@ export function MiniBlock({
       {content ? (
         /<[a-z][\s\S]*>/i.test(content) ? (
           <div
-            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:mb-1 [&_p]:last:mb-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
           />
         ) : (
