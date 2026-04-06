@@ -177,11 +177,12 @@ function WeeklyCompanyRow({
   });
 
   return (
-    <div className="border-b-2 border-[var(--border)] min-w-fit">
-      <div className="flex hover:bg-[var(--accent)]/30 transition-colors">
+    <div className="border-b-2 border-[var(--border)] min-w-fit" style={{ background: "var(--background)" }}>
+      <div className="flex transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--table-sidebar)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          style={{ background: "var(--table-sidebar)" }}
           onClick={() => setExpanded(!expanded)}
         >
           <span className="text-xs text-[var(--muted-foreground)] mt-0.5">
@@ -544,16 +545,10 @@ export default function WeeklyMeetingPage() {
       <div
         ref={tableRef}
         className="flex-1 overflow-auto">
-        {isLoading && (
-          <div className="flex items-center justify-center p-8">
-            <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
-          </div>
-        )}
-
         <div className="min-w-fit">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] bg-[var(--table-header)]">
-            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] bg-[var(--table-header)] px-3 py-2">
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
+            <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2" style={{ background: "var(--table-header)" }}>
               <span className="text-sm font-bold text-[var(--muted-foreground)]">
                 고객사
               </span>
@@ -577,10 +572,9 @@ export default function WeeklyMeetingPage() {
                   className={`shrink-0 border-r border-[var(--border)] cursor-pointer select-none transition-all ${
                     collapsed
                       ? "w-[40px] px-1 py-2 bg-[var(--muted)] opacity-40 hover:opacity-70"
-                      : isAdjacentMonth
-                        ? "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--table-header)]"
-                        : "w-[480px] px-3 py-2 hover:bg-[var(--muted)] bg-[var(--table-header-active)]"
+                      : "w-[480px] px-3 py-2 hover:bg-[var(--muted)]"
                   }`}
+                  style={!collapsed ? { background: isAdjacentMonth ? "var(--table-header)" : "var(--table-header-active)" } : undefined}
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
                   <span
@@ -592,10 +586,15 @@ export default function WeeklyMeetingPage() {
                 </div>
               );
             })}
-            <div className="flex-1 bg-[var(--table-header)]" />
+            <div className="flex-1" style={{ background: "var(--table-header)" }} />
           </div>
 
           {/* Company rows */}
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
+            </div>
+          ) : null}
           {companyRows.map(({ company }) => {
             const cycleMap = actionMap.get(company.id);
 

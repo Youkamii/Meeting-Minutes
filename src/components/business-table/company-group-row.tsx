@@ -20,7 +20,7 @@ export function CompanyGroupRow({
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="border-b border-[var(--border)]">
+    <div className="border-b border-[var(--border)]" style={{ background: "var(--background)" }}>
       <div
         className="flex cursor-pointer group"
         onClick={() => setExpanded(!expanded)}

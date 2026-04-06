@@ -62,11 +62,13 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
     <>
       <div
         data-business-id={business.id}
-        className={`flex items-stretch border-b hover:bg-[var(--accent)]/50 transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+        className={`flex items-stretch border-b transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+        style={{ background: "var(--background)" }}
       >
         {/* Fixed left column */}
         <div
-          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] bg-[var(--table-sidebar)] px-4 py-3 cursor-pointer"
+          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] px-4 py-3 cursor-pointer"
+          style={{ background: "var(--table-sidebar)" }}
           onClick={isArchived ? () => setExpanded(!expanded) : onClick}
           onDoubleClick={isArchived ? onClick : undefined}
         >
