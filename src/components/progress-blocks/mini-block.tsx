@@ -89,14 +89,15 @@ export function MiniBlock({
         onClick?.();
       }}
       onMouseEnter={handleMouseEnter}
-      className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} bg-[var(--background)] px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
+      className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
+      style={{ background: "var(--background)" }}
       title={undefined}
     >
       {title && <p className="font-semibold text-[15px] text-[var(--foreground)] whitespace-pre-wrap break-words">{title}</p>}
       {content ? (
         /<[a-z][\s\S]*>/i.test(content) ? (
           <div
-            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+            className="text-[var(--muted-foreground)] break-words mt-0.5 [&_p]:m-0 [&_p+p]:mt-1.5 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
           />
         ) : (
