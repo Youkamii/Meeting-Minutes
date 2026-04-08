@@ -1,8 +1,30 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useState } from "react";
 
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const result = await signIn("credentials", {
+      password,
+      redirect: false,
+    });
+    setLoading(false);
+    if (result?.error) {
+      setError("비밀번호가 올바르지 않습니다");
+    } else {
+      window.location.href = "/";
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
       <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 shadow-xl text-center">
@@ -23,6 +45,40 @@ export default function LoginPage() {
           </svg>
           Google로 로그인
         </button>
+
+        {!showPassword ? (
+          <button
+            onClick={() => setShowPassword(true)}
+            className="w-full mt-3 flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm font-medium hover:bg-[var(--muted)] transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            비밀번호로 로그인
+          </button>
+        ) : (
+          <form onSubmit={handlePasswordLogin} className="mt-3 space-y-3">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호 입력"
+              autoFocus
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {error && (
+              <p className="text-xs text-red-500">{error}</p>
+            )}
+            <button
+              type="submit"
+              disabled={loading || !password}
+              className="w-full rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {loading ? "로그인 중..." : "로그인"}
+            </button>
+          </form>
+        )}
 
         <a
           href="/"
