@@ -57,6 +57,9 @@ function SortableCompanyGroup({
 }
 
 export default function BusinessManagementPage() {
+  const [highlightCompanyId, setHighlightCompanyId] = useState<string | null>(null);
+  const scrolledRef = useRef(false);
+
   const [search, setSearch] = useState("");
   const [showKeyOnly, setShowKeyOnly] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
@@ -218,6 +221,24 @@ export default function BusinessManagementPage() {
   }, [companies, businesses]);
 
   const isLoading = companiesLoading || businessesLoading;
+
+  // Scroll to company from query param (?company=id)
+  useEffect(() => {
+    if (isLoading || scrolledRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const companyId = params.get("company");
+    if (!companyId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-company-id="${companyId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        setHighlightCompanyId(companyId);
+        scrolledRef.current = true;
+        setTimeout(() => setHighlightCompanyId(null), 2000);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   // DnD for company reordering
   const reorderCompanies = useReorderCompanies();
@@ -397,6 +418,7 @@ export default function BusinessManagementPage() {
                       company={company}
                       businessCount={bizList.length}
                       dragHandleProps={dragHandleProps}
+                      highlighted={highlightCompanyId === company.id}
                     >
                       {bizList.length === 0 && (
                         <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
