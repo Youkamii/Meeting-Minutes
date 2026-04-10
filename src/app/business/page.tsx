@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -57,6 +58,17 @@ function SortableCompanyGroup({
 }
 
 export default function BusinessManagementPage() {
+  return (
+    <Suspense>
+      <BusinessManagementContent />
+    </Suspense>
+  );
+}
+
+function BusinessManagementContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const scrollToCompanyId = searchParams.get("company");
   const [highlightCompanyId, setHighlightCompanyId] = useState<string | null>(null);
   const scrolledRef = useRef(false);
 
@@ -224,21 +236,22 @@ export default function BusinessManagementPage() {
 
   // Scroll to company from query param (?company=id)
   useEffect(() => {
-    if (isLoading || scrolledRef.current) return;
-    const params = new URLSearchParams(window.location.search);
-    const companyId = params.get("company");
-    if (!companyId) return;
-    const timer = setTimeout(() => {
-      const el = document.querySelector(`[data-company-id="${companyId}"]`);
+    if (!scrollToCompanyId || isLoading || scrolledRef.current) return;
+    const scrollTimer = setTimeout(() => {
+      const el = document.querySelector(`[data-company-id="${scrollToCompanyId}"]`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
-        setHighlightCompanyId(companyId);
+        setHighlightCompanyId(scrollToCompanyId);
         scrolledRef.current = true;
-        setTimeout(() => setHighlightCompanyId(null), 2000);
+        router.replace("/business", { scroll: false });
       }
     }, 100);
-    return () => clearTimeout(timer);
-  }, [isLoading]);
+    const highlightTimer = setTimeout(() => setHighlightCompanyId(null), 2100);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(highlightTimer);
+    };
+  }, [scrollToCompanyId, isLoading, router]);
 
   // DnD for company reordering
   const reorderCompanies = useReorderCompanies();
