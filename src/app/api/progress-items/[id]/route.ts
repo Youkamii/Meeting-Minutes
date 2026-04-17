@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 
 import { STAGES, isValidStage } from "@/lib/constants";
@@ -53,6 +53,7 @@ export async function PUT(request: NextRequest, context: Params) {
       entityType: "progress_item",
       entityId: id,
       action: "update",
+      ip: getClientIp(request),
       changes: {
         before: JSON.parse(JSON.stringify(current)),
         after: JSON.parse(JSON.stringify(updated)),
@@ -124,6 +125,7 @@ export async function POST(request: NextRequest, context: Params) {
         entityType: "progress_item",
         entityId: id,
         action: "move",
+        ip: getClientIp(request),
         changes: { fromStage, toStage: targetStage },
         summary: `Moved from ${fromStage} to ${targetStage}`,
       });
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest, context: Params) {
   }
 }
 
-export async function DELETE(_request: NextRequest, context: Params) {
+export async function DELETE(request: NextRequest, context: Params) {
   const { id } = await context.params;
   try {
     const item = await prisma.progressItem.findUnique({ where: { id } });
@@ -155,6 +157,7 @@ export async function DELETE(_request: NextRequest, context: Params) {
       entityType: "progress_item",
       entityId: id,
       action: "delete",
+      ip: getClientIp(request),
       changes: JSON.parse(JSON.stringify(item)),
     });
 

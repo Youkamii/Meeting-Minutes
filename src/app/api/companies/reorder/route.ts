@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -47,6 +47,7 @@ export async function PUT(request: NextRequest) {
       entityType: "company",
       entityId: "batch",
       action: "move",
+      ip: getClientIp(request),
       summary: `Reordered ${orderedIds.length} companies`,
     });
 

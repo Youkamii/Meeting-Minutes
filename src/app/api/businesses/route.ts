@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 
 export async function GET(request: NextRequest) {
@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
       entityType: "business",
       entityId: business.id,
       action: "create",
+      ip: getClientIp(request),
       changes: { name, companyId, visibility },
     });
 

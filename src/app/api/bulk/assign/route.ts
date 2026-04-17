@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
         entityId: record.id,
         action: "update",
         changes: { assignedTo },
+        ip: getClientIp(request),
         summary: `Bulk assignee change`,
       });
     }
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
         entityId: record.id,
         action: "update",
         changes: { assignedTo },
+        ip: getClientIp(request),
         summary: `Bulk assignee change`,
       });
     }

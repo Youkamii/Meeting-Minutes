@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 
 const ALLOWED_SORT_FIELDS = ["canonicalName", "sortOrder", "createdAt"];
 
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
       entityType: "company",
       entityId: company.id,
       action: "create",
+      ip: getClientIp(request),
       changes: { canonicalName, aliases, isKey },
     });
 

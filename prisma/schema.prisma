@@ -341,6 +341,7 @@ model AuditLog {
   entityId   String   @map("entity_id")
   action     String
   actorId    String?  @map("actor_id")
+  ip         String?
   changes    Json?
   summary    String?
   createdAt  DateTime @default(now()) @map("created_at")
