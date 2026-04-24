@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth, requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
-import { createCheckpoint, cleanupExpiredCheckpoints } from "@/lib/checkpoint";
+import { createCheckpoint } from "@/lib/checkpoint";
 
 async function resolveActorId(): Promise<string | null> {
   const session = await auth();
@@ -24,9 +24,6 @@ export async function GET(request: NextRequest) {
       { status: 403 },
     );
   }
-
-  // Lazy cleanup of expired pre_restore checkpoints
-  await cleanupExpiredCheckpoints();
 
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");

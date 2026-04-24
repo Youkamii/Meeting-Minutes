@@ -9,12 +9,24 @@ interface TableDiff {
   willUpdate: number;
 }
 
-type SnapRow = { id: string; lockVersion?: number };
+type SnapRow = {
+  id: string;
+  lockVersion?: number | null;
+  updatedAt?: Date | string | null;
+  createdAt?: Date | string | null;
+};
 
-function diffByIdAndVersion(
-  current: SnapRow[],
-  snapshot: SnapRow[],
-): TableDiff {
+function toIso(v: Date | string | null | undefined): string | null {
+  if (v == null) return null;
+  return v instanceof Date ? v.toISOString() : String(v);
+}
+
+/**
+ * Compare current and snapshot rows by id, then detect changes using
+ * lockVersion → updatedAt → createdAt in that priority order.
+ * Returns 0 for willUpdate only when neither side has any version signal.
+ */
+function diffRows(current: SnapRow[], snapshot: SnapRow[]): TableDiff {
   const snapMap = new Map(snapshot.map((r) => [r.id, r]));
   const curMap = new Map(current.map((r) => [r.id, r]));
 
@@ -26,28 +38,18 @@ function diffByIdAndVersion(
       willDelete++;
       continue;
     }
-    if (
-      cur.lockVersion !== undefined &&
-      snap.lockVersion !== undefined &&
-      cur.lockVersion !== snap.lockVersion
-    ) {
-      willUpdate++;
+    if (cur.lockVersion != null && snap.lockVersion != null) {
+      if (cur.lockVersion !== snap.lockVersion) willUpdate++;
+    } else if (cur.updatedAt != null && snap.updatedAt != null) {
+      if (toIso(cur.updatedAt) !== toIso(snap.updatedAt)) willUpdate++;
+    } else if (cur.createdAt != null && snap.createdAt != null) {
+      if (toIso(cur.createdAt) !== toIso(snap.createdAt)) willUpdate++;
     }
   }
   let willInsert = 0;
   for (const id of snapMap.keys()) if (!curMap.has(id)) willInsert++;
 
   return { willDelete, willInsert, willUpdate };
-}
-
-function diffById(current: SnapRow[], snapshot: SnapRow[]): TableDiff {
-  const snapIds = new Set(snapshot.map((r) => r.id));
-  const curIds = new Set(current.map((r) => r.id));
-  let willDelete = 0;
-  for (const id of curIds) if (!snapIds.has(id)) willDelete++;
-  let willInsert = 0;
-  for (const id of snapIds) if (!curIds.has(id)) willInsert++;
-  return { willDelete, willInsert, willUpdate: 0 };
 }
 
 export async function GET(
@@ -84,33 +86,41 @@ export async function GET(
     weeklyCycles,
     weeklyActions,
     internalNotes,
-  ] = await Promise.all([
-    prisma.company.findMany({ select: { id: true, lockVersion: true } }),
-    prisma.companyAlias.findMany({ select: { id: true } }),
-    prisma.business.findMany({ select: { id: true, lockVersion: true } }),
-    prisma.progressItem.findMany({ select: { id: true, lockVersion: true } }),
-    prisma.weeklyCycle.findMany({ select: { id: true } }),
-    prisma.weeklyAction.findMany({ select: { id: true, lockVersion: true } }),
-    prisma.internalNote.findMany({ select: { id: true, lockVersion: true } }),
+  ] = await prisma.$transaction([
+    prisma.company.findMany({
+      select: { id: true, lockVersion: true, updatedAt: true },
+    }),
+    prisma.companyAlias.findMany({
+      select: { id: true, createdAt: true },
+    }),
+    prisma.business.findMany({
+      select: { id: true, lockVersion: true, updatedAt: true },
+    }),
+    prisma.progressItem.findMany({
+      select: { id: true, lockVersion: true, updatedAt: true },
+    }),
+    prisma.weeklyCycle.findMany({
+      select: { id: true, createdAt: true },
+    }),
+    prisma.weeklyAction.findMany({
+      select: { id: true, lockVersion: true, updatedAt: true },
+    }),
+    prisma.internalNote.findMany({
+      select: { id: true, lockVersion: true, updatedAt: true },
+    }),
   ]);
 
   const diff = {
-    companies: diffByIdAndVersion(companies, payload.companies as SnapRow[]),
-    companyAliases: diffById(companyAliases, payload.companyAliases as SnapRow[]),
-    businesses: diffByIdAndVersion(businesses, payload.businesses as SnapRow[]),
-    progressItems: diffByIdAndVersion(
-      progressItems,
-      payload.progressItems as SnapRow[],
+    companies: diffRows(companies, payload.companies as SnapRow[]),
+    companyAliases: diffRows(
+      companyAliases,
+      payload.companyAliases as SnapRow[],
     ),
-    weeklyCycles: diffById(weeklyCycles, payload.weeklyCycles as SnapRow[]),
-    weeklyActions: diffByIdAndVersion(
-      weeklyActions,
-      payload.weeklyActions as SnapRow[],
-    ),
-    internalNotes: diffByIdAndVersion(
-      internalNotes,
-      payload.internalNotes as SnapRow[],
-    ),
+    businesses: diffRows(businesses, payload.businesses as SnapRow[]),
+    progressItems: diffRows(progressItems, payload.progressItems as SnapRow[]),
+    weeklyCycles: diffRows(weeklyCycles, payload.weeklyCycles as SnapRow[]),
+    weeklyActions: diffRows(weeklyActions, payload.weeklyActions as SnapRow[]),
+    internalNotes: diffRows(internalNotes, payload.internalNotes as SnapRow[]),
   };
 
   return NextResponse.json({

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { cleanupExpiredCheckpoints } from "@/lib/checkpoint";
 
 type TimelineEntry =
   | {
@@ -36,52 +35,63 @@ export async function GET() {
     );
   }
 
-  await cleanupExpiredCheckpoints();
-
-  const checkpoints = await prisma.weeklyCheckpoint.findMany({
-    orderBy: { takenAt: "asc" },
-    select: {
-      id: true,
-      kind: true,
-      label: true,
-      year: true,
-      weekNumber: true,
-      byteSize: true,
-      takenAt: true,
-      expiresAt: true,
-      createdById: true,
-    },
-  });
-
-  const restoreLogs = await prisma.auditLog.findMany({
-    where: { entityType: "weekly_checkpoint", action: "restore" },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      entityId: true,
-      actorId: true,
-      createdAt: true,
-    },
-  });
-
-  // Audit count per interval (this checkpoint .. next checkpoint)
-  const counts = new Map<string, number>();
-  for (let i = 0; i < checkpoints.length; i++) {
-    const start = checkpoints[i].takenAt;
-    const end = checkpoints[i + 1]?.takenAt;
-    const count = await prisma.auditLog.count({
-      where: {
-        entityType: { notIn: ["weekly_checkpoint"] },
-        createdAt: {
-          gt: start,
-          ...(end ? { lte: end } : {}),
-        },
+  const [checkpoints, restoreLogs, auditTimes] = await prisma.$transaction([
+    prisma.weeklyCheckpoint.findMany({
+      orderBy: { takenAt: "asc" },
+      select: {
+        id: true,
+        kind: true,
+        label: true,
+        year: true,
+        weekNumber: true,
+        byteSize: true,
+        takenAt: true,
+        expiresAt: true,
+        createdById: true,
       },
-    });
+    }),
+    prisma.auditLog.findMany({
+      where: { entityType: "weekly_checkpoint", action: "restore" },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        entityId: true,
+        actorId: true,
+        createdAt: true,
+      },
+    }),
+    prisma.auditLog.findMany({
+      where: { entityType: { not: "weekly_checkpoint" } },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  // Count audit events per interval [checkpoint_i, checkpoint_{i+1})
+  // using a single pass through the pre-sorted audit log timestamps.
+  const counts = new Map<string, number>();
+  let logIdx = 0;
+  for (let i = 0; i < checkpoints.length; i++) {
+    const start = checkpoints[i].takenAt.getTime();
+    const end = checkpoints[i + 1]?.takenAt.getTime();
+    while (
+      logIdx < auditTimes.length &&
+      auditTimes[logIdx].createdAt.getTime() <= start
+    ) {
+      logIdx++;
+    }
+    let count = 0;
+    while (
+      logIdx < auditTimes.length &&
+      (end === undefined ||
+        auditTimes[logIdx].createdAt.getTime() <= end)
+    ) {
+      count++;
+      logIdx++;
+    }
     counts.set(checkpoints[i].id, count);
   }
 
-  // Resolve restored checkpoint labels
   const labelById = new Map<string, string | null>(
     checkpoints.map((c) => [c.id, c.label]),
   );
@@ -112,7 +122,12 @@ export async function GET() {
         actorId: a.actorId,
       }),
     ),
-  ].sort((a, b) => (b.at < a.at ? -1 : b.at > a.at ? 1 : 0));
+  ].sort((a, b) => {
+    // desc by timestamp; on tie, restore goes on top (more recent conceptually)
+    if (a.at !== b.at) return b.at < a.at ? -1 : 1;
+    if (a.type === b.type) return 0;
+    return a.type === "restore" ? -1 : 1;
+  });
 
   return NextResponse.json({ data: entries });
 }

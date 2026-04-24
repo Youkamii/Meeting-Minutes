@@ -22,6 +22,28 @@ export const CHECKPOINT_TABLES = [
   "internalNotes",
 ] as const satisfies readonly (keyof CheckpointPayload)[];
 
+/**
+ * Tables cleared during restore. Order doesn't matter for TRUNCATE CASCADE,
+ * but listed children-first for readability. Includes:
+ * - main data tables
+ * - per-row version tables (CASCADE'd anyway, but explicit)
+ * - recent_views (polymorphic, FK-less — must be explicit to avoid orphans)
+ */
+export const CHECKPOINT_TRUNCATE_TABLES = [
+  "internal_note_versions",
+  "weekly_action_versions",
+  "progress_item_versions",
+  "business_versions",
+  "recent_views",
+  "internal_notes",
+  "weekly_actions",
+  "weekly_cycles",
+  "progress_items",
+  "businesses",
+  "company_aliases",
+  "companies",
+] as const;
+
 export async function buildCheckpointPayload(): Promise<CheckpointPayload> {
   const [
     companies,
@@ -31,7 +53,7 @@ export async function buildCheckpointPayload(): Promise<CheckpointPayload> {
     weeklyCycles,
     weeklyActions,
     internalNotes,
-  ] = await Promise.all([
+  ] = await prisma.$transaction([
     prisma.company.findMany(),
     prisma.companyAlias.findMany(),
     prisma.business.findMany(),
@@ -70,8 +92,7 @@ export async function createCheckpoint({
   expiresAt = null,
 }: CreateCheckpointParams) {
   const payload = await buildCheckpointPayload();
-  const serialized = JSON.stringify(payload);
-  const byteSize = Buffer.byteLength(serialized, "utf8");
+  const byteSize = Buffer.byteLength(JSON.stringify(payload), "utf8");
 
   return prisma.weeklyCheckpoint.create({
     data: {

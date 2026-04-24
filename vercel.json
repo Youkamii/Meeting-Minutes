@@ -1,3 +1,9 @@
 {
-  "regions": ["icn1"]
+  "regions": ["icn1"],
+  "crons": [
+    {
+      "path": "/api/cron/checkpoint",
+      "schedule": "0 15 * * 0"
+    }
+  ]
 }

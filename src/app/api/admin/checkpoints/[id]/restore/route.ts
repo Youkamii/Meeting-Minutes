@@ -1,26 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { auth, requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import {
   buildCheckpointPayload,
   preRestoreExpiry,
+  CHECKPOINT_TRUNCATE_TABLES,
   type CheckpointPayload,
 } from "@/lib/checkpoint";
 
-const TRUNCATE_TABLES = [
-  "internal_note_versions",
-  "weekly_action_versions",
-  "progress_item_versions",
-  "business_versions",
-  "internal_notes",
-  "weekly_actions",
-  "weekly_cycles",
-  "progress_items",
-  "businesses",
-  "company_aliases",
-  "companies",
-];
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 const USER_REF_FIELDS: Record<keyof CheckpointPayload, string[]> = {
   companies: ["createdById", "updatedById"],
@@ -89,7 +84,11 @@ export async function POST(
     );
   }
   const appPassword = process.env.APP_PASSWORD;
-  if (!appPassword || body.password !== appPassword) {
+  if (
+    !appPassword ||
+    typeof body.password !== "string" ||
+    !safeEqual(body.password, appPassword)
+  ) {
     return NextResponse.json(
       { error: "VALIDATION", message: "Invalid password" },
       { status: 400 },
@@ -132,7 +131,7 @@ export async function POST(
   try {
     await prisma.$transaction(
       async (tx) => {
-        const truncateSql = `TRUNCATE TABLE ${TRUNCATE_TABLES.map((t) => `"${t}"`).join(", ")} RESTART IDENTITY CASCADE`;
+        const truncateSql = `TRUNCATE TABLE ${CHECKPOINT_TRUNCATE_TABLES.map((t) => `"${t}"`).join(", ")} RESTART IDENTITY CASCADE`;
         await tx.$executeRawUnsafe(truncateSql);
 
         const companies = sanitizeUserRefs(
