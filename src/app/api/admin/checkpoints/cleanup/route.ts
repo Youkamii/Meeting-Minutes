@@ -12,6 +12,6 @@ export async function POST() {
     );
   }
 
-  const deleted = await cleanupExpiredCheckpoints();
-  return NextResponse.json({ data: { deleted } });
+  const result = await cleanupExpiredCheckpoints();
+  return NextResponse.json({ data: result });
 }

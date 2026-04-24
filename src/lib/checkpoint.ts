@@ -109,18 +109,48 @@ export async function createCheckpoint({
   });
 }
 
+export const PRE_RESTORE_RETENTION_DAYS = 35;
+
 export function preRestoreExpiry(from: Date = new Date()): Date {
   const d = new Date(from);
-  d.setDate(d.getDate() + 7);
+  d.setDate(d.getDate() + PRE_RESTORE_RETENTION_DAYS);
   return d;
 }
 
-export async function cleanupExpiredCheckpoints(): Promise<number> {
-  const result = await prisma.weeklyCheckpoint.deleteMany({
+/**
+ * Delete expired pre_restore checkpoints along with any AuditLogs
+ * linked to them via snapshotCheckpointId. Returns counts so the caller
+ * can surface how much was pruned.
+ */
+export async function cleanupExpiredCheckpoints(): Promise<{
+  deletedCheckpoints: number;
+  deletedOrphanLogs: number;
+}> {
+  const expired = await prisma.weeklyCheckpoint.findMany({
     where: {
       kind: "pre_restore",
       expiresAt: { lt: new Date() },
     },
+    select: { id: true },
   });
-  return result.count;
+
+  if (expired.length === 0) {
+    return { deletedCheckpoints: 0, deletedOrphanLogs: 0 };
+  }
+
+  const ids = expired.map((c) => c.id);
+
+  const [logResult, ckptResult] = await prisma.$transaction([
+    prisma.auditLog.deleteMany({
+      where: { snapshotCheckpointId: { in: ids } },
+    }),
+    prisma.weeklyCheckpoint.deleteMany({
+      where: { id: { in: ids } },
+    }),
+  ]);
+
+  return {
+    deletedCheckpoints: ckptResult.count,
+    deletedOrphanLogs: logResult.count,
+  };
 }

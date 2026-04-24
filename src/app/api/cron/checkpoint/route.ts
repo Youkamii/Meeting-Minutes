@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     entityType: "weekly_checkpoint",
     entityId: checkpoint.id,
     action: "create",
-    summary: `Auto weekly checkpoint (${label}, byteSize=${checkpoint.byteSize}, cleaned=${cleaned})`,
+    summary: `Auto weekly checkpoint (${label}, byteSize=${checkpoint.byteSize}, cleanedCheckpoints=${cleaned.deletedCheckpoints}, cleanedOrphanLogs=${cleaned.deletedOrphanLogs})`,
   });
 
   return NextResponse.json({
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       checkpointId: checkpoint.id,
       label: checkpoint.label,
       byteSize: checkpoint.byteSize,
-      cleanedUpPreRestore: cleaned,
+      cleanedUp: cleaned,
     },
   });
 }

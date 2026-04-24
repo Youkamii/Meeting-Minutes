@@ -27,6 +27,55 @@ const USER_REF_FIELDS: Record<keyof CheckpointPayload, string[]> = {
   internalNotes: ["createdById", "updatedById"],
 };
 
+/** AuditLog.entityType → CheckpointPayload key */
+const AUDIT_ENTITY_TO_PAYLOAD_KEY: Record<string, keyof CheckpointPayload> = {
+  company: "companies",
+  business: "businesses",
+  progress_item: "progressItems",
+  weekly_action: "weeklyActions",
+  internal_note: "internalNotes",
+};
+
+function collectIds(
+  payload: CheckpointPayload,
+  key: keyof CheckpointPayload,
+): Set<string> {
+  const rows = payload[key] as Array<{ id?: unknown }>;
+  const out = new Set<string>();
+  for (const r of rows) if (typeof r?.id === "string") out.add(r.id);
+  return out;
+}
+
+/**
+ * Point AuditLogs of rows that disappear in the restore to the pre_restore
+ * snapshot so orphan entityIds remain resolvable until the snapshot expires.
+ */
+async function linkOrphanAuditLogs(
+  preRestoreId: string,
+  before: CheckpointPayload,
+  after: CheckpointPayload,
+): Promise<number> {
+  let updated = 0;
+  for (const [entityType, payloadKey] of Object.entries(
+    AUDIT_ENTITY_TO_PAYLOAD_KEY,
+  )) {
+    const beforeIds = collectIds(before, payloadKey);
+    const afterIds = collectIds(after, payloadKey);
+    const disappearing = [...beforeIds].filter((id) => !afterIds.has(id));
+    if (disappearing.length === 0) continue;
+    const result = await prisma.auditLog.updateMany({
+      where: {
+        entityType,
+        entityId: { in: disappearing },
+        snapshotCheckpointId: null,
+      },
+      data: { snapshotCheckpointId: preRestoreId },
+    });
+    updated += result.count;
+  }
+  return updated;
+}
+
 function sanitizeUserRefs<T extends Record<string, unknown>>(
   rows: T[],
   fields: string[],
@@ -108,20 +157,26 @@ export async function POST(
   const payload = checkpoint.payload as unknown as CheckpointPayload;
   const actorId = await resolveActorId();
 
-  // 1. Save current state as pre_restore snapshot (expires in 7 days)
+  // 1. Save current state as pre_restore snapshot (expires per PRE_RESTORE_RETENTION_DAYS)
   const currentPayload = await buildCheckpointPayload();
-  const currentSerialized = JSON.stringify(currentPayload);
   const preRestore = await prisma.weeklyCheckpoint.create({
     data: {
       kind: "pre_restore",
       label: `Before restore of ${checkpoint.label ?? checkpoint.id}`,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: currentPayload as any,
-      byteSize: Buffer.byteLength(currentSerialized, "utf8"),
+      byteSize: Buffer.byteLength(JSON.stringify(currentPayload), "utf8"),
       expiresAt: preRestoreExpiry(),
       createdById: actorId,
     },
   });
+
+  // 1-B. Link AuditLogs of disappearing rows to the pre_restore snapshot
+  const orphanCount = await linkOrphanAuditLogs(
+    preRestore.id,
+    currentPayload,
+    payload,
+  );
 
   // 2. Collect valid user ids for FK sanitization
   const users = await prisma.user.findMany({ select: { id: true } });
@@ -218,14 +273,15 @@ export async function POST(
     entityId: checkpoint.id,
     action: "restore",
     actorId,
-    summary: `Restored from checkpoint ${checkpoint.id}. Pre-restore: ${preRestore.id}`,
-    changes: { preRestoreCheckpointId: preRestore.id },
+    summary: `Restored from checkpoint ${checkpoint.id}. Pre-restore: ${preRestore.id}. Orphan logs linked: ${orphanCount}`,
+    changes: { preRestoreCheckpointId: preRestore.id, orphanCount },
   });
 
   return NextResponse.json({
     data: {
       checkpointId: checkpoint.id,
       preRestoreCheckpointId: preRestore.id,
+      orphanLogsLinked: orphanCount,
       restoredAt: new Date().toISOString(),
     },
   });

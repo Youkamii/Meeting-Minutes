@@ -337,20 +337,23 @@ model InternalNote {
 // ============================================================
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  entityType String   @map("entity_type")
-  entityId   String   @map("entity_id")
-  action     String
-  actorId    String?  @map("actor_id")
-  changes    Json?
-  summary    String?
-  createdAt  DateTime @default(now()) @map("created_at")
+  id                    String   @id @default(uuid())
+  entityType            String   @map("entity_type")
+  entityId              String   @map("entity_id")
+  action                String
+  actorId               String?  @map("actor_id")
+  changes               Json?
+  summary               String?
+  snapshotCheckpointId  String?  @map("snapshot_checkpoint_id")
+  createdAt             DateTime @default(now()) @map("created_at")
 
-  actor User? @relation(fields: [actorId], references: [id])
+  actor              User?             @relation(fields: [actorId], references: [id])
+  snapshotCheckpoint WeeklyCheckpoint? @relation("AuditLogSnapshot", fields: [snapshotCheckpointId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId])
   @@index([createdAt(sort: Desc)])
   @@index([actorId])
+  @@index([snapshotCheckpointId])
   @@map("audit_logs")
 }
 
@@ -457,7 +460,8 @@ model WeeklyCheckpoint {
   expiresAt   DateTime? @map("expires_at")
   createdById String?   @map("created_by")
 
-  createdBy User? @relation("CheckpointCreatedBy", fields: [createdById], references: [id])
+  createdBy          User?      @relation("CheckpointCreatedBy", fields: [createdById], references: [id])
+  orphanedAuditLogs  AuditLog[] @relation("AuditLogSnapshot")
 
   @@index([takenAt(sort: Desc)])
   @@index([kind, takenAt(sort: Desc)])
