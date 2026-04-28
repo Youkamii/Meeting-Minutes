@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createWorkbook, generateFilename, workbookToBuffer } from "@/lib/excel";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { getWeeksInMonth } from "@/lib/weekly-cycle";
 import type ExcelJS from "exceljs";
 
@@ -179,10 +179,12 @@ export async function POST(request: NextRequest) {
   }
   const { type, ...options } = body;
 
+  const ip = getClientIp(request);
+
   if (type === "monthly") {
-    return handleMonthlyExport(options as { year: number; month: number });
+    return handleMonthlyExport(options as { year: number; month: number }, ip);
   } else if (type === "yearly") {
-    return handleYearlyExport(options as { year: number });
+    return handleYearlyExport(options as { year: number }, ip);
   }
 
   return NextResponse.json(
@@ -338,7 +340,7 @@ function buildWeeklySheet(
 
 // ── 월간 Export ───────────────────────────────────────────────
 
-async function handleMonthlyExport(options: { year: number; month: number }) {
+async function handleMonthlyExport(options: { year: number; month: number }, ip: string | null) {
   const year = Number(options.year);
   const month = Number(options.month);
   if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
@@ -422,6 +424,7 @@ async function handleMonthlyExport(options: { year: number; month: number }) {
       entityType: "export",
       entityId: `${year}-${month}`,
       action: "download",
+      ip,
       changes: { type: "monthly", year, month, filename },
     });
   } catch (e) {
@@ -438,7 +441,7 @@ async function handleMonthlyExport(options: { year: number; month: number }) {
 
 // ── 연간 Export ───────────────────────────────────────────────
 
-async function handleYearlyExport(options: { year: number }) {
+async function handleYearlyExport(options: { year: number }, ip: string | null) {
   const year = Number(options.year);
   if (!Number.isFinite(year)) {
     return NextResponse.json(
@@ -529,6 +532,7 @@ async function handleYearlyExport(options: { year: number }) {
       entityType: "export",
       entityId: String(year),
       action: "download",
+      ip,
       changes: { type: "yearly", year, filename },
     });
   } catch (e) {

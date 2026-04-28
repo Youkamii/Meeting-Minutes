@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
     entityType: "company",
     entityId: canonical_id,
     action: "merge",
+    ip: getClientIp(request),
     summary: `Merged ${mergeCompanies.map((c) => c.canonicalName).join(", ")} into ${canonical.canonicalName}`,
     changes: {
       merged_ids: merge_ids,
