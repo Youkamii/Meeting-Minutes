@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import {
+  ADMIN_UNLOCK_COOKIE,
+  verifyAdminUnlockCookie,
+} from "@/lib/admin-unlock";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -42,12 +46,38 @@ export async function middleware(req: NextRequest) {
   }
 
   // Admin routes protection
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin")
+  ) {
     if (role !== "admin") {
       if (isApiRoute) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    // Extra password gate — skip unlock page itself and the unlock endpoint
+    const skipGate =
+      pathname === "/admin-unlock" ||
+      pathname.startsWith("/admin-unlock/") ||
+      pathname === "/api/admin/unlock";
+
+    if (!skipGate) {
+      const unlocked = await verifyAdminUnlockCookie(
+        req.cookies.get(ADMIN_UNLOCK_COOKIE)?.value,
+      );
+      if (!unlocked) {
+        if (isApiRoute) {
+          return NextResponse.json(
+            { error: "UnlockRequired" },
+            { status: 401 },
+          );
+        }
+        const url = new URL("/admin-unlock", req.url);
+        url.searchParams.set("next", pathname);
+        return NextResponse.redirect(url);
+      }
     }
   }
 

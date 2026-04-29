@@ -94,6 +94,7 @@ model User {
   actionVersions       WeeklyActionVersion[]
   noteVersions         InternalNoteVersion[]
   recentViews          RecentView[]
+  checkpointsCreated   WeeklyCheckpoint[]    @relation("CheckpointCreatedBy")
 
   @@map("users")
 }
@@ -336,20 +337,23 @@ model InternalNote {
 // ============================================================
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  entityType String   @map("entity_type")
-  entityId   String   @map("entity_id")
-  action     String
-  actorId    String?  @map("actor_id")
-  changes    Json?
-  summary    String?
-  createdAt  DateTime @default(now()) @map("created_at")
+  id                    String   @id @default(uuid())
+  entityType            String   @map("entity_type")
+  entityId              String   @map("entity_id")
+  action                String
+  actorId               String?  @map("actor_id")
+  changes               Json?
+  summary               String?
+  snapshotCheckpointId  String?  @map("snapshot_checkpoint_id")
+  createdAt             DateTime @default(now()) @map("created_at")
 
-  actor User? @relation(fields: [actorId], references: [id])
+  actor              User?             @relation(fields: [actorId], references: [id])
+  snapshotCheckpoint WeeklyCheckpoint? @relation("AuditLogSnapshot", fields: [snapshotCheckpointId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId])
   @@index([createdAt(sort: Desc)])
   @@index([actorId])
+  @@index([snapshotCheckpointId])
   @@map("audit_logs")
 }
 
@@ -438,4 +442,29 @@ model RecentView {
   @@index([userId, viewedAt(sort: Desc)])
   @@index([sessionId, viewedAt(sort: Desc)])
   @@map("recent_views")
+}
+
+// ============================================================
+// Weekly Checkpoint (full-snapshot restore)
+// ============================================================
+
+model WeeklyCheckpoint {
+  id          String    @id @default(uuid())
+  kind        String    // 'weekly' | 'pre_restore'
+  label       String?
+  year        Int?
+  weekNumber  Int?      @map("week_number")
+  payload     Json      @db.JsonB
+  byteSize    Int?      @map("byte_size")
+  takenAt     DateTime  @default(now()) @map("taken_at")
+  expiresAt   DateTime? @map("expires_at")
+  createdById String?   @map("created_by")
+
+  createdBy          User?      @relation("CheckpointCreatedBy", fields: [createdById], references: [id])
+  orphanedAuditLogs  AuditLog[] @relation("AuditLogSnapshot")
+
+  @@index([takenAt(sort: Desc)])
+  @@index([kind, takenAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("weekly_checkpoints")
 }
