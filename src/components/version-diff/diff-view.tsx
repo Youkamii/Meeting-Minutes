@@ -50,9 +50,9 @@ function formatValue(value: unknown): string {
 }
 
 const changeStyles: Record<ChangeType, string> = {
-  added: "bg-[var(--status-completed)]/8 border-[var(--status-completed)]/30",
-  removed: "bg-[var(--destructive)]/8 border-[var(--destructive)]/30",
-  changed: "bg-[var(--priority-medium)]/8 border-[var(--priority-medium)]/30",
+  added: "bg-[var(--status-completed)]/10 border-[var(--status-completed)]/30",
+  removed: "bg-[var(--destructive)]/10 border-[var(--destructive)]/30",
+  changed: "bg-[var(--priority-medium)]/10 border-[var(--priority-medium)]/30",
   unchanged: "",
 };
 
