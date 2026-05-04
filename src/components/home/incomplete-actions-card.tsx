@@ -48,7 +48,7 @@ export function IncompleteActionsCard({ actions }: IncompleteActionsCardProps) {
               </div>
               <StatusBadge status={a.status} />
               {a.carryoverCount > 0 && (
-                <span className="text-[10px] text-[var(--destructive)]">
+                <span className="text-[10px] text-[var(--priority-medium)]">
                   ↻{a.carryoverCount}
                 </span>
               )}
