@@ -1,7 +1,11 @@
+import "server-only";
 import { NextRequest } from "next/server";
 import { prisma } from "./prisma";
 
 // x-forwarded-for is trusted only behind a reverse proxy (e.g. Vercel).
+// In local dev (no proxy) this returns null; in production behind Vercel it
+// returns the actual client IP (the platform sets x-forwarded-for itself, so
+// values cannot be spoofed by clients).
 // Truncate to 45 chars (max IPv6 length) to prevent oversized header injection.
 export function getClientIp(request: NextRequest): string | null {
   const ip =
