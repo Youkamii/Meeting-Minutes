@@ -221,10 +221,17 @@ function WeeklyCompanyRow({
             );
           }
 
+          const isAddingHere =
+            editingCell?.companyId === company.id &&
+            editingCell?.weekYear === w.year &&
+            editingCell?.weekNumber === w.weekNumber &&
+            !editingCell?.actionId;
+          const hasContent = cellActions.length > 0;
+
           return (
             <div
               key={wKey}
-              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
+              className="group/cell w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
             >
               {cellActions.map((action) => {
                 const isEditing = editingCell?.actionId === action.id;
@@ -245,7 +252,10 @@ function WeeklyCompanyRow({
                       e.stopPropagation();
                       onStartEdit(company.id, cycleId, w.year, w.weekNumber, action);
                     }}
-                    className="group rounded bg-[var(--muted)] px-2.5 py-1.5 text-sm font-medium cursor-pointer hover:bg-[var(--accent)] transition-colors break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+                    className={`group rounded-md border border-[var(--border)] border-l-4 bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--border-strong)] px-2.5 py-1.5 text-sm font-medium cursor-pointer transition-all break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal`}
+                    style={{
+                      borderLeftColor: `var(--status-${action.status.replace("_", "-")})`,
+                    }}
                   >
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <StatusBadge
@@ -276,10 +286,7 @@ function WeeklyCompanyRow({
                 );
               })}
 
-              {editingCell?.companyId === company.id &&
-               editingCell?.weekYear === w.year &&
-               editingCell?.weekNumber === w.weekNumber &&
-               !editingCell?.actionId ? (
+              {isAddingHere ? (
                 <InlineEditor
                   content=""
                   placeholder="TASK 입력..."
@@ -288,13 +295,25 @@ function WeeklyCompanyRow({
                   status={editingCell.status}
                   onStatusChange={onStatusChange}
                 />
-              ) : (
+              ) : hasContent ? (
+                /* 내용 있는 셀: 카드 아래 hover 영역 — 마우스 가져가면 + 추가 표출 */
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
                   }}
-                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                  className="add-trigger w-full rounded py-2 text-xs text-[var(--muted-foreground)] opacity-0 group-hover/cell:opacity-100 hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-opacity"
+                >
+                  + 추가
+                </button>
+              ) : (
+                /* 빈 셀: 셀 전체에 hover 시 + 추가 표출 */
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
+                  }}
+                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] opacity-0 group-hover/cell:opacity-100 hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-opacity"
                 >
                   + 추가
                 </button>
