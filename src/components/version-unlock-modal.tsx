@@ -70,7 +70,7 @@ export function VersionUnlockModal({ open, onClose }: Props) {
           placeholder="비밀번호"
           className="w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
         />
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-[var(--destructive)]">{error}</p>}
         <div className="flex gap-2">
           <button
             type="button"

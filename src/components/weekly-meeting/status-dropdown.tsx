@@ -3,10 +3,10 @@
 import type { ActionStatus } from "@/types";
 
 const STATUS_OPTIONS: { value: ActionStatus; label: string; color: string }[] = [
-  { value: "scheduled", label: "예정", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-  { value: "in_progress", label: "진행중", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  { value: "completed", label: "완료", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  { value: "on_hold", label: "보류", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+  { value: "scheduled", label: "예정", color: "bg-[var(--status-scheduled)]/15 text-[var(--status-scheduled)]" },
+  { value: "in_progress", label: "진행중", color: "bg-[var(--status-in-progress)]/15 text-[var(--status-in-progress)]" },
+  { value: "completed", label: "완료", color: "bg-[var(--status-completed)]/15 text-[var(--status-completed)]" },
+  { value: "on_hold", label: "보류", color: "bg-[var(--status-on-hold)]/15 text-[var(--status-on-hold)]" },
 ];
 
 interface StatusDropdownProps {

@@ -145,7 +145,7 @@ export function BusinessDetailPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          <h2 className={`text-lg font-bold truncate ${visibility === "private" && embargoName ? "text-red-900 dark:text-red-400" : ""}`}>
+          <h2 className={`text-lg font-bold truncate ${visibility === "private" && embargoName ? "text-[var(--destructive)]" : ""}`}>
             {headerName}
           </h2>
           {companyLabel && (

@@ -28,10 +28,10 @@ function DiffRow({
   return (
     <tr className="border-b border-[var(--border)]">
       <td className="px-3 py-2 text-sm font-medium">{field}</td>
-      <td className="px-3 py-2 text-sm bg-red-50 dark:bg-red-950/20">
+      <td className="px-3 py-2 text-sm bg-[var(--destructive)]/8">
         {String(serverValue ?? "—")}
       </td>
-      <td className="px-3 py-2 text-sm bg-green-50 dark:bg-green-950/20">
+      <td className="px-3 py-2 text-sm bg-[var(--status-completed)]/8">
         {String(clientValue ?? "—")}
       </td>
     </tr>

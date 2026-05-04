@@ -13,10 +13,10 @@ interface NotesTimelineProps {
 }
 
 const tagColors: Record<NoteTag, string> = {
-  situation: "bg-blue-100 text-blue-800",
-  decision: "bg-purple-100 text-purple-800",
-  risk: "bg-red-100 text-red-800",
-  follow_up: "bg-yellow-100 text-yellow-800",
+  situation: "bg-[var(--link)]/15 text-[var(--link)]",
+  decision: "bg-[var(--primary)]/10 text-[var(--primary)]",
+  risk: "bg-[var(--destructive)]/15 text-[var(--destructive)]",
+  follow_up: "bg-[var(--priority-medium)]/15 text-[var(--priority-medium)]",
 };
 
 export function NotesTimeline({

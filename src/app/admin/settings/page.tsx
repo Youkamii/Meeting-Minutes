@@ -56,7 +56,7 @@ export default function SettingsPage() {
         </button>
 
         {saved && (
-          <p className="text-sm text-green-600">설정이 저장되었습니다 (임시).</p>
+          <p className="text-sm text-[var(--status-completed)]">설정이 저장되었습니다 (임시).</p>
         )}
       </div>
 

@@ -5,10 +5,10 @@ import { useUpdateWeeklyAction } from "@/hooks/use-weekly-actions";
 import type { ActionStatus, Priority, WeeklyActionWithRelations } from "@/types";
 
 const STATUS_OPTIONS: { value: ActionStatus; label: string; color: string }[] = [
-  { value: "scheduled", label: "예정", color: "bg-blue-500" },
-  { value: "in_progress", label: "진행중", color: "bg-yellow-500" },
-  { value: "completed", label: "완료", color: "bg-green-500" },
-  { value: "on_hold", label: "보류", color: "bg-gray-500" },
+  { value: "scheduled", label: "예정", color: "bg-[var(--status-scheduled)]" },
+  { value: "in_progress", label: "진행중", color: "bg-[var(--status-in-progress)]" },
+  { value: "completed", label: "완료", color: "bg-[var(--status-completed)]" },
+  { value: "on_hold", label: "보류", color: "bg-[var(--status-on-hold)]" },
 ];
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [

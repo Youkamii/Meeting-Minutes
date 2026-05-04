@@ -50,16 +50,16 @@ function formatValue(value: unknown): string {
 }
 
 const changeStyles: Record<ChangeType, string> = {
-  added: "bg-green-50 border-green-200",
-  removed: "bg-red-50 border-red-200",
-  changed: "bg-yellow-50 border-yellow-200",
+  added: "bg-[var(--status-completed)]/8 border-[var(--status-completed)]/30",
+  removed: "bg-[var(--destructive)]/8 border-[var(--destructive)]/30",
+  changed: "bg-[var(--priority-medium)]/8 border-[var(--priority-medium)]/30",
   unchanged: "",
 };
 
 const changeLabelStyles: Record<ChangeType, string> = {
-  added: "text-green-700",
-  removed: "text-red-700",
-  changed: "text-yellow-700",
+  added: "text-[var(--status-completed)]",
+  removed: "text-[var(--destructive)]",
+  changed: "text-[var(--priority-medium)]",
   unchanged: "text-[var(--muted-foreground)]",
 };
 
@@ -76,9 +76,9 @@ export function DiffView({
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="mb-3 flex items-center gap-4 text-xs text-[var(--muted-foreground)]">
-        <span className="text-green-700">+ 추가됨</span>
-        <span className="text-red-700">- 삭제됨</span>
-        <span className="text-yellow-700">~ 변경됨</span>
+        <span className="text-[var(--status-completed)]">+ 추가됨</span>
+        <span className="text-[var(--destructive)]">- 삭제됨</span>
+        <span className="text-[var(--priority-medium)]">~ 변경됨</span>
       </div>
 
       {changedDiffs.length === 0 && (

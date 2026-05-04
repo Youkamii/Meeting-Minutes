@@ -163,10 +163,10 @@ export function InlineEditor({ content, placeholder, onSave, onCancel, status, o
   }, [editor, onSave, onCancel]);
 
   const STATUS_OPTIONS = [
-    { value: "scheduled", label: "예정", color: "bg-gray-400" },
-    { value: "in_progress", label: "진행중", color: "bg-blue-500" },
-    { value: "completed", label: "완료", color: "bg-green-500" },
-    { value: "on_hold", label: "보류", color: "bg-yellow-500" },
+    { value: "scheduled", label: "예정", color: "bg-[var(--status-scheduled)]" },
+    { value: "in_progress", label: "진행중", color: "bg-[var(--status-in-progress)]" },
+    { value: "completed", label: "완료", color: "bg-[var(--status-completed)]" },
+    { value: "on_hold", label: "보류", color: "bg-[var(--status-on-hold)]" },
   ];
 
   return (

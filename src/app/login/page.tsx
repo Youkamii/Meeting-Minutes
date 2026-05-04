@@ -65,15 +65,15 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호 입력"
               autoFocus
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
             />
             {error && (
-              <p className="text-xs text-red-500">{error}</p>
+              <p className="text-xs text-[var(--destructive)]">{error}</p>
             )}
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="w-full rounded-md bg-[var(--primary)] px-4 py-3 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 transition-colors disabled:opacity-50"
             >
               {loading ? "로그인 중..." : "로그인"}
             </button>
