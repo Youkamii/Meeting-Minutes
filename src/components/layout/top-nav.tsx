@@ -8,8 +8,8 @@ import { useTheme } from "next-themes";
 import { SearchOverlay } from "@/components/search/search-overlay";
 import { VersionUnlockModal } from "@/components/version-unlock-modal";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 
-const PASSWORD_USER_ID = "password-shared-user";
 const UNLOCK_CLICK_THRESHOLD = 5;
 const UNLOCK_CLICK_RESET_MS = 1500;
 

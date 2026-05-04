@@ -6,8 +6,7 @@ import { fetchJson } from "@/lib/fetch";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-
-const PASSWORD_USER_ID = "password-shared-user";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 
 type TimelineEntry =
   | {

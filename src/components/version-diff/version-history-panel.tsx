@@ -5,9 +5,8 @@ import { useSession } from "next-auth/react";
 import { useVersions } from "@/hooks/use-versions";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 import type { Version } from "@/types";
-
-const PASSWORD_USER_ID = "password-shared-user";
 
 interface VersionHistoryPanelProps {
   entityType: string;

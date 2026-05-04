@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCompanies } from "@/hooks/use-companies";
 import { fetchJson } from "@/lib/fetch";
+import { Button } from "@/components/ui/button";
 import type { Company } from "@/types";
 
 export default function MergePage() {
@@ -132,13 +133,14 @@ export default function MergePage() {
             </div>
           )}
 
-          <button
+          <Button
+            variant="destructive"
+            className="mt-3"
             onClick={handleMerge}
             disabled={!canonicalId || merging}
-            className="mt-3 rounded-md bg-[var(--destructive)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {merging ? "병합 중..." : "병합 확인"}
-          </button>
+          </Button>
         </div>
       )}
 
