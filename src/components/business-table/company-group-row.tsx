@@ -22,7 +22,7 @@ export function CompanyGroupRow({
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div data-company-id={company.id} className={`border-b border-[var(--border)] transition-colors duration-700 ${highlighted ? "ring-2 ring-blue-500 ring-inset" : ""}`} style={{ background: "var(--background)" }}>
+    <div data-company-id={company.id} className={`border-b border-[var(--border)] transition-colors duration-700 ${highlighted ? "ring-2 ring-[var(--link)] ring-inset" : ""}`} style={{ background: "var(--background)" }}>
       <div
         className="flex cursor-pointer group"
         onClick={() => setExpanded(!expanded)}

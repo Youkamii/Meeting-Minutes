@@ -70,7 +70,6 @@ function BusinessManagementContent() {
   const router = useRouter();
   const scrollToCompanyId = searchParams.get("company");
   const [highlightCompanyId, setHighlightCompanyId] = useState<string | null>(null);
-  const scrolledRef = useRef(false);
 
   const [search, setSearch] = useState("");
   const [showKeyOnly, setShowKeyOnly] = useState(false);
@@ -235,17 +234,18 @@ function BusinessManagementContent() {
   const isLoading = companiesLoading || businessesLoading;
 
   // Scroll to company from query param (?company=id)
+  // URL에서 query를 즉시 제거하므로 동일 effect가 두 번 실행될 일이 없어 ref 가드 불필요.
   useEffect(() => {
-    if (!scrollToCompanyId || isLoading || scrolledRef.current) return;
+    if (!scrollToCompanyId || isLoading) return;
     const scrollTimer = setTimeout(() => {
       const el = document.querySelector(`[data-company-id="${scrollToCompanyId}"]`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
         setHighlightCompanyId(scrollToCompanyId);
-        scrolledRef.current = true;
         router.replace("/business", { scroll: false });
       }
     }, 100);
+    // 하이라이트 표시 시간 (transition duration 700ms × 3 = 2100ms — 진입 강조 시간 확보)
     const highlightTimer = setTimeout(() => setHighlightCompanyId(null), 2100);
     return () => {
       clearTimeout(scrollTimer);
