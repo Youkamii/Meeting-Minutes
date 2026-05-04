@@ -47,9 +47,9 @@ export function NewActionDialog({
     >
       <form
         onSubmit={handleSubmit}
-        className="mx-4 w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl"
+        className="mx-4 w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 elevation-modal"
       >
-        <h2 className="text-lg font-bold">새 주간 액션</h2>
+        <h2 className="text-lg font-semibold">새 주간 액션</h2>
 
         <label className="mt-4 block text-sm font-medium">
           기업 *

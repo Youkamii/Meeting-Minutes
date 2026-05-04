@@ -52,7 +52,7 @@ export function NotesTimeline({
         onSubmit={handleSubmit}
         className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4"
       >
-        <h3 className="mb-2 text-sm font-bold">메모 추가</h3>
+        <h3 className="mb-2 text-sm font-semibold">메모 추가</h3>
         <input
           type="text"
           placeholder="제목 (선택사항)"

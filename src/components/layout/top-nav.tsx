@@ -90,7 +90,7 @@ export function TopNav() {
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
         <nav className="flex h-14 items-center gap-2 px-6">
-          <a href="/" className="mr-4 text-lg font-bold">
+          <a href="/" className="mr-4 text-lg font-semibold">
             MM
           </a>
 

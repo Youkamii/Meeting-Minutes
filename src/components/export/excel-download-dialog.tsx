@@ -56,8 +56,8 @@ export function ExcelDownloadDialog({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
-        <h2 className="text-lg font-bold">엑셀 다운로드</h2>
+      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 elevation-modal">
+        <h2 className="text-lg font-semibold">엑셀 다운로드</h2>
 
         <label className="mt-4 block text-sm font-medium">
           유형

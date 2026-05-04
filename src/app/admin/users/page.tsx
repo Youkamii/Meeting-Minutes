@@ -46,7 +46,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">사용자 관리</h1>
+      <h1 className="mb-4 text-lg font-semibold">사용자 관리</h1>
 
       {loading && (
         <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>

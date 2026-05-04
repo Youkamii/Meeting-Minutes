@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <div className="p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">홈</h1>
+        <h1 className="text-2xl font-semibold">홈</h1>
         {currentCycle && (
           <p className="text-sm text-[var(--muted-foreground)]">
             {formatWeekLabel(currentCycle.year, currentCycle.weekNumber)}

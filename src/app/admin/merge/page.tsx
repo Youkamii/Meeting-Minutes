@@ -51,7 +51,7 @@ export default function MergePage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">기업 병합</h1>
+      <h1 className="mb-4 text-lg font-semibold">기업 병합</h1>
 
       <input
         type="text"
@@ -92,7 +92,7 @@ export default function MergePage() {
 
       {selected.length >= 2 && (
         <div className="mb-4 rounded-md border border-[var(--border)] bg-[var(--card)] p-4">
-          <h2 className="mb-2 text-sm font-bold">
+          <h2 className="mb-2 text-sm font-semibold">
             선택됨 ({selected.length}) - 대표 기업을 선택하세요:
           </h2>
           <div className="space-y-1">

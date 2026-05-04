@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">설정</h1>
+      <h1 className="mb-4 text-lg font-semibold">설정</h1>
 
       <div className="max-w-md space-y-4">
         <div>

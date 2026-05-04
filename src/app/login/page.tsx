@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
       <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 shadow-xl text-center">
-        <h1 className="text-2xl font-bold mb-2">회의록</h1>
+        <h1 className="text-2xl font-semibold mb-2">회의록</h1>
         <p className="text-sm text-[var(--muted-foreground)] mb-8">
           사업관리 & 주간회의 운영 시스템
         </p>

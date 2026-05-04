@@ -103,7 +103,7 @@ function MonthPicker({
             >
               ←
             </button>
-            <span className="text-sm font-bold">{pickerYear}년</span>
+            <span className="text-sm font-semibold">{pickerYear}년</span>
             <button
               onClick={() => setPickerYear(pickerYear + 1)}
               className="text-sm px-1 hover:bg-[var(--muted)] rounded"
@@ -181,7 +181,7 @@ function WeeklyCompanyRow({
       <div className="flex transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] sticky-shadow-r px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
           style={{ background: "var(--table-sidebar)" }}
           onClick={() => setExpanded(!expanded)}
         >
@@ -191,7 +191,7 @@ function WeeklyCompanyRow({
           {company.isKey && (
             <span className="text-[var(--priority-medium)] text-sm">★</span>
           )}
-          <span className="text-sm font-bold truncate">
+          <span className="text-sm font-semibold truncate">
             {company.canonicalName}
           </span>
           {!expanded && hasContent && (
@@ -508,7 +508,7 @@ export default function WeeklyMeetingPage() {
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 border-b border-[var(--border)] px-4 py-3 shrink-0">
-        <h1 className="text-lg font-bold">주간회의</h1>
+        <h1 className="text-lg font-semibold">주간회의</h1>
 
         <MonthPicker
           year={viewYear}
@@ -547,9 +547,9 @@ export default function WeeklyMeetingPage() {
         className="flex-1 overflow-auto">
         <div className="min-w-fit">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] sticky-shadow-b" style={{ background: "var(--table-header)" }}>
             <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2" style={{ background: "var(--table-header)" }}>
-              <span className="text-sm font-bold text-[var(--muted-foreground)]">
+              <span className="text-sm font-semibold text-[var(--muted-foreground)]">
                 고객사
               </span>
             </div>
@@ -578,7 +578,7 @@ export default function WeeklyMeetingPage() {
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
                   <span
-                    className={`text-sm font-bold ${isAdjacentMonth ? "text-[var(--muted-foreground)]/50" : "text-[var(--muted-foreground)]"}`}
+                    className={`text-sm font-semibold ${isAdjacentMonth ? "text-[var(--muted-foreground)]/50" : "text-[var(--muted-foreground)]"}`}
                     style={collapsed ? { writingMode: "vertical-rl", textOrientation: "mixed" } : undefined}
                   >
                     {label}

@@ -60,7 +60,7 @@ function MiniToolbar({ editor }: { editor: any }) {
           className={`${btn(!!currentColor)} relative`}
           title="글자 색"
         >
-          <span className="font-bold">A</span>
+          <span className="font-semibold">A</span>
           <span className="absolute bottom-0 left-0.5 right-0.5 h-[2px] rounded-full" style={{ backgroundColor: currentColor || "var(--foreground)" }} />
         </button>
         {showColors && (

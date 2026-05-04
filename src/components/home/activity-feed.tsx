@@ -14,7 +14,7 @@ export function ActivityFeed() {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold">최근 활동</h2>
+        <h2 className="text-sm font-semibold">최근 활동</h2>
         <div className="flex gap-1">
           {(["all", "changes", "views"] as Filter[]).map((f) => (
             <button

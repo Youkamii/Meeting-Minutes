@@ -1,7 +1,7 @@
 export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">개인정보처리방침</h1>
+      <h1 className="text-2xl font-semibold mb-4">개인정보처리방침</h1>
       <p className="text-sm text-[var(--muted-foreground)] mb-4">최종 수정일: 2026-04-06</p>
       <div className="space-y-4 text-sm">
         <p>Meeting Minutes(이하 &quot;서비스&quot;)는 내부 운영 도구로, Google OAuth를 통해 인증된 사용자만 접근할 수 있습니다.</p>

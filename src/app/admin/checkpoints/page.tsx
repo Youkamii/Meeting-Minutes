@@ -165,7 +165,7 @@ export default function CheckpointsPage() {
   if (locked) {
     return (
       <div>
-        <h1 className="mb-4 text-lg font-bold">체크포인트 🔒</h1>
+        <h1 className="mb-4 text-lg font-semibold">체크포인트 🔒</h1>
         <div className="rounded-md border border-[var(--border)] bg-[var(--card)] p-6 text-center">
           <p className="text-sm text-[var(--muted-foreground)]">
             공유 사용자는 버전 관리 기능이 잠겨 있습니다.
@@ -177,7 +177,7 @@ export default function CheckpointsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">체크포인트</h1>
+      <h1 className="mb-4 text-lg font-semibold">체크포인트</h1>
 
       <div className="mb-4 rounded-md border border-[var(--border)] bg-[var(--card)] p-4">
         <h2 className="mb-2 text-sm font-semibold">새 스냅샷 생성</h2>
@@ -321,7 +321,7 @@ export default function CheckpointsPage() {
             className="max-h-[80vh] w-[90vw] max-w-xl overflow-auto rounded-md border border-[var(--border)] bg-[var(--card)] p-4"
             onClick={(ev) => ev.stopPropagation()}
           >
-            <h3 className="mb-3 text-base font-bold">복원 시 변화 (diff)</h3>
+            <h3 className="mb-3 text-base font-semibold">복원 시 변화 (diff)</h3>
             {!diff && (
               <p className="text-sm text-[var(--muted-foreground)]">
                 계산 중...
@@ -379,7 +379,7 @@ export default function CheckpointsPage() {
             className="w-[90vw] max-w-md rounded-md border border-[var(--border)] bg-[var(--card)] p-4"
             onClick={(ev) => ev.stopPropagation()}
           >
-            <h3 className="mb-2 text-base font-bold text-[var(--destructive)]">
+            <h3 className="mb-2 text-base font-semibold text-[var(--destructive)]">
               체크포인트로 복원
             </h3>
             <p className="mb-3 text-sm">

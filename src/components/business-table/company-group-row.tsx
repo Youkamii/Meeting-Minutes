@@ -26,7 +26,7 @@ export function CompanyGroupRow({
         onClick={() => setExpanded(!expanded)}
       >
         {/* Sticky left — company info */}
-        <div className="sticky left-0 z-[5] flex w-[280px] shrink-0 items-center gap-2 bg-[var(--muted)] px-4 py-2 group-hover:bg-[var(--accent)] transition-colors">
+        <div className="sticky left-0 z-[5] sticky-shadow-r flex w-[280px] shrink-0 items-center gap-2 bg-[var(--muted)] px-4 py-2 group-hover:bg-[var(--accent)] transition-colors">
           {dragHandleProps && (
             <span
               className="text-[var(--muted-foreground)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"

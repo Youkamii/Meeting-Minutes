@@ -34,7 +34,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)]">
       <aside className="flex w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--card)] p-4">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
           관리자
         </h2>
         <nav className="space-y-1">
