@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { fetchJson } from "@/lib/fetch";
+import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+
+const PASSWORD_USER_ID = "password-shared-user";
 
 type TimelineEntry =
   | {
@@ -63,6 +67,11 @@ function formatDate(s: string | null): string {
 }
 
 export default function CheckpointsPage() {
+  const { data: session } = useSession();
+  const isSharedUser = session?.user?.id === PASSWORD_USER_ID;
+  const versionUnlocked = useVersionUnlockStore((s) => s.unlocked);
+  const locked = isSharedUser && !versionUnlocked;
+
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -90,8 +99,8 @@ export default function CheckpointsPage() {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!locked) load();
+  }, [locked]);
 
   const createCheckpoint = async () => {
     setCreating(true);
@@ -152,6 +161,19 @@ export default function CheckpointsPage() {
   // A restore event (desc order) means the entries AFTER it in the array
   // (= older) are part of an "abandoned branch" visually.
   let passedRestore = false;
+
+  if (locked) {
+    return (
+      <div>
+        <h1 className="mb-4 text-lg font-bold">체크포인트 🔒</h1>
+        <div className="rounded-md border border-[var(--border)] bg-[var(--card)] p-6 text-center">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            공유 사용자는 버전 관리 기능이 잠겨 있습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

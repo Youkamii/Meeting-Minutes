@@ -1,27 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-import {
-  VERSION_UNLOCK_COOKIE,
-  verifyVersionUnlockCookie,
-} from "@/lib/version-unlock";
-
-const PASSWORD_USER_ID = "password-shared-user";
-
-async function ensureSharedUserUnlocked(
-  request: NextRequest,
-): Promise<NextResponse | null> {
-  const session = await auth();
-  if (session?.user?.id !== PASSWORD_USER_ID) return null;
-  const ok = await verifyVersionUnlockCookie(
-    request.cookies.get(VERSION_UNLOCK_COOKIE)?.value,
-  );
-  if (ok) return null;
-  return NextResponse.json(
-    { error: "UnlockRequired", message: "Version unlock required" },
-    { status: 403 },
-  );
-}
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 
 type EntityType = "business" | "progressItem" | "weeklyAction" | "internalNote";
 
@@ -56,7 +35,7 @@ function getEntityModel(entityType: EntityType) {
 }
 
 export async function GET(request: NextRequest) {
-  const gate = await ensureSharedUserUnlocked(request);
+  const gate = await ensureSharedUserVersionUnlocked(request);
   if (gate) return gate;
 
   const { searchParams } = new URL(request.url);
@@ -136,7 +115,7 @@ export async function GET(request: NextRequest) {
 const VALID_ENTITY_TYPES: EntityType[] = ["business", "progressItem", "weeklyAction", "internalNote"];
 
 export async function POST(request: NextRequest) {
-  const gate = await ensureSharedUserUnlocked(request);
+  const gate = await ensureSharedUserVersionUnlocked(request);
   if (gate) return gate;
 
   let body: Record<string, unknown>;

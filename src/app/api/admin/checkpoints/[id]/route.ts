@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth, requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 
 async function resolveActorId(): Promise<string | null> {
   const session = await auth();
@@ -15,7 +16,7 @@ async function resolveActorId(): Promise<string | null> {
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -26,6 +27,8 @@ export async function DELETE(
       { status: 403 },
     );
   }
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   const { id } = await params;
   const existing = await prisma.weeklyCheckpoint.findUnique({
