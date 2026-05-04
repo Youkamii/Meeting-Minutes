@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { fetchJson } from "@/lib/fetch";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 
 const PASSWORD_USER_ID = "password-shared-user";
 
@@ -189,13 +191,13 @@ export default function CheckpointsPage() {
             placeholder="라벨 (선택, 예: 2026-W17)"
             className="flex-1 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
           />
-          <button
+          <Button
+            variant="primary"
             onClick={createCheckpoint}
             disabled={creating}
-            className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] disabled:opacity-50"
           >
             {creating ? "생성 중..." : "스냅샷 생성"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -285,27 +287,23 @@ export default function CheckpointsPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
-                  <button
-                    onClick={() => loadDiff(e.id)}
-                    className="rounded-md border border-[var(--border)] px-2 py-1 text-xs hover:bg-[var(--muted)]"
-                  >
+                  <Button size="sm" variant="secondary" onClick={() => loadDiff(e.id)}>
                     diff
-                  </button>
-                  <button
-                    onClick={() => setRestoreFor(e)}
-                    className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
-                  >
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => setRestoreFor(e)}>
                     복원
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           );
         })}
         {!loading && entries.length === 0 && (
-          <p className="py-4 text-sm text-[var(--muted-foreground)]">
-            체크포인트가 없습니다.
-          </p>
+          <EmptyState
+            icon="📦"
+            title="체크포인트 없음"
+            description="위에서 첫 번째 스냅샷을 만들면 타임라인이 시작됩니다."
+          />
         )}
       </div>
 
@@ -356,15 +354,16 @@ export default function CheckpointsPage() {
               </table>
             )}
             <div className="mt-4 flex justify-end">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setDiffFor(null);
                   setDiff(null);
                 }}
-                className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--muted)]"
               >
                 닫기
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -413,19 +412,17 @@ export default function CheckpointsPage() {
             />
 
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setRestoreFor(null)}
-                className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--muted)]"
-              >
+              <Button variant="secondary" size="sm" onClick={() => setRestoreFor(null)}>
                 취소
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={doRestore}
                 disabled={restoring || confirmText !== "RESTORE" || !password}
-                className="rounded-md bg-[var(--destructive)] px-3 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
               >
                 {restoring ? "복원 중..." : "복원 실행"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

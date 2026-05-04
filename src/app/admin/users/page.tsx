@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { fetchJson } from "@/lib/fetch";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { User, Role, UserStatus, ApiListResponse } from "@/types";
 
 const roleBadgeClass: Record<Role, string> = {
@@ -77,46 +79,42 @@ export default function UsersPage() {
               {user.status}
             </span>
 
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {user.status !== "approved" && (
-                <button
+                <Button
+                  size="sm"
+                  className="bg-[var(--status-completed)] text-white hover:opacity-90"
                   onClick={() => updateUser(user.id, { status: "approved" })}
-                  className="rounded-md bg-[var(--status-completed)] px-2 py-1 text-xs text-white hover:opacity-90"
                 >
                   승인
-                </button>
+                </Button>
               )}
-              {user.status !== "rejected" && user.status !== "pending" && (
-                <button
+              {user.status !== "rejected" && (
+                <Button
+                  size="sm"
+                  variant="destructive"
                   onClick={() => updateUser(user.id, { status: "rejected" })}
-                  className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
                 >
                   거절
-                </button>
-              )}
-              {user.status === "pending" && (
-                <button
-                  onClick={() => updateUser(user.id, { status: "rejected" })}
-                  className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
-                >
-                  거절
-                </button>
+                </Button>
               )}
               {user.role === "user" && (
-                <button
+                <Button
+                  size="sm"
+                  variant="secondary"
                   onClick={() => updateUser(user.id, { role: "admin" })}
-                  className="rounded-md border border-[var(--border)] px-2 py-1 text-xs hover:bg-[var(--muted)]"
                 >
                   관리자 지정
-                </button>
+                </Button>
               )}
               {user.role === "admin" && (
-                <button
+                <Button
+                  size="sm"
+                  variant="secondary"
                   onClick={() => updateUser(user.id, { role: "user" })}
-                  className="rounded-md border border-[var(--border)] px-2 py-1 text-xs hover:bg-[var(--muted)]"
                 >
                   관리자 해제
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -124,7 +122,7 @@ export default function UsersPage() {
       </div>
 
       {!loading && users.length === 0 && (
-        <p className="text-sm text-[var(--muted-foreground)]">사용자를 찾을 수 없습니다.</p>
+        <EmptyState icon="👤" title="사용자 없음" />
       )}
     </div>
   );

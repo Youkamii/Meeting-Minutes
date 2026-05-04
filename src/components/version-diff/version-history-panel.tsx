@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useVersions } from "@/hooks/use-versions";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Version } from "@/types";
 
 const PASSWORD_USER_ID = "password-shared-user";
@@ -112,9 +113,12 @@ export function VersionHistoryPanel({
       </div>
 
       {versions.length === 0 && !isLoading && (
-        <p className="text-sm text-[var(--muted-foreground)]">
-          버전이 없습니다.
-        </p>
+        <EmptyState
+          compact
+          icon="🕒"
+          title="버전 기록 없음"
+          description="이 항목은 아직 변경 이력이 없습니다."
+        />
       )}
 
       {compareMode && selectedIds.length === 2 && (

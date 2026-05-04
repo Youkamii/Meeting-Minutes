@@ -8,7 +8,7 @@ export default function PendingPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
-      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 shadow-xl text-center">
+      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 elevation-modal text-center">
         {isRejected ? (
           <>
             <h1 className="text-xl font-semibold mb-2">접근이 거부되었습니다</h1>

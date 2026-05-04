@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { InternalNote, NoteTag } from "@/types";
 
 interface NotesTimelineProps {
@@ -116,9 +117,12 @@ export function NotesTimeline({
         ))}
 
         {notes.length === 0 && (
-          <p className="text-sm text-[var(--muted-foreground)]">
-            메모가 없습니다.
-          </p>
+          <EmptyState
+            compact
+            icon="📝"
+            title="메모 없음"
+            description="위에서 첫 번째 메모를 작성해 보세요."
+          />
         )}
       </div>
     </div>
