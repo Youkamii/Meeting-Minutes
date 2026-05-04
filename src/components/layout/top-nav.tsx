@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { SearchOverlay } from "@/components/search/search-overlay";
+import { VersionUnlockModal } from "@/components/version-unlock-modal";
+import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+
+const PASSWORD_USER_ID = "password-shared-user";
+const UNLOCK_CLICK_THRESHOLD = 5;
+const UNLOCK_CLICK_RESET_MS = 1500;
 
 function NavLink({
   href,
@@ -28,13 +34,42 @@ const HIDDEN_PATHS = ["/login", "/pending"];
 
 export function TopNav() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [versionUnlockOpen, setVersionUnlockOpen] = useState(false);
   const { data: session, status: sessionStatus } = useSession();
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const userRole = session?.user?.role;
+  const isSharedUser = session?.user?.id === PASSWORD_USER_ID;
+  const isAdminPage = pathname.startsWith("/admin");
+  const versionUnlocked = useVersionUnlockStore((s) => s.unlocked);
+  const themeClickCount = useRef(0);
+  const themeClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  const handleThemeToggle = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+
+    // Easter egg: shared user on admin page → 5 clicks within 1.5s opens version unlock modal
+    if (!isSharedUser || !isAdminPage || versionUnlocked) return;
+    themeClickCount.current += 1;
+    if (themeClickTimer.current) clearTimeout(themeClickTimer.current);
+    if (themeClickCount.current >= UNLOCK_CLICK_THRESHOLD) {
+      themeClickCount.current = 0;
+      setVersionUnlockOpen(true);
+      return;
+    }
+    themeClickTimer.current = setTimeout(() => {
+      themeClickCount.current = 0;
+    }, UNLOCK_CLICK_RESET_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (themeClickTimer.current) clearTimeout(themeClickTimer.current);
+    };
+  }, []);
 
   const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -84,7 +119,7 @@ export function TopNav() {
             </button>
 
             <button
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              onClick={handleThemeToggle}
               className="h-8 w-8 rounded-md border border-[var(--border)] text-sm hover:bg-[var(--accent)] transition-colors"
               aria-label="테마 전환"
             >
@@ -123,6 +158,10 @@ export function TopNav() {
       <SearchOverlay
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
+      />
+      <VersionUnlockModal
+        open={versionUnlockOpen}
+        onClose={() => setVersionUnlockOpen(false)}
       />
     </>
   );

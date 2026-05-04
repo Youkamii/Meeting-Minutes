@@ -294,7 +294,7 @@ function WeeklyCompanyRow({
                     e.stopPropagation();
                     onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
                   }}
-                  className="w-full rounded border border-dashed border-[var(--border)] py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
                 >
                   + 추가
                 </button>

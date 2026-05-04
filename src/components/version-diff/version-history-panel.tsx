@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useVersions } from "@/hooks/use-versions";
+import { useVersionUnlockStore } from "@/stores/version-unlock-store";
 import type { Version } from "@/types";
+
+const PASSWORD_USER_ID = "password-shared-user";
 
 interface VersionHistoryPanelProps {
   entityType: string;
@@ -17,7 +21,12 @@ export function VersionHistoryPanel({
   onSelectVersion,
   onCompare,
 }: VersionHistoryPanelProps) {
-  const { data, isLoading } = useVersions(entityType, entityId);
+  const { data: session } = useSession();
+  const isSharedUser = session?.user?.id === PASSWORD_USER_ID;
+  const versionUnlocked = useVersionUnlockStore((s) => s.unlocked);
+  const locked = isSharedUser && !versionUnlocked;
+
+  const { data, isLoading } = useVersions(entityType, entityId, !locked);
   const versions = data?.data ?? [];
 
   const [compareMode, setCompareMode] = useState(false);
@@ -41,6 +50,17 @@ export function VersionHistoryPanel({
     const b = versions.find((v) => v.id === selectedIds[1]);
     if (a && b) onCompare(a, b);
   };
+
+  if (locked) {
+    return (
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 text-center">
+        <h3 className="mb-2 text-sm font-bold">버전 히스토리 🔒</h3>
+        <p className="text-xs text-[var(--muted-foreground)]">
+          공유 사용자는 버전 관리 기능이 잠겨 있습니다.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
