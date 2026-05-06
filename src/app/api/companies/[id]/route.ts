@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflict";
 
 type Params = { params: Promise<{ id: string }> };
@@ -92,6 +92,7 @@ export async function PUT(request: NextRequest, context: Params) {
       entityType: "company",
       entityId: id,
       action: "update",
+      ip: getClientIp(request),
       changes: {
         before,
         after: {
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest, context: Params) {
         where: { id },
         data: { isArchived: true, archivedAt: new Date(), lockVersion: { increment: 1 } },
       });
-      await createAuditLog({ entityType: "company", entityId: id, action: "delete", summary: "Archived" });
+      await createAuditLog({ entityType: "company", entityId: id, action: "delete", ip: getClientIp(request), summary: "Archived" });
       return NextResponse.json({ data: company });
     }
 
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest, context: Params) {
         where: { id },
         data: { isArchived: false, archivedAt: null, lockVersion: { increment: 1 } },
       });
-      await createAuditLog({ entityType: "company", entityId: id, action: "create", summary: "Restored" });
+      await createAuditLog({ entityType: "company", entityId: id, action: "create", ip: getClientIp(request), summary: "Restored" });
       return NextResponse.json({ data: company });
     }
 

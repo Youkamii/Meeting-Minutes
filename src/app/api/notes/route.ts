@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { checkLockVersion, ConflictError, conflictResponse } from "@/lib/conflict";
 
 const VALID_TAGS = ["situation", "decision", "risk", "follow_up"] as const;
@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
     entityType: "internal_note",
     entityId: note.id,
     action: "create",
+    ip: getClientIp(request),
     summary: title ?? "New note",
   });
 
@@ -160,6 +161,7 @@ export async function PUT(request: NextRequest) {
     entityType: "internal_note",
     entityId: id,
     action: "update",
+    ip: getClientIp(request),
     changes: {
       before: {
         title: current.title,
