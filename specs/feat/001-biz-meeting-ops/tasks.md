@@ -25,12 +25,12 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize Next.js project with TypeScript, Tailwind CSS v4, and App Router in project root
-- [ ] T002 Install and configure core dependencies (TanStack Table, TanStack Query, Zustand, shadcn/ui, dnd-kit, Prisma, ExcelJS, React Hook Form, Zod, next-themes) in package.json
-- [ ] T003 [P] Configure ESLint and Prettier with TypeScript rules in .eslintrc.js and .prettierrc
-- [ ] T004 [P] Set up shadcn/ui with Tailwind CSS and configure dark mode theme in tailwind.config.ts and src/app/globals.css
-- [ ] T005 [P] Create shared TypeScript types for all entities (Company, Business, ProgressItem, WeeklyCycle, WeeklyAction, InternalNote, AuditLog, Version, User) in src/types/index.ts
-- [ ] T006 [P] Create .env.example with DATABASE_URL and other environment variable templates
+- [x] T001 Initialize Next.js project with TypeScript, Tailwind CSS v4, and App Router in project root
+- [x] T002 Install and configure core dependencies (TanStack Table, TanStack Query, Zustand, shadcn/ui, dnd-kit, Prisma, ExcelJS, React Hook Form, Zod, next-themes) in package.json
+- [x] T003 [P] Configure ESLint and Prettier with TypeScript rules in .eslintrc.js and .prettierrc
+- [x] T004 [P] Set up shadcn/ui with Tailwind CSS and configure dark mode theme in tailwind.config.ts and src/app/globals.css
+- [x] T005 [P] Create shared TypeScript types for all entities (Company, Business, ProgressItem, WeeklyCycle, WeeklyAction, InternalNote, AuditLog, Version, User) in src/types/index.ts
+- [x] T006 [P] Create .env.example with DATABASE_URL and other environment variable templates
 
 ---
 
@@ -40,17 +40,17 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Define complete Prisma schema with all entities (User, Company, CompanyAlias, Business, ProgressItem, WeeklyCycle, WeeklyAction, InternalNote, AuditLog, BusinessVersion, ProgressItemVersion, WeeklyActionVersion, InternalNoteVersion, RecentView) including enums, relations, and indexes in prisma/schema.prisma
-- [ ] T008 Create Prisma seed script with system user and sample weekly cycle in prisma/seed.ts
-- [ ] T009 Create Prisma client singleton in src/lib/prisma.ts
-- [ ] T010 [P] Create audit logging utility (createAuditLog helper that accepts entity_type, entity_id, action, changes, actor_id) in src/lib/audit.ts
-- [ ] T011 [P] Create version snapshot utility (createVersionSnapshot helper that serializes entity to JSONB and auto-increments version_number) in src/lib/version.ts
-- [ ] T012 [P] Create optimistic locking utility (checkLockVersion helper that compares submitted vs current lock_version, throws ConflictError) in src/lib/conflict.ts
-- [ ] T013 [P] Create ISO 8601 weekly cycle utilities (getCurrentWeek, getWeekDateRange, formatWeekLabel) in src/lib/weekly-cycle.ts
-- [ ] T014 Create root layout with navigation (top menu: Home, Business Management, Weekly Meeting, Admin), global search input, dark mode toggle via next-themes, and user area placeholder in src/app/layout.tsx
-- [ ] T015 [P] Create Zustand store for UI state (dark mode preference, sidebar collapsed, meeting mode active, active filters) in src/stores/ui-store.ts
-- [ ] T016 [P] Create TanStack Query provider wrapper in src/app/providers.tsx
-- [ ] T017 [P] Create reusable conflict resolution dialog component (shows diff between server/client versions, re-apply/view-latest/cancel buttons) in src/components/conflict-dialog/conflict-dialog.tsx
+- [x] T007 Define complete Prisma schema with all entities (User, Company, CompanyAlias, Business, ProgressItem, WeeklyCycle, WeeklyAction, InternalNote, AuditLog, BusinessVersion, ProgressItemVersion, WeeklyActionVersion, InternalNoteVersion, RecentView, WeeklyCheckpoint) including enums, relations, and indexes in prisma/schema.prisma
+- [x] T008 Create Prisma seed script with system user and sample weekly cycle in prisma/seed.ts
+- [x] T009 Create Prisma client singleton in src/lib/prisma.ts
+- [x] T010 [P] Create audit logging utility (createAuditLog helper that accepts entity_type, entity_id, action, changes, actor_id) in src/lib/audit.ts
+- [x] T011 [P] Create version snapshot utility (createVersionSnapshot helper that serializes entity to JSONB and auto-increments version_number) in src/lib/version.ts
+- [x] T012 [P] Create optimistic locking utility (checkLockVersion helper that compares submitted vs current lock_version, throws ConflictError) in src/lib/conflict.ts
+- [x] T013 [P] Create ISO 8601 weekly cycle utilities (getCurrentWeek, getWeekDateRange, formatWeekLabel) in src/lib/weekly-cycle.ts
+- [x] T014 Create root layout with navigation (top menu: Home, Business Management, Weekly Meeting, Admin), global search input, dark mode toggle via next-themes, and user area placeholder in src/app/layout.tsx
+- [x] T015 [P] Create Zustand store for UI state (dark mode preference, sidebar collapsed, meeting mode active, active filters) in src/stores/ui-store.ts
+- [x] T016 [P] Create TanStack Query provider wrapper in src/app/providers.tsx
+- [x] T017 [P] Create reusable conflict resolution dialog component (shows diff between server/client versions, re-apply/view-latest/cancel buttons) in src/components/conflict-dialog/conflict-dialog.tsx
 
 **Checkpoint**: Foundation ready — database, utilities, layout, and providers in place
 
@@ -64,19 +64,19 @@
 
 ### Implementation for User Story 1
 
-- [ ] T018 [P] [US1] Create Company API routes (GET list with search/filter/sort, POST create, GET by id, PUT update with lock_version, POST archive, POST restore) in src/app/api/companies/route.ts and src/app/api/companies/[id]/route.ts
-- [ ] T019 [P] [US1] Create CompanyAlias API logic within company routes (add/remove aliases on create/update) in src/app/api/companies/[id]/route.ts
-- [ ] T020 [P] [US1] Create Business API routes (GET list with company_id filter, POST create, GET by id, PUT update with lock_version, POST archive, POST restore) in src/app/api/businesses/route.ts and src/app/api/businesses/[id]/route.ts
-- [ ] T021 [P] [US1] Create React Query hooks for companies (useCompanies, useCompany, useCreateCompany, useUpdateCompany) in src/hooks/use-companies.ts
-- [ ] T022 [P] [US1] Create React Query hooks for businesses (useBusinesses, useBusiness, useCreateBusiness, useUpdateBusiness) in src/hooks/use-businesses.ts
-- [ ] T023 [US1] Create Business Management page with TanStack Table (fixed left columns: visibility, company, name, timing, scale, assignee; horizontally scrollable stage columns) in src/app/business/page.tsx
-- [ ] T024 [US1] Create company group rows with expand/collapse and sort order drag handle in src/components/business-table/company-group-row.tsx
-- [ ] T025 [US1] Create business row component with inline editable cells and click-to-open detail in src/components/business-table/business-row.tsx
-- [ ] T026 [US1] Create new company dialog (canonical name, optional aliases) in src/components/business-table/new-company-dialog.tsx
-- [ ] T027 [US1] Create new business dialog (company selector, name, visibility, scale, timing text, timing date picker, assignee) in src/components/business-table/new-business-dialog.tsx
-- [ ] T028 [US1] Create business detail slide panel with tabs (Basic Info, Progress, Weekly Actions, Internal Notes, Files/References placeholder, Log/Version) in src/components/business-table/business-detail-panel.tsx
-- [ ] T029 [US1] Create key company toggle button (★ favorite marker only, no sort effect) and filtering logic ("중요기업만" checkbox) in src/components/business-table/key-company-toggle.tsx
-- [ ] T030 [US1] Add quick action buttons (new company, new business) to Business Management toolbar and Home screen in src/components/ui/quick-actions.tsx
+- [x] T018 [P] [US1] Create Company API routes (GET list with search/filter/sort, POST create, GET by id, PUT update with lock_version, POST archive, POST restore) in src/app/api/companies/route.ts and src/app/api/companies/[id]/route.ts
+- [x] T019 [P] [US1] Create CompanyAlias API logic within company routes (add/remove aliases on create/update) in src/app/api/companies/[id]/route.ts
+- [x] T020 [P] [US1] Create Business API routes (GET list with company_id filter, POST create, GET by id, PUT update with lock_version, POST archive, POST restore) in src/app/api/businesses/route.ts and src/app/api/businesses/[id]/route.ts
+- [x] T021 [P] [US1] Create React Query hooks for companies (useCompanies, useCompany, useCreateCompany, useUpdateCompany) in src/hooks/use-companies.ts
+- [x] T022 [P] [US1] Create React Query hooks for businesses (useBusinesses, useBusiness, useCreateBusiness, useUpdateBusiness) in src/hooks/use-businesses.ts
+- [x] T023 [US1] Create Business Management page with TanStack Table (fixed left columns: visibility, company, name, timing, scale, assignee; horizontally scrollable stage columns) in src/app/business/page.tsx
+- [x] T024 [US1] Create company group rows with expand/collapse and sort order drag handle in src/components/business-table/company-group-row.tsx
+- [x] T025 [US1] Create business row component with inline editable cells and click-to-open detail in src/components/business-table/business-row.tsx
+- [x] T026 [US1] Create new company dialog (canonical name, optional aliases) in src/components/business-table/new-company-dialog.tsx
+- [x] T027 [US1] Create new business dialog (company selector, name, visibility, scale, timing text, timing date picker, assignee) in src/components/business-table/new-business-dialog.tsx
+- [x] T028 [US1] Create business detail slide panel with tabs (Basic Info, Progress, Weekly Actions, Internal Notes, Files/References placeholder, Log/Version) in src/components/business-table/business-detail-panel.tsx
+- [x] T029 [US1] Create key company toggle button (★ favorite marker only, no sort effect) and filtering logic ("중요기업만" checkbox) in src/components/business-table/key-company-toggle.tsx
+- [ ] T030 [US1] Add quick action buttons (new company, new business) to Business Management toolbar and Home screen in src/components/ui/quick-actions.tsx (미구현 — 각 페이지 인라인 처리)
 
 **Checkpoint**: Companies and businesses can be created, viewed in table, and detail panel works
 
@@ -90,15 +90,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Create ProgressItem API routes (GET by business grouped by stage, POST create, PUT update, POST move to different stage, DELETE) in src/app/api/businesses/[businessId]/progress-items/route.ts and src/app/api/progress-items/[id]/route.ts
-- [ ] T032 [P] [US2] Create React Query hooks for progress items (useProgressItems, useCreateProgressItem, useMoveProgressItem) in src/hooks/use-progress-items.ts
-- [ ] T033 [US2] Create progress stage cell component with mini-blocks, "+N more" overflow, and add-block button in src/components/progress-blocks/stage-cell.tsx
-- [ ] T034 [US2] Create mini-block component (content preview, author, date, click to expand) in src/components/progress-blocks/mini-block.tsx
-- [ ] T035 [US2] Implement dnd-kit drag-and-drop for reordering blocks within a stage and moving between stages (same business row only) in src/components/progress-blocks/dnd-context.tsx
-- [ ] T036 [US2] Create mobile stage-move menu (action sheet with stage list instead of drag) in src/components/progress-blocks/mobile-stage-menu.tsx
-- [ ] T037 [US2] Create progress block detail popover/modal (full content, edit, version history link) in src/components/progress-blocks/block-detail.tsx
-- [ ] T038 [US2] Integrate stage cells into business table rows from Phase 3 in src/app/business/page.tsx
-- [ ] T039 [US2] Add progress tab content to business detail panel (full stage view with all blocks) in src/components/business-table/business-detail-panel.tsx
+- [x] T031 [P] [US2] Create ProgressItem API routes (GET by business grouped by stage, POST create, PUT update, POST move to different stage, DELETE) in src/app/api/businesses/[businessId]/progress-items/route.ts and src/app/api/progress-items/[id]/route.ts
+- [x] T032 [P] [US2] Create React Query hooks for progress items (useProgressItems, useCreateProgressItem, useMoveProgressItem) in src/hooks/use-progress-items.ts
+- [x] T033 [US2] Create progress stage cell component with mini-blocks, "+N more" overflow, and add-block button in src/components/progress-blocks/stage-cell.tsx
+- [x] T034 [US2] Create mini-block component (content preview, author, date, click to expand) in src/components/progress-blocks/mini-block.tsx
+- [x] T035 [US2] Implement dnd-kit drag-and-drop for reordering blocks within a stage and moving between stages (same business row only) in src/components/progress-blocks/dnd-context.tsx
+- [x] T036 [US2] Create mobile stage-move menu (action sheet with stage list instead of drag) in src/components/progress-blocks/mobile-stage-menu.tsx
+- [x] T037 [US2] Create progress block detail popover/modal (full content, edit, version history link) in src/components/progress-blocks/block-detail.tsx
+- [x] T038 [US2] Integrate stage cells into business table rows from Phase 3 in src/app/business/page.tsx
+- [x] T039 [US2] Add progress tab content to business detail panel (full stage view with all blocks) in src/components/business-table/business-detail-panel.tsx
 
 **Checkpoint**: Progress blocks can be created, reordered, moved between stages with audit trail
 
@@ -112,16 +112,16 @@
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Create WeeklyCycle API routes (GET list, GET current, auto-create current week) in src/app/api/weekly-cycles/route.ts
-- [ ] T041 [P] [US3] Create WeeklyAction API routes (GET list with cycle/company/status filters, POST create, PUT update with lock_version, POST archive, POST restore) in src/app/api/weekly-actions/route.ts and src/app/api/weekly-actions/[id]/route.ts
-- [ ] T042 [P] [US3] Create React Query hooks for weekly cycles and actions (useWeeklyCycles, useCurrentCycle, useWeeklyActions, useCreateWeeklyAction, useUpdateWeeklyAction) in src/hooks/use-weekly-actions.ts
-- [ ] T043 [US3] Create Weekly Meeting page with week selector, company-grouped action list, status filters, and add-action button in src/app/weekly/page.tsx
-- [ ] T044 [US3] Create weekly action card component (content, assignee, status badge, priority indicator, carryover badge, inline edit) in src/components/weekly-meeting/action-card.tsx
-- [ ] T045 [US3] Create new weekly action dialog (company selector, optional business link, content, assignee, priority, status) in src/components/weekly-meeting/new-action-dialog.tsx
-- [ ] T046 [US3] Create inline status change dropdown (Scheduled → In-Progress → Completed / On-Hold) in src/components/weekly-meeting/status-dropdown.tsx
-- [ ] T047 [US3] Create inline assignee change component for weekly actions in src/components/weekly-meeting/assignee-picker.tsx
-- [ ] T048 [US3] Add weekly actions tab to business detail panel (list actions for this business, create new) in src/components/business-table/business-detail-panel.tsx
-- [ ] T049 [US3] Add bulk assignee change API endpoint in src/app/api/bulk/assign/route.ts
+- [x] T040 [P] [US3] Create WeeklyCycle API routes (GET list, GET current, auto-create current week) in src/app/api/weekly-cycles/route.ts
+- [x] T041 [P] [US3] Create WeeklyAction API routes (GET list with cycle/company/status filters, POST create, PUT update with lock_version, POST archive, POST restore) in src/app/api/weekly-actions/route.ts and src/app/api/weekly-actions/[id]/route.ts
+- [x] T042 [P] [US3] Create React Query hooks for weekly cycles and actions (useWeeklyCycles, useCurrentCycle, useWeeklyActions, useCreateWeeklyAction, useUpdateWeeklyAction, useWeeklyActionsMultiCycle) in src/hooks/use-weekly-actions.ts
+- [x] T043 [US3] Create Weekly Meeting page with week selector, company-grouped action list, status filters, and add-action button in src/app/weekly/page.tsx
+- [x] T044 [US3] Create weekly action card component (content, assignee, status badge, priority indicator, carryover badge, inline edit) in src/components/weekly-meeting/action-card.tsx
+- [x] T045 [US3] Create new weekly action dialog (company selector, optional business link, content, assignee, priority, status) in src/components/weekly-meeting/new-action-dialog.tsx
+- [x] T046 [US3] Create inline status change dropdown (Scheduled → In-Progress → Completed / On-Hold) in src/components/weekly-meeting/status-dropdown.tsx
+- [x] T047 [US3] Create inline assignee change component for weekly actions in src/components/weekly-meeting/assignee-picker.tsx
+- [x] T048 [US3] Add weekly actions tab to business detail panel (list actions for this business, create new) in src/components/business-table/business-detail-panel.tsx
+- [x] T049 [US3] Add bulk assignee change API endpoint in src/app/api/bulk/assign/route.ts
 
 **Checkpoint**: Weekly actions CRUD complete, linked to companies/businesses, visible in both screens
 
@@ -135,12 +135,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T050 [P] [US4] Create carryover API endpoints (GET candidates from source week, POST selective carryover, POST bulk carryover) in src/app/api/weekly-actions/carryover/route.ts
-- [ ] T051 [US4] Create carryover dialog component (candidate list with checkboxes, select all, carry over button, skip/complete/hold actions for already-done items) in src/components/weekly-meeting/carryover-dialog.tsx
-- [ ] T052 [US4] Create carryover badge component (shows carryover count, click to view origin chain) in src/components/weekly-meeting/carryover-badge.tsx
-- [ ] T053 [US4] Add duplicate carryover prevention logic (check UNIQUE constraint on carried_from_id + cycle_id, show warning) in src/app/api/weekly-actions/carryover/route.ts
-- [ ] T054 [US4] Add week-end convenience actions to Weekly Meeting (batch complete, batch hold, batch carryover) in src/components/weekly-meeting/week-end-actions.tsx
-- [ ] T055 [US4] Integrate carryover entry point into Weekly Meeting page toolbar and weekly cycle navigation in src/app/weekly/page.tsx
+- [x] T050 [P] [US4] Create carryover API endpoints (GET candidates from source week, POST selective carryover, POST bulk carryover) in src/app/api/weekly-actions/carryover/route.ts
+- [ ] T051 [US4] Create carryover dialog component (candidate list with checkboxes, select all, carry over button) in src/components/weekly-meeting/carryover-dialog.tsx (미구현 — 별도 컴포넌트 없음)
+- [ ] T052 [US4] Create carryover badge component in src/components/weekly-meeting/carryover-badge.tsx (미구현 — action-card.tsx 내부 인라인 처리)
+- [x] T053 [US4] Add duplicate carryover prevention logic (check UNIQUE constraint on carried_from_id + cycle_id, show warning) in src/app/api/weekly-actions/carryover/route.ts
+- [ ] T054 [US4] Add week-end convenience actions to Weekly Meeting in src/components/weekly-meeting/week-end-actions.tsx (미구현)
+- [x] T055 [US4] Integrate carryover entry point into Weekly Meeting page toolbar and weekly cycle navigation in src/app/weekly/page.tsx
 
 **Checkpoint**: Carryover works with copy semantics, badges show, originals preserved — P1 MVP complete
 
@@ -168,12 +168,12 @@
 
 ### Implementation for User Story 6
 
-- [ ] T061 [P] [US6] Create search API endpoint (PostgreSQL full-text search across companies, aliases, businesses, progress items, weekly actions, notes; results grouped by type) in src/app/api/search/route.ts
-- [ ] T062 [US6] Create global search overlay/command palette component (input, grouped results, keyboard navigation) in src/components/search/search-overlay.tsx
-- [ ] T063 [US6] Create search result card components per entity type (company, business, progress item, action, note) with key-company indicator in src/components/search/search-result-cards.tsx
-- [ ] T064 [US6] Create quick action buttons on search results (open detail, add action, move stage, change assignee, toggle key company, add memo) in src/components/search/quick-actions.tsx
-- [ ] T065 [US6] Create mobile action sheet for search result quick actions (long-press trigger) in src/components/search/mobile-action-sheet.tsx
-- [ ] T066 [US6] Integrate global search into layout header (Ctrl+K shortcut, search icon) in src/app/layout.tsx
+- [x] T061 [P] [US6] Create search API endpoint (PostgreSQL full-text search across companies, aliases, businesses, progress items, weekly actions, notes; results grouped by type) in src/app/api/search/route.ts
+- [x] T062 [US6] Create global search overlay/command palette component (input, grouped results, keyboard navigation) in src/components/search/search-overlay.tsx
+- [ ] T063 [US6] Create search result card components per entity type with key-company indicator in src/components/search/search-result-cards.tsx (미구현 — search-overlay.tsx 내부 인라인)
+- [ ] T064 [US6] Create quick action buttons on search results in src/components/search/quick-actions.tsx (미구현)
+- [ ] T065 [US6] Create mobile action sheet for search result quick actions in src/components/search/mobile-action-sheet.tsx (미구현)
+- [x] T066 [US6] Integrate global search into layout header (Ctrl+K shortcut, search icon) in src/app/layout.tsx
 
 **Checkpoint**: Search works across all entities, quick actions function inline
 
@@ -187,14 +187,14 @@
 
 ### Implementation for User Story 9
 
-- [ ] T067 [P] [US9] Create audit log API routes (GET list with entity_type/entity_id/date filters, pagination) in src/app/api/audit-logs/route.ts
-- [ ] T068 [P] [US9] Create recent views API routes (GET list, POST record view) in src/app/api/recent-views/route.ts
-- [ ] T069 [P] [US9] Create React Query hooks for audit logs and recent views in src/hooks/use-activity.ts
-- [ ] T070 [US9] Create Home page with sections: key companies, this week's incomplete actions, carried-over actions, activity feed, quick actions in src/app/page.tsx
-- [ ] T071 [US9] Create unified activity feed component (combined change log + recent views, filter: All/Changes/My Views) in src/components/home/activity-feed.tsx
-- [ ] T072 [US9] Create key companies summary card (list with quick links) in src/components/home/key-companies-card.tsx
-- [ ] T073 [US9] Create incomplete actions summary card (this week's unfinished, carried-over count) in src/components/home/incomplete-actions-card.tsx
-- [ ] T074 [US9] Add automatic recent-view tracking when opening business detail or weekly action in src/components/business-table/business-detail-panel.tsx
+- [x] T067 [P] [US9] Create audit log API routes (GET list with entity_type/entity_id/date filters, pagination) in src/app/api/audit-logs/route.ts
+- [x] T068 [P] [US9] Create recent views API routes (GET list, POST record view) in src/app/api/recent-views/route.ts
+- [x] T069 [P] [US9] Create React Query hooks for audit logs and recent views in src/hooks/use-activity.ts
+- [x] T070 [US9] Create Home page with sections: key companies, this week's incomplete actions, carried-over actions, activity feed, quick actions in src/app/page.tsx
+- [x] T071 [US9] Create unified activity feed component (combined change log + recent views, filter: All/Changes/My Views) in src/components/home/activity-feed.tsx
+- [x] T072 [US9] Create key companies summary card (list with quick links) in src/components/home/key-companies-card.tsx
+- [x] T073 [US9] Create incomplete actions summary card (this week's unfinished, carried-over count) in src/components/home/incomplete-actions-card.tsx
+- [x] T074 [US9] Add automatic recent-view tracking when opening business detail or weekly action in src/components/business-table/business-detail-panel.tsx
 
 **Checkpoint**: Home screen shows operational overview, activity feed works with filters
 
@@ -240,12 +240,12 @@
 
 ### Implementation for User Story 8
 
-- [ ] T085 [P] [US8] Create version API routes (GET list by entity, GET single version, GET diff between two versions, POST restore from version) in src/app/api/versions/route.ts
-- [ ] T086 [P] [US8] Create React Query hooks for versions (useVersions, useVersionDiff, useRestoreVersion) in src/hooks/use-versions.ts
-- [ ] T087 [US8] Create version history panel component (version list with timestamps/authors, click to select for comparison) in src/components/version-diff/version-history-panel.tsx
-- [ ] T088 [US8] Create JSON diff view component (side-by-side or inline diff of two JSONB snapshots, highlight added/removed/changed fields) in src/components/version-diff/diff-view.tsx
-- [ ] T089 [US8] Create restore confirmation dialog (preview restored state, confirm creates new version) in src/components/version-diff/restore-dialog.tsx
-- [ ] T090 [US8] Integrate version history access into business detail panel Log/Version tab and weekly action detail in src/components/business-table/business-detail-panel.tsx
+- [x] T085 [P] [US8] Create version API routes (GET list by entity, GET single version, GET diff between two versions, POST restore from version) in src/app/api/versions/route.ts
+- [x] T086 [P] [US8] Create React Query hooks for versions (useVersions, useVersionDiff, useRestoreVersion) in src/hooks/use-versions.ts
+- [x] T087 [US8] Create version history panel component (version list with timestamps/authors, click to select for comparison) in src/components/version-diff/version-history-panel.tsx
+- [x] T088 [US8] Create JSON diff view component (side-by-side or inline diff of two JSONB snapshots, highlight added/removed/changed fields) in src/components/version-diff/diff-view.tsx
+- [ ] T089 [US8] Create restore confirmation dialog in src/components/version-diff/restore-dialog.tsx (미구현 — 복원은 version-history-panel 내 인라인 처리)
+- [x] T090 [US8] Integrate version history access into business detail panel Log/Version tab and weekly action detail in src/components/business-table/business-detail-panel.tsx
 
 **Checkpoint**: Version history, diff view, and restore-as-new all functional
 
@@ -259,12 +259,12 @@
 
 ### Implementation for User Story 11
 
-- [ ] T091 [US11] Create admin page layout with navigation (Users, Company Merge, Audit Logs, Settings) in src/app/admin/layout.tsx
-- [ ] T092 [P] [US11] Create admin user management page (list users, approve/reject pending, change roles) in src/app/admin/users/page.tsx
-- [ ] T093 [P] [US11] Create admin user API routes (GET list, PUT update role/status) in src/app/api/admin/users/route.ts
-- [ ] T094 [P] [US11] Create admin settings page (Google login policy placeholder, allowed domains, default home screen, Excel filename rules) in src/app/admin/settings/page.tsx
-- [ ] T095 [P] [US11] Create admin settings API routes (GET settings, PUT settings) in src/app/api/admin/settings/route.ts
-- [ ] T096 [US11] Create admin audit log viewer page (full log list with entity/action/date/actor filters, pagination) in src/app/admin/logs/page.tsx
+- [x] T091 [US11] Create admin page layout with navigation (Users, Audit Logs, Settings, Checkpoints) in src/app/admin/layout.tsx
+- [x] T092 [P] [US11] Create admin user management page (list users, approve/reject pending, change roles) in src/app/admin/users/page.tsx
+- [x] T093 [P] [US11] Create admin user API routes (GET list, PUT update role/status) in src/app/api/admin/users/route.ts
+- [x] T094 [P] [US11] Create admin settings page (Google login policy, allowed domains, default home screen, Excel filename rules) in src/app/admin/settings/page.tsx
+- [x] T095 [P] [US11] Create admin settings API routes (GET settings, PUT settings) in src/app/api/admin/settings/route.ts
+- [x] T096 [US11] Create admin audit log viewer page (full log list with entity/action/date/actor filters, pagination) in src/app/admin/logs/page.tsx
 
 **Checkpoint**: Admin screens ready, auth integration can be added via NextAuth.js without refactor
 
@@ -274,11 +274,11 @@
 
 **Purpose**: Internal notes used by US1, US3, US5, US6, US9 — built as shared module
 
-- [ ] T097 [P] Create InternalNote API routes (GET by owner_type+owner_id with tag filter, POST create, PUT update with lock_version) in src/app/api/notes/route.ts
-- [ ] T098 Create notes timeline component (chronological list with tag badges, inline preview, add-note form) in src/components/notes/notes-timeline.tsx
-- [ ] T099 Integrate notes into business detail panel (Internal Notes tab) in src/components/business-table/business-detail-panel.tsx
-- [ ] T100 Integrate notes into weekly action detail (expandable notes section) in src/components/weekly-meeting/action-card.tsx
-- [ ] T101 Integrate notes into company detail (notes section on company group expand) in src/components/business-table/company-group-row.tsx
+- [x] T097 [P] Create InternalNote API routes (GET by owner_type+owner_id with tag filter, POST create, PUT update with lock_version) in src/app/api/notes/route.ts
+- [x] T098 Create notes timeline component (chronological list with tag badges, inline preview, add-note form) in src/components/notes/notes-timeline.tsx
+- [x] T099 Integrate notes into business detail panel (Internal Notes tab) in src/components/business-table/business-detail-panel.tsx
+- [x] T100 Integrate notes into weekly action detail (expandable notes section) in src/components/weekly-meeting/action-card.tsx
+- [ ] T101 Integrate notes into company detail (notes section on company group expand) in src/components/business-table/company-group-row.tsx (미구현)
 
 **Checkpoint**: Notes attachable to Company, Business, and WeeklyAction with timeline view
 
@@ -288,13 +288,13 @@
 
 **Purpose**: Dark mode, responsive, archive/restore, performance
 
-- [ ] T102 [P] Implement dark mode consistent styling across all screens (verify status badges, priority indicators meet WCAG AA contrast) in src/app/globals.css
-- [ ] T103 [P] Implement mobile responsive layout: Business Management (card/accordion), Weekly Meeting (company card + action list), detail (full-screen overlay), floating action button in src/app/business/page.tsx and src/app/weekly/page.tsx
-- [ ] T104 [P] Implement tablet responsive layout: condensed table columns, overlay detail panel, drawer filters in src/app/business/page.tsx and src/app/weekly/page.tsx
-- [ ] T105 [P] Create archive/restore UI components (archive button with confirmation, "Show Archived" toggle, restore button) in src/components/ui/archive-restore.tsx
+- [x] T102 [P] Implement dark mode consistent styling across all screens (verify status badges, priority indicators meet WCAG AA contrast) in src/app/globals.css
+- [ ] T103 [P] Implement mobile responsive layout: Business Management (card/accordion), Weekly Meeting (company card + action list), detail (full-screen overlay), floating action button (부분 구현)
+- [ ] T104 [P] Implement tablet responsive layout: condensed table columns, overlay detail panel, drawer filters (부분 구현)
+- [ ] T105 [P] Create archive/restore UI components as shared component in src/components/ui/archive-restore.tsx (미구현 — 각 페이지 인라인 처리)
 - [x] T106 [P] Add sort order drag-and-drop for company groups in Business Management (DndContext + SortableContext + drag handle on company header, PUT /api/companies/reorder batch endpoint) in src/app/business/page.tsx and src/app/api/companies/reorder/route.ts
-- [ ] T107 Add quick action floating button for mobile (context-sensitive: new company, new business, new action) in src/components/ui/mobile-fab.tsx
-- [ ] T108 Performance optimization: add PostgreSQL indexes per data-model.md, add TanStack Table virtual scrolling for large datasets in src/app/business/page.tsx
+- [ ] T107 Add quick action floating button for mobile in src/components/ui/mobile-fab.tsx (미구현)
+- [ ] T108 Performance optimization: add PostgreSQL indexes per data-model.md, add TanStack Table virtual scrolling for large datasets (부분 구현 — 인덱스는 schema에 정의됨)
 - [ ] T109 Run quickstart.md validation (all 7 verification steps pass end-to-end)
 
 ---
@@ -360,6 +360,57 @@
 - [x] T144 Increase border color contrast (--border: #d0d0d0 light, #333333 dark) in src/app/globals.css
 - [x] T145 Add weekly action card delete button (hover, confirm, archive) in src/app/weekly/page.tsx
 - [x] T146 Remove empty-cell click-to-create behavior in weekly meeting in src/app/weekly/page.tsx
+
+---
+
+## Phase 19: Authentication Implementation (Post-Phase 18)
+
+**Purpose**: Google OAuth + 공유 비밀번호 인증, 미들웨어 라우트 보호, 어드민 승인 플로우
+
+### Completed Tasks
+
+- [x] T147 NextAuth 5 설치 및 설정 (Google OAuth + Credentials 두 provider) in src/lib/auth.ts
+- [x] T148 PrismaAdapter + JWT 세션 전략, 역할/상태 토큰 클레임 in src/lib/auth.ts
+- [x] T149 Next.js 미들웨어 라우트 보호 (pending → /pending, 미인증 → /login) in src/middleware.ts
+- [x] T150 /login 로그인 페이지 구현 in src/app/login/page.tsx
+- [x] T151 /pending 승인 대기 페이지 구현 in src/app/pending/page.tsx
+- [x] T152 /privacy 개인정보 처리방침 페이지 in src/app/privacy/page.tsx
+- [x] T153 /admin-unlock 관리자 언락 페이지 in src/app/admin-unlock/page.tsx
+- [x] T154 [P] 어드민 언락 유틸리티 in src/lib/admin-unlock.ts
+- [x] T155 [P] NextAuth API route handler in src/app/api/auth/[...nextauth]/route.ts
+- [x] T156 공유 사용자 잠금 게이트 — 체크포인트 API/UI에 shared user 접근 차단 적용
+
+---
+
+## Phase 20: Checkpoint System (Post-Phase 18)
+
+**Purpose**: 전체 데이터 JSONB 스냅샷 백업/복원 시스템
+
+### Completed Tasks
+
+- [x] T157 WeeklyCheckpoint Prisma 모델 추가 (createdAt, data JSONB, note) in prisma/schema.prisma
+- [x] T158 체크포인트 유틸리티 (createCheckpoint, restoreCheckpoint) in src/lib/checkpoint.ts
+- [x] T159 체크포인트 cron API (자동 생성) in src/app/api/cron/checkpoint/route.ts
+- [x] T160 어드민 체크포인트 관리 페이지 (목록, 생성, 복원) in src/app/admin/checkpoints/page.tsx
+- [x] T161 버전 언락 기능 (version-unlock-store, version-unlock-modal) in src/lib/version-unlock.ts, src/stores/version-unlock-store.ts, src/components/version-unlock-modal.tsx
+
+---
+
+## Phase 21: Visual Polish (design/visual-polish branch)
+
+**Purpose**: 디자인 토큰 통일, 컴포넌트 정제, 상호작용 개선
+
+### Completed Tasks
+
+- [x] T162 직접 박힌 Tailwind 색상 클래스를 CSS 변수 토큰으로 교체 in src/app/globals.css 및 전체 컴포넌트
+- [x] T163 Button 공유 컴포넌트 생성 in src/components/ui/button.tsx
+- [x] T164 EmptyState 공유 컴포넌트 생성 in src/components/ui/empty-state.tsx
+- [x] T165 시각 정제 1차 — 굵기·스트라이프·그림자·hover·focus 스타일 개선
+- [x] T166 시각 정제 2차 — Button/EmptyState 컴포넌트 적용 및 추가 UI 정제
+- [x] T167 주간회의 + 추가 버튼 호버 시에만 표시
+- [x] T168 액션 카드 강조 스타일 (hover 시 카드 하이라이트)
+- [x] T169 Inline editor 컴포넌트 in src/components/editor/inline-editor.tsx
+- [x] T170 TopNav 컴포넌트 분리 in src/components/layout/top-nav.tsx
 
 ---
 
@@ -449,4 +500,4 @@ After Phase 2 (Foundational) completes:
 - Each user story should be independently completable and testable
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
-- Total tasks: 118
+- Total tasks: 170 (Phase 18까지 146, Phase 19–21에서 24 추가)

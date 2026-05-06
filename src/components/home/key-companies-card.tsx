@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Company } from "@/types";
 
 interface KeyCompaniesCardProps {
@@ -16,13 +17,13 @@ export function KeyCompaniesCard({ companies }: KeyCompaniesCardProps) {
       <h2 className="text-sm font-bold mb-3">★ 중요기업</h2>
       <div className="flex flex-wrap gap-2">
         {keyCompanies.map((c) => (
-          <a
+          <Link
             key={c.id}
-            href="/business"
+            href={`/business?company=${c.id}`}
             className="rounded-md bg-[var(--priority-medium)]/10 px-3 py-1.5 text-sm font-medium text-[var(--priority-medium)] hover:bg-[var(--priority-medium)]/20 transition-colors"
           >
             {c.canonicalName}
-          </a>
+          </Link>
         ))}
       </div>
     </div>

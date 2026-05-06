@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { VALID_ROLES, VALID_STATUSES, isValidRole, isValidStatus } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
@@ -76,6 +76,7 @@ export async function PUT(request: NextRequest) {
       entityType: "user",
       entityId: id,
       action: "role_change",
+      ip: getClientIp(request),
       changes: { before: { role: current.role }, after: { role } },
     });
   }
@@ -85,6 +86,7 @@ export async function PUT(request: NextRequest) {
       entityType: "user",
       entityId: id,
       action: "status_change",
+      ip: getClientIp(request),
       changes: { before: { status: current.status }, after: { status } },
     });
   }

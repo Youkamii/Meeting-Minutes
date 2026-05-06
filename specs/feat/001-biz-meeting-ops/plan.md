@@ -1,6 +1,6 @@
 # Implementation Plan: Business Management & Weekly Meeting Ops
 
-**Branch**: `feat/001-biz-meeting-ops` | **Date**: 2026-03-18 | **Spec**: [spec.md](spec.md)
+**Branch**: `feat/001-biz-meeting-ops` → merged to `master` | **Date**: 2026-03-18 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/feat/001-biz-meeting-ops/spec.md`
 
 ## Summary
@@ -9,18 +9,18 @@ Replace Excel-based business management and weekly meeting workflows with
 a fullstack web application. The service provides an Excel-like table for
 pipeline tracking (Business Management), a weekly-cycle-centric action
 manager (Weekly Meeting), audit logging, version history, conflict
-detection, meeting mode, global search with quick actions, and Excel
-download. Built as a Next.js monorepo with React frontend, API routes
-backend, PostgreSQL database, and Prisma ORM.
+detection, global search, Excel download, Google OAuth + 공유 비밀번호 인증,
+주간 체크포인트 시스템. Built as a Next.js monorepo with React frontend,
+API routes backend, PostgreSQL database, and Prisma ORM.
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x (Node.js 20+)
-**Primary Dependencies**: Next.js (App Router), React 18, TanStack Table,
-TanStack Query, Zustand, shadcn/ui, Tailwind CSS v4, dnd-kit, Prisma,
-ExcelJS, React Hook Form, Zod, next-themes
+**Primary Dependencies**: Next.js 16 (App Router), React 19, TanStack Table,
+TanStack Query, Zustand, Tailwind CSS v4, dnd-kit, Prisma 7, ExcelJS,
+React Hook Form, Zod, next-themes, NextAuth 5, Tiptap 3
 **Storage**: PostgreSQL 15+
-**Testing**: Vitest (unit), Playwright (E2E)
+**Testing**: 없음 (테스트 스위트 미구성)
 **Target Platform**: Web (desktop, tablet, mobile responsive)
 **Project Type**: Fullstack web application (Next.js monorepo)
 **Performance Goals**: API p95 ≤ 200ms, page load ≤ 2s, search ≤ 1s
@@ -68,8 +68,13 @@ src/
 │   ├── page.tsx            # Home / Activity Center
 │   ├── business/           # Business Management screens
 │   ├── weekly/             # Weekly Meeting screens
-│   ├── admin/              # Admin screens
+│   ├── admin/              # Admin screens (users, logs, settings, checkpoints, merge)
+│   ├── login/              # 로그인 페이지
+│   ├── pending/            # 승인 대기 페이지
+│   ├── privacy/            # 개인정보 처리방침
+│   ├── admin-unlock/       # 관리자 언락
 │   ├── api/                # REST API Routes
+│   │   ├── auth/           # NextAuth 핸들러
 │   │   ├── companies/
 │   │   ├── businesses/
 │   │   ├── progress-items/
@@ -82,24 +87,35 @@ src/
 │   │   ├── export/
 │   │   ├── bulk/
 │   │   ├── recent-views/
-│   │   └── admin/
+│   │   ├── admin/
+│   │   └── cron/           # 정기 체크포인트 cron
 │   └── layout.tsx          # Root layout (nav, dark mode)
 ├── components/
-│   ├── ui/                 # shadcn/ui base components
+│   ├── ui/                 # 기본 UI 컴포넌트 (button, empty-state)
+│   ├── layout/             # top-nav.tsx
 │   ├── business-table/     # TanStack Table for Business Mgmt
 │   ├── progress-blocks/    # dnd-kit progress stage blocks
 │   ├── weekly-meeting/     # Weekly Meeting components
-│   ├── meeting-mode/       # Meeting Mode (removed 2026-04-03, meeting-action-card.tsx remains)
-│   ├── search/             # Global search + quick actions
+│   ├── meeting-mode/       # ⚠ 제거됨 (2026-04-03) — meeting-action-card.tsx 잔류
+│   ├── home/               # activity-feed, key-companies-card, incomplete-actions-card
+│   ├── export/             # excel-download-dialog
+│   ├── editor/             # inline-editor (Tiptap)
+│   ├── search/             # Global search overlay
 │   ├── notes/              # Internal notes timeline
 │   ├── version-diff/       # Version comparison UI
-│   └── conflict-dialog/    # Conflict resolution modal
+│   ├── conflict-dialog/    # Conflict resolution modal
+│   └── version-unlock-modal.tsx
 ├── lib/
 │   ├── prisma.ts           # Prisma client singleton
+│   ├── auth.ts             # NextAuth 설정 (Google OAuth + Credentials)
 │   ├── audit.ts            # Audit logging helper
 │   ├── version.ts          # Version snapshot helper
+│   ├── version-unlock.ts   # Version unlock utility
 │   ├── conflict.ts         # Optimistic locking helper
+│   ├── checkpoint.ts       # 체크포인트 백업/복원
+│   ├── admin-unlock.ts     # Admin unlock utility
 │   ├── excel.ts            # ExcelJS export helpers
+│   ├── fetch.ts            # Custom fetch wrapper
 │   └── weekly-cycle.ts     # ISO 8601 week utilities
 ├── hooks/                  # React Query hooks
 ├── stores/                 # Zustand stores
@@ -109,11 +125,6 @@ prisma/
 ├── schema.prisma
 ├── migrations/
 └── seed.ts
-
-tests/
-├── unit/
-├── integration/
-└── e2e/
 ```
 
 **Structure Decision**: Single Next.js monorepo. Frontend and backend
@@ -139,7 +150,7 @@ See [research.md](research.md) for full technology research and decisions.
 - Notes: polymorphic (owner_type + owner_id)
 - Carryover: copy semantics with carried_from_id + denormalized count
 - Excel: ExcelJS
-- Auth (future): NextAuth.js + Google OAuth
+- Auth: NextAuth 5 + Google OAuth + APP_PASSWORD Credentials (구현 완료)
 
 ## Phase 1 Output
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -57,6 +58,19 @@ function SortableCompanyGroup({
 }
 
 export default function BusinessManagementPage() {
+  return (
+    <Suspense>
+      <BusinessManagementContent />
+    </Suspense>
+  );
+}
+
+function BusinessManagementContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const scrollToCompanyId = searchParams.get("company");
+  const [highlightCompanyId, setHighlightCompanyId] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [showKeyOnly, setShowKeyOnly] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
@@ -218,6 +232,26 @@ export default function BusinessManagementPage() {
   }, [companies, businesses]);
 
   const isLoading = companiesLoading || businessesLoading;
+
+  // Scroll to company from query param (?company=id)
+  // URL에서 query를 즉시 제거하므로 동일 effect가 두 번 실행될 일이 없어 ref 가드 불필요.
+  useEffect(() => {
+    if (!scrollToCompanyId || isLoading) return;
+    const scrollTimer = setTimeout(() => {
+      const el = document.querySelector(`[data-company-id="${scrollToCompanyId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        setHighlightCompanyId(scrollToCompanyId);
+        router.replace("/business", { scroll: false });
+      }
+    }, 100);
+    // 하이라이트 표시 시간 (transition duration 700ms × 3 = 2100ms — 진입 강조 시간 확보)
+    const highlightTimer = setTimeout(() => setHighlightCompanyId(null), 2100);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(highlightTimer);
+    };
+  }, [scrollToCompanyId, isLoading, router]);
 
   // DnD for company reordering
   const reorderCompanies = useReorderCompanies();
@@ -397,6 +431,7 @@ export default function BusinessManagementPage() {
                       company={company}
                       businessCount={bizList.length}
                       dragHandleProps={dragHandleProps}
+                      highlighted={highlightCompanyId === company.id}
                     >
                       {bizList.length === 0 && (
                         <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
