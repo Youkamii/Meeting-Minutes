@@ -141,11 +141,11 @@ export function BusinessDetailPanel({
     <>
     {/* Backdrop — click outside to save and close */}
     <div className="fixed inset-0 z-40" onClick={handleClose} />
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl">
+    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] elevation-panel">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          <h2 className={`text-lg font-bold truncate ${visibility === "private" && embargoName ? "text-[var(--destructive)]" : ""}`}>
+          <h2 className={`text-lg font-semibold truncate ${visibility === "private" && embargoName ? "text-[var(--destructive)]" : ""}`}>
             {headerName}
           </h2>
           {companyLabel && (
@@ -344,7 +344,7 @@ export function BusinessDetailPanel({
           <div className="space-y-6">
             <VersionHistoryPanel entityType="business" entityId={businessId} />
             <div>
-              <h3 className="text-sm font-bold mb-2">감사 로그</h3>
+              <h3 className="text-sm font-semibold mb-2">감사 로그</h3>
               {logs.length === 0 ? (
                 <p className="text-sm text-[var(--muted-foreground)]">로그가 없습니다.</p>
               ) : (

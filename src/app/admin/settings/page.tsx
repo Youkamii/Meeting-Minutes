@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
   const [weekStart, setWeekStart] = useState("monday");
@@ -19,7 +20,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">설정</h1>
+      <h1 className="mb-4 text-lg font-semibold">설정</h1>
 
       <div className="max-w-md space-y-4">
         <div>
@@ -48,12 +49,9 @@ export default function SettingsPage() {
           </select>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90"
-        >
+        <Button variant="primary" onClick={handleSave}>
           설정 저장
-        </button>
+        </Button>
 
         {saved && (
           <p className="text-sm text-[var(--status-completed)]">설정이 저장되었습니다 (임시).</p>

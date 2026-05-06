@@ -65,8 +65,8 @@ export function ConflictDialog({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
       onClick={handleBackdropClick}
     >
-      <div className="mx-4 w-full max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 shadow-xl">
-        <h2 className="text-lg font-bold">충돌 감지</h2>
+      <div className="mx-4 w-full max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--background)] p-6 elevation-modal">
+        <h2 className="text-lg font-semibold">충돌 감지</h2>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           이 레코드가 다른 사용자에 의해 수정되었습니다. 아래에서 변경사항을 비교하세요.
         </p>

@@ -36,7 +36,7 @@ function UnlockForm() {
       onSubmit={submit}
       className="mx-auto mt-20 max-w-sm space-y-3 rounded-md border border-[var(--border)] bg-[var(--card)] p-6"
     >
-      <h1 className="text-lg font-bold">관리자 모드</h1>
+      <h1 className="text-lg font-semibold">관리자 모드</h1>
       <p className="text-xs text-[var(--muted-foreground)]">
         관리자 기능에 접근하려면 비밀번호를 입력하세요.
       </p>

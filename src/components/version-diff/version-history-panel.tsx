@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useVersions } from "@/hooks/use-versions";
 import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 import type { Version } from "@/types";
-
-const PASSWORD_USER_ID = "password-shared-user";
 
 interface VersionHistoryPanelProps {
   entityType: string;
@@ -54,7 +54,7 @@ export function VersionHistoryPanel({
   if (locked) {
     return (
       <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 text-center">
-        <h3 className="mb-2 text-sm font-bold">버전 히스토리 🔒</h3>
+        <h3 className="mb-2 text-sm font-semibold">버전 히스토리 🔒</h3>
         <p className="text-xs text-[var(--muted-foreground)]">
           공유 사용자는 버전 관리 기능이 잠겨 있습니다.
         </p>
@@ -65,7 +65,7 @@ export function VersionHistoryPanel({
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold">버전 히스토리</h3>
+        <h3 className="text-sm font-semibold">버전 히스토리</h3>
         <button
           onClick={() => {
             setCompareMode(!compareMode);
@@ -112,9 +112,12 @@ export function VersionHistoryPanel({
       </div>
 
       {versions.length === 0 && !isLoading && (
-        <p className="text-sm text-[var(--muted-foreground)]">
-          버전이 없습니다.
-        </p>
+        <EmptyState
+          compact
+          icon="🕒"
+          title="버전 기록 없음"
+          description="이 항목은 아직 변경 이력이 없습니다."
+        />
       )}
 
       {compareMode && selectedIds.length === 2 && (

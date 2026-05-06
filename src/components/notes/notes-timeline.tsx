@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { InternalNote, NoteTag } from "@/types";
 
 interface NotesTimelineProps {
@@ -52,7 +53,7 @@ export function NotesTimeline({
         onSubmit={handleSubmit}
         className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4"
       >
-        <h3 className="mb-2 text-sm font-bold">메모 추가</h3>
+        <h3 className="mb-2 text-sm font-semibold">메모 추가</h3>
         <input
           type="text"
           placeholder="제목 (선택사항)"
@@ -116,9 +117,12 @@ export function NotesTimeline({
         ))}
 
         {notes.length === 0 && (
-          <p className="text-sm text-[var(--muted-foreground)]">
-            메모가 없습니다.
-          </p>
+          <EmptyState
+            compact
+            icon="📝"
+            title="메모 없음"
+            description="위에서 첫 번째 메모를 작성해 보세요."
+          />
         )}
       </div>
     </div>

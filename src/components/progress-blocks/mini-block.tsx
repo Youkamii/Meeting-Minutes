@@ -6,13 +6,13 @@ import { useUIStore } from "@/stores/ui-store";
 import type { Stage } from "@/types";
 
 const STAGE_COLORS: Record<Stage, string> = {
-  inbound: "border-l-purple-500",
-  funnel: "border-l-blue-500",
-  pipeline: "border-l-cyan-500",
-  proposal: "border-l-yellow-500",
-  contract: "border-l-green-500",
-  build: "border-l-teal-500",
-  maintenance: "border-l-gray-500",
+  inbound: "border-l-[var(--stage-inbound)]",
+  funnel: "border-l-[var(--stage-funnel)]",
+  pipeline: "border-l-[var(--stage-pipeline)]",
+  proposal: "border-l-[var(--stage-proposal)]",
+  contract: "border-l-[var(--stage-contract)]",
+  build: "border-l-[var(--stage-build)]",
+  maintenance: "border-l-[var(--stage-maintenance)]",
 };
 
 interface MiniBlockProps {
@@ -89,7 +89,7 @@ export function MiniBlock({
         onClick?.();
       }}
       onMouseEnter={handleMouseEnter}
-      className={`cursor-pointer rounded-md border-l-2 ${STAGE_COLORS[stage]} px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
+      className={`cursor-pointer rounded-md border-l-4 ${STAGE_COLORS[stage]} px-3 py-2.5 text-sm shadow-sm hover:shadow-md transition-all ${borderClass} ${isDimmed ? "opacity-25" : ""}`}
       style={{ background: "var(--background)" }}
       title={undefined}
     >

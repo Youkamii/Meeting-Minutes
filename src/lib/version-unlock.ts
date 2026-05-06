@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 
 export const VERSION_UNLOCK_COOKIE = "version_unlock";
-const PASSWORD_USER_ID = "password-shared-user";
 
 /**
  * Returns a 403 response if the current session is the shared password user

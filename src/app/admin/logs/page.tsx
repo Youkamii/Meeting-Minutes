@@ -20,7 +20,7 @@ export default function AuditLogsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">감사 로그</h1>
+      <h1 className="mb-4 text-lg font-semibold">감사 로그</h1>
 
       <div className="mb-4 flex gap-3">
         <select

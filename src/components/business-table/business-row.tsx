@@ -62,12 +62,12 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
     <>
       <div
         data-business-id={business.id}
-        className={`flex items-stretch border-b transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-[var(--link)]" : "border-[var(--border)]"}`}
+        className={`group flex items-stretch border-b transition-all hover:bg-[var(--muted)]/40 ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-[var(--link)]" : "border-[var(--border)]"}`}
         style={{ background: "var(--background)" }}
       >
         {/* Fixed left column */}
         <div
-          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] px-4 py-3 cursor-pointer"
+          className="sticky left-0 z-[5] flex min-w-[280px] w-[280px] shrink-0 flex-col justify-center gap-0.5 border-r border-[var(--border)] sticky-shadow-r px-4 py-3 cursor-pointer"
           style={{ background: "var(--table-sidebar)" }}
           onClick={isArchived ? () => setExpanded(!expanded) : onClick}
           onDoubleClick={isArchived ? onClick : undefined}
@@ -79,7 +79,7 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
                 {expanded ? "▼" : "▶"}
               </span>
             )}
-            <span className={`text-lg font-bold truncate ${nameColorClass} ${isArchived ? "line-through text-[var(--muted-foreground)]" : ""}`}>
+            <span className={`text-lg font-semibold truncate ${nameColorClass} ${isArchived ? "line-through text-[var(--muted-foreground)]" : ""}`}>
               {displayName}
             </span>
             {isArchived && (

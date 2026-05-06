@@ -3,10 +3,9 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { getPrisma } from "@/lib/prisma";
+import { PASSWORD_USER_ID } from "@/lib/constants";
 
 const prisma = getPrisma();
-
-const PASSWORD_USER_ID = "password-shared-user";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -52,7 +52,7 @@ function MiniCalendar({ onDateClick }: { onDateClick: (day: number, month: numbe
               <button
                 onClick={() => onDateClick(day, month, year)}
                 className={`w-7 h-7 rounded-full text-xs hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-colors ${
-                  isToday(day) ? "bg-[var(--primary)]/20 font-bold" : ""
+                  isToday(day) ? "bg-[var(--primary)]/20 font-semibold" : ""
                 }`}
               >
                 {day}
@@ -137,7 +137,7 @@ function EditorToolbar({ editor }: { editor: any }) {
           className={`${btnClass(!!currentColor)} relative`}
           title="글자 색"
         >
-          <span className="text-xs font-bold">A</span>
+          <span className="text-xs font-semibold">A</span>
           <span
             className="absolute bottom-0.5 left-1 right-1 h-[3px] rounded-full"
             style={{ backgroundColor: currentColor || "var(--foreground)" }}
@@ -400,7 +400,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
     >
       <div
         ref={modalRef}
-        className="relative mx-4 flex gap-5 rounded-lg border border-[var(--border)] bg-[var(--background)] p-5 shadow-xl"
+        className="relative mx-4 flex gap-5 rounded-lg border border-[var(--border)] bg-[var(--background)] p-5 elevation-modal"
         style={{ width: size.w, height: size.h }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -474,7 +474,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
                 { label: "다음 주", items: nextWeekItems },
               ].map(({ label, items }) => (
                 <div key={label}>
-                  <h4 className="text-xs font-bold text-[var(--muted-foreground)] mb-1.5">
+                  <h4 className="text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">
                     {label}
                   </h4>
                   {items.length === 0 ? (

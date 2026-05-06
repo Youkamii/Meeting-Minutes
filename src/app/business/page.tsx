@@ -286,7 +286,7 @@ function BusinessManagementContent() {
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Toolbar */}
       <div className="shrink-0 flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
-        <h1 className="text-lg font-bold">사업관리</h1>
+        <h1 className="text-lg font-semibold">사업관리</h1>
 
         <div className="relative flex items-center gap-2">
           <input
@@ -381,7 +381,7 @@ function BusinessManagementContent() {
         <div className="w-max min-w-full">
           {/* Stage column headers */}
           {groupedData.length > 0 && (
-            <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
+            <div className="sticky top-0 z-10 flex border-b border-[var(--border)] sticky-shadow-b" style={{ background: "var(--table-header)" }}>
               <div className="sticky left-0 z-20 w-[280px] shrink-0 border-r border-[var(--border)] px-4 py-2" style={{ background: "var(--table-header)" }}>
                 <span className="text-sm font-semibold text-[var(--muted-foreground)]">
                   사업 정보

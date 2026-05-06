@@ -139,7 +139,7 @@ function DroppableStage({
               if (e.key === "Enter") handleFunnelSave();
               if (e.key === "Escape") handleFunnelCancel();
             }}
-            className="w-full border border-transparent bg-transparent px-0 py-0 text-xs font-bold font-mono text-[var(--primary)] outline-none focus:border-[var(--primary)]/30"
+            className="w-full border border-transparent bg-transparent px-0 py-0 text-xs font-semibold font-mono text-[var(--primary)] outline-none focus:border-[var(--primary)]/30"
             autoFocus
           />
         ) : (
@@ -151,9 +151,9 @@ function DroppableStage({
             }}
           >
             {funnelNo ? (
-              <span className="text-xs font-bold font-mono text-[var(--primary)]">{funnelNo}</span>
+              <span className="text-xs font-semibold font-mono text-[var(--primary)]">{funnelNo}</span>
             ) : (
-              <span className="text-xs font-bold font-mono text-transparent group-hover:text-[var(--muted-foreground)]/30 transition-colors select-none">
+              <span className="text-xs font-semibold font-mono text-transparent group-hover:text-[var(--muted-foreground)]/30 transition-colors select-none">
                 No.
               </span>
             )}

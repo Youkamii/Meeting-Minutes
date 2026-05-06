@@ -103,7 +103,7 @@ function MonthPicker({
             >
               ←
             </button>
-            <span className="text-sm font-bold">{pickerYear}년</span>
+            <span className="text-sm font-semibold">{pickerYear}년</span>
             <button
               onClick={() => setPickerYear(pickerYear + 1)}
               className="text-sm px-1 hover:bg-[var(--muted)] rounded"
@@ -181,7 +181,7 @@ function WeeklyCompanyRow({
       <div className="flex transition-colors">
         {/* Company name - sticky */}
         <div
-          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
+          className="sticky left-0 z-[5] w-[220px] shrink-0 border-r border-[var(--border)] sticky-shadow-r px-3 py-2.5 flex items-start gap-1.5 cursor-pointer"
           style={{ background: "var(--table-sidebar)" }}
           onClick={() => setExpanded(!expanded)}
         >
@@ -191,7 +191,7 @@ function WeeklyCompanyRow({
           {company.isKey && (
             <span className="text-[var(--priority-medium)] text-sm">★</span>
           )}
-          <span className="text-sm font-bold truncate">
+          <span className="text-sm font-semibold truncate">
             {company.canonicalName}
           </span>
           {!expanded && hasContent && (
@@ -221,10 +221,17 @@ function WeeklyCompanyRow({
             );
           }
 
+          const isAddingHere =
+            editingCell?.companyId === company.id &&
+            editingCell?.weekYear === w.year &&
+            editingCell?.weekNumber === w.weekNumber &&
+            !editingCell?.actionId;
+          const hasContent = cellActions.length > 0;
+
           return (
             <div
               key={wKey}
-              className="w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
+              className="group/cell w-[480px] shrink-0 border-r border-[var(--border)] px-2 py-2 flex flex-col gap-1.5 min-h-[48px]"
             >
               {cellActions.map((action) => {
                 const isEditing = editingCell?.actionId === action.id;
@@ -245,7 +252,10 @@ function WeeklyCompanyRow({
                       e.stopPropagation();
                       onStartEdit(company.id, cycleId, w.year, w.weekNumber, action);
                     }}
-                    className="group rounded bg-[var(--muted)] px-2.5 py-1.5 text-sm font-medium cursor-pointer hover:bg-[var(--accent)] transition-colors break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal"
+                    className={`group rounded-md border border-[var(--border)] border-l-4 bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--border-strong)] px-2.5 py-1.5 text-sm font-medium cursor-pointer transition-all break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal`}
+                    style={{
+                      borderLeftColor: `var(--status-${action.status.replace("_", "-")})`,
+                    }}
                   >
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <StatusBadge
@@ -276,10 +286,7 @@ function WeeklyCompanyRow({
                 );
               })}
 
-              {editingCell?.companyId === company.id &&
-               editingCell?.weekYear === w.year &&
-               editingCell?.weekNumber === w.weekNumber &&
-               !editingCell?.actionId ? (
+              {isAddingHere ? (
                 <InlineEditor
                   content=""
                   placeholder="TASK 입력..."
@@ -288,13 +295,25 @@ function WeeklyCompanyRow({
                   status={editingCell.status}
                   onStatusChange={onStatusChange}
                 />
-              ) : (
+              ) : hasContent ? (
+                /* 내용 있는 셀: 카드 아래 hover 영역 — 마우스 가져가면 + 추가 표출 */
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
                   }}
-                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                  className="add-trigger w-full rounded py-2 text-xs text-[var(--muted-foreground)] opacity-0 group-hover/cell:opacity-100 hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-opacity"
+                >
+                  + 추가
+                </button>
+              ) : (
+                /* 빈 셀: 셀 전체에 hover 시 + 추가 표출 */
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
+                  }}
+                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] opacity-0 group-hover/cell:opacity-100 hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-opacity"
                 >
                   + 추가
                 </button>
@@ -508,7 +527,7 @@ export default function WeeklyMeetingPage() {
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 border-b border-[var(--border)] px-4 py-3 shrink-0">
-        <h1 className="text-lg font-bold">주간회의</h1>
+        <h1 className="text-lg font-semibold">주간회의</h1>
 
         <MonthPicker
           year={viewYear}
@@ -547,9 +566,9 @@ export default function WeeklyMeetingPage() {
         className="flex-1 overflow-auto">
         <div className="min-w-fit">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex border-b border-[var(--border)]" style={{ background: "var(--table-header)" }}>
+          <div className="sticky top-0 z-10 flex border-b border-[var(--border)] sticky-shadow-b" style={{ background: "var(--table-header)" }}>
             <div className="sticky left-0 z-20 w-[220px] shrink-0 border-r border-[var(--border)] px-3 py-2" style={{ background: "var(--table-header)" }}>
-              <span className="text-sm font-bold text-[var(--muted-foreground)]">
+              <span className="text-sm font-semibold text-[var(--muted-foreground)]">
                 고객사
               </span>
             </div>
@@ -578,7 +597,7 @@ export default function WeeklyMeetingPage() {
                   title={collapsed ? `${label} 표시` : `${label} 숨기기`}
                 >
                   <span
-                    className={`text-sm font-bold ${isAdjacentMonth ? "text-[var(--muted-foreground)]/50" : "text-[var(--muted-foreground)]"}`}
+                    className={`text-sm font-semibold ${isAdjacentMonth ? "text-[var(--muted-foreground)]/50" : "text-[var(--muted-foreground)]"}`}
                     style={collapsed ? { writingMode: "vertical-rl", textOrientation: "mixed" } : undefined}
                   >
                     {label}

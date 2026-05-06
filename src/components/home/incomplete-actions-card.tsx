@@ -23,7 +23,7 @@ export function IncompleteActionsCard({ actions }: IncompleteActionsCardProps) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold">이번 주 액션</h2>
+        <h2 className="text-sm font-semibold">이번 주 액션</h2>
         <span className="text-xs text-[var(--muted-foreground)]">
           {incomplete.length}개 미완료
         </span>

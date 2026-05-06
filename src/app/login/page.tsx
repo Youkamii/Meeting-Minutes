@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +28,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
-      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 shadow-xl text-center">
-        <h1 className="text-2xl font-bold mb-2">회의록</h1>
+      <div className="mx-4 w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--background)] p-8 elevation-modal text-center">
+        <h1 className="text-2xl font-semibold mb-2">회의록</h1>
         <p className="text-sm text-[var(--muted-foreground)] mb-8">
           사업관리 & 주간회의 운영 시스템
         </p>
@@ -70,13 +71,15 @@ export default function LoginPage() {
             {error && (
               <p className="text-xs text-[var(--destructive)]">{error}</p>
             )}
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading || !password}
-              className="w-full rounded-md bg-[var(--primary)] px-4 py-3 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 transition-colors disabled:opacity-50"
+              className="w-full"
             >
               {loading ? "로그인 중..." : "로그인"}
-            </button>
+            </Button>
           </form>
         )}
 

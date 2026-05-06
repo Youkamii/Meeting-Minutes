@@ -53,9 +53,9 @@ export function VersionUnlockModal({ open, onClose }: Props) {
       <form
         onSubmit={submit}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm space-y-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl"
+        className="w-full max-w-sm space-y-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-6 elevation-modal"
       >
-        <h2 className="text-base font-bold">버전 관리 잠금 해제</h2>
+        <h2 className="text-base font-semibold">버전 관리 잠금 해제</h2>
         <p className="text-xs text-[var(--muted-foreground)]">
           버전 비교/복원 기능을 사용하려면 비밀번호를 입력하세요.
         </p>
