@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog, getClientIp } from "@/lib/audit";
 import { createVersionSnapshot } from "@/lib/version";
 import { STAGES, isValidStage } from "@/lib/constants";
 
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest, context: Params) {
     entityType: "progress_item",
     entityId: item.id,
     action: "create",
+    ip: getClientIp(request),
     changes: { businessId, stage, title: trimmedTitle, content: trimmedContent },
   });
 
