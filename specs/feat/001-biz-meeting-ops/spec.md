@@ -1,8 +1,8 @@
 # Feature Specification: Business Management & Weekly Meeting Integrated Operations Service
 
-**Feature Branch**: `feat/001-biz-meeting-ops`
+**Feature Branch**: `feat/001-biz-meeting-ops` → merged to `master`
 **Created**: 2026-03-18
-**Status**: Draft
+**Status**: Active (Phase 18 완료, 인증·체크포인트·시각 정제 추가 구현)
 **Input**: User description: "Business management and weekly meeting integrated operations web service replacing Excel-based workflows"
 
 ## Product Overview
@@ -47,7 +47,7 @@ The service is an internal operations tool connecting two domains:
 - No email or push notifications.
 - Roles: Admin and User only (no read-only role).
 - No real-time co-editing; conflict detection only.
-- Future authentication targets Google OAuth + admin approval flow.
+- Authentication implemented: Google OAuth + 공유 비밀번호(APP_PASSWORD) 두 가지 방식, 어드민 승인 플로우 가동 중.
 
 ### Exclusions
 
@@ -55,7 +55,6 @@ The service is an internal operations tool connecting two domains:
 - Email notifications
 - Push notifications
 - Real-time co-editing
-- Local password login
 - Read-only role
 - External calendar/email integration
 
@@ -291,26 +290,24 @@ Rich text formatting (bold, italic, color) preserved. Cards separated by
 
 ---
 
-### User Story 11 - Future Authentication Setup (Priority: P3)
+### User Story 11 - Authentication & Admin Approval (Priority: P3) — Implemented
 
-An admin manages user approval after Google OAuth login is enabled in a
-future release.
+Google OAuth + 공유 비밀번호(APP_PASSWORD) 로그인, 어드민 승인 기반 접근 제어가
+구현되어 가동 중이다.
 
-**Why this priority**: Authentication is deferred; only the extensibility
-structure matters now.
-
-**Independent Test**: Verify the data model includes user entity with status
-and role fields; verify all entities have created_by/updated_by fields.
+**구현 내용**: NextAuth 5, Google OAuth, Credentials(APP_PASSWORD), 미들웨어
+라우트 보호, `/login` · `/pending` 페이지, 어드민 사용자 관리 페이지.
 
 **Acceptance Scenarios**:
 
-1. **Given** Google OAuth is enabled (future), **When** a new user logs in,
-   **Then** their status is "pending" until an admin approves them.
-2. **Given** a user is approved, **When** they log in, **Then** they gain
-   access to all User-role features.
-3. **Given** the current version has no auth, **When** examining the data
-   model, **Then** user references (created_by, updated_by, assigned_to)
-   exist as nullable fields ready for future binding.
+1. **Given** Google OAuth가 활성화됨, **When** 신규 사용자가 로그인하면,
+   **Then** status가 "pending"이 되어 어드민 승인 전까지 `/pending`으로 리다이렉트된다.
+2. **Given** 사용자가 승인(approved)되면, **When** 로그인하면,
+   **Then** User 역할 기능 전체에 접근 가능하다.
+3. **Given** APP_PASSWORD 환경 변수가 설정되면, **When** 비밀번호로 로그인하면,
+   **Then** "공유 사용자"로 admin 역할이 부여된다.
+4. **Given** 어드민이 `/admin/users` 접속, **When** 사용자 status/role 변경,
+   **Then** 변경 즉시 반영되고 감사 로그가 기록된다.
 
 ---
 
@@ -483,12 +480,10 @@ and role fields; verify all entities have created_by/updated_by fields.
   change, company merge, canonical name assignment, full audit log, and
   system settings (Google login policy, allowed domains/users, default
   home screen, Excel filename rules).
-- **FR-25**: Initial version MAY operate without authentication. The data
-  model MUST include a User entity with status (pending/approved/rejected)
-  and role fields. All entities MUST have nullable created_by, updated_by,
-  assigned_to references. Route protection MUST be extensible. Admin
-  approval UI MAY be in-app or via external CMS, but the authoritative
-  access state MUST reside in the app's data store.
+- **FR-25**: Authentication is implemented via NextAuth 5 (Google OAuth +
+  APP_PASSWORD 공유 비밀번호). User 엔티티에 status(pending/approved/rejected)
+  및 role 필드 존재. 미들웨어가 모든 비공개 라우트를 보호하며, 미승인 사용자는
+  `/pending`으로 리다이렉트된다. Admin 승인 UI는 `/admin/users`에 구현됨.
 
 ## Information Architecture
 
@@ -512,8 +507,8 @@ The service has the following menu structure:
   under 10 seconds.
 - **SC-004**: Global search returns results within 1 second for databases
   with up to 10,000 companies and 50,000 businesses.
-- **SC-005**: Meeting Mode can be activated and the first action edited
-  within 5 seconds of toggling.
+- ~~**SC-005**: Meeting Mode can be activated and the first action edited
+  within 5 seconds of toggling.~~ (Removed — 2026-04-03)
 - **SC-006**: Excel download (weekly, up to 500 actions) generates in
   under 5 seconds.
 - **SC-007**: Conflict detection correctly identifies and surfaces
