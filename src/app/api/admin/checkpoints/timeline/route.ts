@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 
 type TimelineEntry =
   | {
@@ -25,7 +26,7 @@ type TimelineEntry =
       actorId: string | null;
     };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
   } catch {
@@ -34,6 +35,8 @@ export async function GET() {
       { status: 403 },
     );
   }
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   const [checkpoints, restoreLogs, auditTimes] = await prisma.$transaction([
     prisma.weeklyCheckpoint.findMany({

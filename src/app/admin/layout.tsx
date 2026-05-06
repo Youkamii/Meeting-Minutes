@@ -55,7 +55,7 @@ export default function AdminLayout({
         <button
           onClick={lockAdmin}
           disabled={locking}
-          className="mt-auto rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-red-600 disabled:opacity-50"
+          className="mt-auto rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--destructive)] disabled:opacity-50"
         >
           {locking ? "종료 중..." : "관리자 모드 종료"}
         </button>

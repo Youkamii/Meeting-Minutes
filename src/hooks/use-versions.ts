@@ -4,7 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchJson } from "@/lib/fetch";
 import type { Version, ApiListResponse, ApiResponse } from "@/types";
 
-export function useVersions(entityType: string, entityId: string | null) {
+export function useVersions(
+  entityType: string,
+  entityId: string | null,
+  enabled: boolean = true,
+) {
   const qs = new URLSearchParams();
   qs.set("entity_type", entityType);
   if (entityId) qs.set("entity_id", entityId);
@@ -12,7 +16,7 @@ export function useVersions(entityType: string, entityId: string | null) {
   return useQuery<ApiListResponse<Version>>({
     queryKey: ["versions", entityType, entityId],
     queryFn: () => fetchJson(`/api/versions?${qs}`),
-    enabled: !!entityId,
+    enabled: !!entityId && enabled,
   });
 }
 

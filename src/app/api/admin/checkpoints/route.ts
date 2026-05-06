@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth, requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import { createCheckpoint } from "@/lib/checkpoint";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 
 async function resolveActorId(): Promise<string | null> {
   const session = await auth();
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
       { status: 403 },
     );
   }
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");
@@ -61,6 +64,8 @@ export async function POST(request: NextRequest) {
       { status: 403 },
     );
   }
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   let body: Record<string, unknown> = {};
   try {

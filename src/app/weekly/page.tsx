@@ -22,11 +22,11 @@ import type { Company, WeeklyAction, WeeklyActionWithRelations } from "@/types";
 const WEEK_COL_WIDTH = 480;
 
 /* --- Status helpers --- */
-const STATUS_COLORS: Record<string, string> = {
-  scheduled: "bg-gray-400",
-  in_progress: "bg-blue-500",
-  completed: "bg-green-500",
-  on_hold: "bg-yellow-500",
+const STATUS_BG: Record<string, string> = {
+  scheduled: "bg-[var(--status-scheduled)]",
+  in_progress: "bg-[var(--status-in-progress)]",
+  completed: "bg-[var(--status-completed)]",
+  on_hold: "bg-[var(--status-on-hold)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -40,7 +40,7 @@ function StatusBadge({ status, onClick }: { status: string; onClick?: () => void
   return (
     <span
       onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-      className={`inline-block text-[9px] text-white px-1.5 py-0.5 rounded-full leading-none ${STATUS_COLORS[status] ?? "bg-gray-400"} ${onClick ? "cursor-pointer hover:opacity-80" : ""}`}
+      className={`inline-block text-[9px] text-white px-1.5 py-0.5 rounded-full leading-none ${STATUS_BG[status] ?? "bg-[var(--status-scheduled)]"} ${onClick ? "cursor-pointer hover:opacity-80" : ""}`}
     >
       {STATUS_LABELS[status] ?? status}
     </span>
@@ -189,7 +189,7 @@ function WeeklyCompanyRow({
             {expanded ? "▼" : "▶"}
           </span>
           {company.isKey && (
-            <span className="text-yellow-500 text-sm">★</span>
+            <span className="text-[var(--priority-medium)] text-sm">★</span>
           )}
           <span className="text-sm font-bold truncate">
             {company.canonicalName}
@@ -264,7 +264,7 @@ function WeeklyCompanyRow({
                             onDeleteAction(action.id);
                           }
                         }}
-                        className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         삭제
                       </button>
@@ -294,7 +294,7 @@ function WeeklyCompanyRow({
                     e.stopPropagation();
                     onStartEdit(company.id, cycleId, w.year, w.weekNumber, undefined);
                   }}
-                  className="w-full rounded border border-dashed border-[var(--border)] py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                  className="w-full rounded py-1 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
                 >
                   + 추가
                 </button>

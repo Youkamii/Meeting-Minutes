@@ -466,7 +466,7 @@ function BusinessManagementContent() {
               {activeCompany && (
                 <div className="opacity-80 rotate-1 scale-[1.02] shadow-lg rounded-md">
                   <div className="flex items-center gap-2 bg-[var(--muted)] border border-[var(--border)] rounded-md px-4 py-2">
-                    <span className="text-lg text-yellow-500">
+                    <span className="text-lg text-[var(--priority-medium)]">
                       {activeCompany.isKey ? "★" : ""}
                     </span>
                     <span className="font-semibold text-sm">

@@ -20,7 +20,7 @@ export function KeyCompaniesCard({ companies }: KeyCompaniesCardProps) {
           <Link
             key={c.id}
             href={`/business?company=${c.id}`}
-            className="rounded-md bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition-colors"
+            className="rounded-md bg-[var(--priority-medium)]/10 px-3 py-1.5 text-sm font-medium text-[var(--priority-medium)] hover:bg-[var(--priority-medium)]/20 transition-colors"
           >
             {c.canonicalName}
           </Link>

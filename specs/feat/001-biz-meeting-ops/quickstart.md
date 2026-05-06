@@ -1,7 +1,7 @@
 # Quickstart: Business Management & Weekly Meeting Ops
 
-**Date**: 2026-03-18
-**Feature Branch**: `feat/001-biz-meeting-ops`
+**Date**: 2026-03-18 (최종 업데이트: 2026-05-04)
+**Branch**: `master` (feature branch `feat/001-biz-meeting-ops` → merged)
 
 ## Prerequisites
 
@@ -12,18 +12,23 @@
 ## Project Setup
 
 ```bash
-# Clone and checkout feature branch
+# Clone repository
 git clone <repo-url>
 cd Meeting-Minutes
-git checkout feat/001-biz-meeting-ops
 
 # Install dependencies
 pnpm install
 
 # Set up environment
 cp .env.example .env.local
-# Edit .env.local with your PostgreSQL connection string:
+# .env.local에 다음 항목 설정:
 #   DATABASE_URL="postgresql://user:pass@localhost:5432/meeting_minutes"
+#   DIRECT_URL="postgresql://user:pass@localhost:5432/meeting_minutes"
+#   NEXTAUTH_SECRET="<random-secret>"
+#   NEXTAUTH_URL="http://localhost:3000"
+#   GOOGLE_CLIENT_ID="<google-oauth-client-id>"       # Google OAuth 사용 시
+#   GOOGLE_CLIENT_SECRET="<google-oauth-client-secret>"
+#   APP_PASSWORD="<shared-password>"                  # 공유 비밀번호 로그인 사용 시
 
 # Run database migrations
 pnpm prisma migrate dev
@@ -46,9 +51,10 @@ pnpm dev
    recent activity, quick actions
 2. **Business Management** (`/business`) — Excel-like table with
    progress stage columns
-3. **Weekly Meeting** (`/weekly`) — Weekly-cycle-centric action
-   management
-4. **Admin** (`/admin`) — User management, logs, settings (admin only)
+3. **Weekly Meeting** (`/weekly`) — Company × Week table with monthly navigation
+4. **Admin** (`/admin`) — User management, audit logs, settings, checkpoints (admin only)
+5. **Login** (`/login`) — Google OAuth 또는 공유 비밀번호 로그인
+6. **Pending** (`/pending`) — 어드민 승인 대기 화면
 
 ## Quick Verification Steps
 
@@ -98,32 +104,41 @@ pnpm dev
 
 ### 7. Excel Download
 
-1. Open Weekly Meeting
-2. Click "Excel Download" → Weekly
-3. Select options and download
-4. Verify the .xlsx file contains correct data and timestamp
+1. Open Business Management or Weekly Meeting
+2. Click "엑셀" → 월간 또는 연간 선택
+3. 연도/월 선택 후 다운로드
+4. .xlsx 파일에 사업관리 + 주간회의 두 시트가 올바르게 생성되는지 확인
+5. (참고: 주간 다운로드 옵션은 2026-04-03 제거됨)
 
 ## Development Commands
 
 ```bash
-pnpm dev           # Start dev server (Next.js)
-pnpm build         # Production build
-pnpm lint          # ESLint check
-pnpm format        # Prettier format
-pnpm prisma studio # Database GUI
-pnpm test          # Run tests
+pnpm dev              # Start dev server (Next.js 16)
+pnpm build            # Production build (prisma generate + next build)
+pnpm lint             # ESLint check
+pnpm format           # Prettier format
+pnpm prisma studio    # Database GUI
+pnpm prisma:migrate   # Run migrations
+pnpm prisma:seed      # Seed data
 ```
+
+> **참고**: 테스트 스위트 미구성 (Vitest/Playwright 미설치)
 
 ## Project Structure
 
 ```
 src/
-├── app/                    # Next.js App Router
+├── app/                    # Next.js 16 App Router
 │   ├── page.tsx            # Home / Activity Center
 │   ├── business/           # Business Management
-│   ├── weekly/             # Weekly Meeting
-│   ├── admin/              # Admin screens
+│   ├── weekly/             # Weekly Meeting (company × week table)
+│   ├── admin/              # Admin screens (users, logs, settings, checkpoints)
+│   ├── login/              # 로그인 페이지
+│   ├── pending/            # 승인 대기 페이지
+│   ├── privacy/            # 개인정보 처리방침
+│   ├── admin-unlock/       # 관리자 언락
 │   ├── api/                # API Routes
+│   │   ├── auth/           # NextAuth handler
 │   │   ├── companies/
 │   │   ├── businesses/
 │   │   ├── progress-items/
@@ -136,36 +151,41 @@ src/
 │   │   ├── export/
 │   │   ├── bulk/
 │   │   ├── recent-views/
-│   │   └── admin/
+│   │   ├── admin/
+│   │   └── cron/           # 체크포인트 cron
 │   └── layout.tsx          # Root layout (nav, dark mode)
 ├── components/
-│   ├── ui/                 # shadcn/ui components
+│   ├── ui/                 # button, empty-state
+│   ├── layout/             # top-nav
+│   ├── home/               # activity-feed, key-companies-card, incomplete-actions-card
+│   ├── export/             # excel-download-dialog
+│   ├── editor/             # inline-editor (Tiptap)
 │   ├── business-table/     # TanStack Table for Business Management
 │   ├── progress-blocks/    # dnd-kit progress stage blocks
 │   ├── weekly-meeting/     # Weekly Meeting components
-│   ├── meeting-mode/       # Meeting Mode view
-│   ├── search/             # Global search + quick actions
+│   ├── meeting-mode/       # ⚠ 제거됨 (2026-04-03) — 파일 잔류
+│   ├── search/             # Global search overlay
 │   ├── notes/              # Internal notes timeline
 │   ├── version-diff/       # Version comparison UI
 │   └── conflict-dialog/    # Conflict resolution modal
 ├── lib/
+│   ├── auth.ts             # NextAuth 설정
 │   ├── prisma.ts           # Prisma client singleton
 │   ├── audit.ts            # Audit logging helper
 │   ├── version.ts          # Version snapshot helper
+│   ├── version-unlock.ts   # Version unlock utility
 │   ├── conflict.ts         # Optimistic locking helper
+│   ├── checkpoint.ts       # 체크포인트 백업/복원
+│   ├── admin-unlock.ts     # Admin unlock utility
 │   ├── excel.ts            # ExcelJS export helpers
+│   ├── fetch.ts            # Custom fetch wrapper
 │   └── weekly-cycle.ts     # ISO 8601 week utilities
-├── hooks/                  # React hooks (queries, mutations)
-├── stores/                 # Zustand stores (UI state)
+├── hooks/                  # React 19 Query hooks (TanStack Query v5)
+├── stores/                 # Zustand v5 stores
 └── types/                  # Shared TypeScript types
 
 prisma/
 ├── schema.prisma           # Database schema
 ├── migrations/             # Migration files
 └── seed.ts                 # Seed data
-
-tests/
-├── unit/
-├── integration/
-└── e2e/
 ```

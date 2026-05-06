@@ -420,7 +420,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
                     );
                   }
                 }}
-                className="text-xs text-[var(--muted-foreground)] hover:text-red-500 transition-colors px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                className="text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors px-1.5 py-0.5 rounded hover:bg-[var(--destructive)]/10"
               >
                 삭제
               </button>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 import type { CheckpointPayload } from "@/lib/checkpoint";
 
 interface TableDiff {
@@ -53,7 +54,7 @@ function diffRows(current: SnapRow[], snapshot: SnapRow[]): TableDiff {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -64,6 +65,8 @@ export async function GET(
       { status: 403 },
     );
   }
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   const { id } = await params;
   const checkpoint = await prisma.weeklyCheckpoint.findUnique({

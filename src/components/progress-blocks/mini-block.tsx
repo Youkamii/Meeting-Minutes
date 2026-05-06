@@ -76,9 +76,9 @@ export function MiniBlock({
     !content.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>\s*<p[^>]*>/gi, " ").replace(/<[^>]*>/g, "").toLowerCase().includes(searchText);
 
   const borderClass = isCurrent
-    ? "border-[3px] border-blue-500 border-l-blue-500"
+    ? "border-[3px] border-[var(--link)] border-l-[var(--link)]"
     : visited
-      ? "border-[3px] border-red-500 border-l-red-500"
+      ? "border-[3px] border-[var(--destructive)] border-l-[var(--destructive)]"
       : "border border-[var(--border)]";
 
   return (

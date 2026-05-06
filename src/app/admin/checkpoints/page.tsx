@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { fetchJson } from "@/lib/fetch";
+import { useVersionUnlockStore } from "@/stores/version-unlock-store";
+
+const PASSWORD_USER_ID = "password-shared-user";
 
 type TimelineEntry =
   | {
@@ -63,6 +67,11 @@ function formatDate(s: string | null): string {
 }
 
 export default function CheckpointsPage() {
+  const { data: session } = useSession();
+  const isSharedUser = session?.user?.id === PASSWORD_USER_ID;
+  const versionUnlocked = useVersionUnlockStore((s) => s.unlocked);
+  const locked = isSharedUser && !versionUnlocked;
+
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -90,8 +99,8 @@ export default function CheckpointsPage() {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!locked) load();
+  }, [locked]);
 
   const createCheckpoint = async () => {
     setCreating(true);
@@ -153,6 +162,19 @@ export default function CheckpointsPage() {
   // (= older) are part of an "abandoned branch" visually.
   let passedRestore = false;
 
+  if (locked) {
+    return (
+      <div>
+        <h1 className="mb-4 text-lg font-bold">체크포인트 🔒</h1>
+        <div className="rounded-md border border-[var(--border)] bg-[var(--card)] p-6 text-center">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            공유 사용자는 버전 관리 기능이 잠겨 있습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="mb-4 text-lg font-bold">체크포인트</h1>
@@ -193,10 +215,10 @@ export default function CheckpointsPage() {
           if (e.type === "restore") {
             const marker = (
               <div key={e.id} className="relative py-3">
-                <div className="absolute -left-[18px] top-4 flex h-4 w-4 items-center justify-center rounded-full border-2 border-amber-500 bg-amber-100 text-[10px] text-amber-700">
+                <div className="absolute -left-[18px] top-4 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[var(--priority-medium)] bg-[var(--priority-medium)]/15 text-[10px] text-[var(--priority-medium)]">
                   ⟲
                 </div>
-                <div className="text-sm text-amber-700">
+                <div className="text-sm text-[var(--priority-medium)]">
                   복원됨 →{" "}
                   <strong>
                     {e.restoredCheckpointLabel ?? e.restoredCheckpointId.slice(0, 8)}
@@ -225,8 +247,8 @@ export default function CheckpointsPage() {
               <div
                 className={`absolute -left-[18px] top-4 h-4 w-4 rounded-full border-2 ${
                   isPreRestore
-                    ? "border-amber-500 bg-amber-200"
-                    : "border-blue-500 bg-blue-200"
+                    ? "border-[var(--priority-medium)] bg-[var(--priority-medium)]/30"
+                    : "border-[var(--link)] bg-[var(--link)]/30"
                 }`}
               />
               <div className="flex items-start justify-between gap-3">
@@ -235,8 +257,8 @@ export default function CheckpointsPage() {
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         isPreRestore
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-[var(--priority-medium)]/15 text-[var(--priority-medium)]"
+                          : "bg-[var(--link)]/15 text-[var(--link)]"
                       }`}
                     >
                       {e.kind}
@@ -271,7 +293,7 @@ export default function CheckpointsPage() {
                   </button>
                   <button
                     onClick={() => setRestoreFor(e)}
-                    className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                    className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
                   >
                     복원
                   </button>
@@ -319,13 +341,13 @@ export default function CheckpointsPage() {
                   {Object.entries(diff).map(([table, d]) => (
                     <tr key={table} className="border-b border-[var(--border)]">
                       <td className="py-2">{TABLE_LABELS[table] ?? table}</td>
-                      <td className="py-2 text-right text-green-600">
+                      <td className="py-2 text-right text-[var(--status-completed)]">
                         +{d.willInsert}
                       </td>
-                      <td className="py-2 text-right text-amber-600">
+                      <td className="py-2 text-right text-[var(--priority-medium)]">
                         ~{d.willUpdate}
                       </td>
-                      <td className="py-2 text-right text-red-600">
+                      <td className="py-2 text-right text-[var(--destructive)]">
                         -{d.willDelete}
                       </td>
                     </tr>
@@ -357,14 +379,14 @@ export default function CheckpointsPage() {
             className="w-[90vw] max-w-md rounded-md border border-[var(--border)] bg-[var(--card)] p-4"
             onClick={(ev) => ev.stopPropagation()}
           >
-            <h3 className="mb-2 text-base font-bold text-red-600">
+            <h3 className="mb-2 text-base font-bold text-[var(--destructive)]">
               체크포인트로 복원
             </h3>
             <p className="mb-3 text-sm">
               <strong>{restoreFor.label ?? restoreFor.id}</strong> (
               {formatDate(restoreFor.at)})
             </p>
-            <p className="mb-3 text-xs text-red-600">
+            <p className="mb-3 text-xs text-[var(--destructive)]">
               대상 테이블이 모두 TRUNCATE 후 스냅샷 기준으로 재구성됩니다. 이
               시점 이후의 모든 변경은 사라집니다. 복원 직전 상태는 자동으로
               pre_restore 스냅샷에 7일간 보관됩니다.
@@ -400,7 +422,7 @@ export default function CheckpointsPage() {
               <button
                 onClick={doRestore}
                 disabled={restoring || confirmText !== "RESTORE" || !password}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-[var(--destructive)] px-3 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
               >
                 {restoring ? "복원 중..." : "복원 실행"}
               </button>

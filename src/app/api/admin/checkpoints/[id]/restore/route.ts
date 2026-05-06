@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { auth, requireAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 import {
   buildCheckpointPayload,
   preRestoreExpiry,
@@ -117,6 +118,9 @@ export async function POST(
       { status: 403 },
     );
   }
+
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
 
   const { id } = await params;
   let body: Record<string, unknown> = {};

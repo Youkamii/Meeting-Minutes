@@ -5,14 +5,14 @@ import { fetchJson } from "@/lib/fetch";
 import type { User, Role, UserStatus, ApiListResponse } from "@/types";
 
 const roleBadgeClass: Record<Role, string> = {
-  admin: "bg-purple-100 text-purple-800",
-  user: "bg-gray-100 text-gray-800",
+  admin: "bg-[var(--primary)]/10 text-[var(--primary)]",
+  user: "bg-[var(--muted)] text-[var(--muted-foreground)]",
 };
 
 const statusBadgeClass: Record<UserStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  approved: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
+  pending: "bg-[var(--priority-medium)]/15 text-[var(--priority-medium)]",
+  approved: "bg-[var(--status-completed)]/15 text-[var(--status-completed)]",
+  rejected: "bg-[var(--destructive)]/15 text-[var(--destructive)]",
 };
 
 export default function UsersPage() {
@@ -81,7 +81,7 @@ export default function UsersPage() {
               {user.status !== "approved" && (
                 <button
                   onClick={() => updateUser(user.id, { status: "approved" })}
-                  className="rounded-md bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+                  className="rounded-md bg-[var(--status-completed)] px-2 py-1 text-xs text-white hover:opacity-90"
                 >
                   승인
                 </button>
@@ -89,7 +89,7 @@ export default function UsersPage() {
               {user.status !== "rejected" && user.status !== "pending" && (
                 <button
                   onClick={() => updateUser(user.id, { status: "rejected" })}
-                  className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                  className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
                 >
                   거절
                 </button>
@@ -97,7 +97,7 @@ export default function UsersPage() {
               {user.status === "pending" && (
                 <button
                   onClick={() => updateUser(user.id, { status: "rejected" })}
-                  className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                  className="rounded-md bg-[var(--destructive)] px-2 py-1 text-xs text-white hover:opacity-90"
                 >
                   거절
                 </button>

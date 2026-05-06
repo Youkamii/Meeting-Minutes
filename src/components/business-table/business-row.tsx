@@ -40,7 +40,7 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
 
   const nameColorClass =
     business.visibility === "private" && business.embargoName
-      ? "text-red-900 dark:text-red-400"
+      ? "text-[var(--destructive)]"
       : "";
 
   const isArchived = business.isArchived ?? false;
@@ -62,7 +62,7 @@ export function BusinessRow({ business, onClick, visibleStages, highlighted }: B
     <>
       <div
         data-business-id={business.id}
-        className={`flex items-stretch border-b transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-blue-500" : "border-[var(--border)]"}`}
+        className={`flex items-stretch border-b transition-all ${isArchived ? "opacity-60" : ""} ${highlighted ? "border-[3px] border-[var(--link)]" : "border-[var(--border)]"}`}
         style={{ background: "var(--background)" }}
       >
         {/* Fixed left column */}

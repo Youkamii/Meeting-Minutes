@@ -135,7 +135,7 @@ export default function MergePage() {
           <button
             onClick={handleMerge}
             disabled={!canonicalId || merging}
-            className="mt-3 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className="mt-3 rounded-md bg-[var(--destructive)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {merging ? "병합 중..." : "병합 확인"}
           </button>

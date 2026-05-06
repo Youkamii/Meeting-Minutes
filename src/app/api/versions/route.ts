@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureSharedUserVersionUnlocked } from "@/lib/version-unlock";
 
 type EntityType = "business" | "progressItem" | "weeklyAction" | "internalNote";
 
@@ -34,6 +35,9 @@ function getEntityModel(entityType: EntityType) {
 }
 
 export async function GET(request: NextRequest) {
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
+
   const { searchParams } = new URL(request.url);
   const entityType = searchParams.get("entity_type") as EntityType | null;
   const entityId = searchParams.get("entity_id");
@@ -111,6 +115,9 @@ export async function GET(request: NextRequest) {
 const VALID_ENTITY_TYPES: EntityType[] = ["business", "progressItem", "weeklyAction", "internalNote"];
 
 export async function POST(request: NextRequest) {
+  const gate = await ensureSharedUserVersionUnlocked(request);
+  if (gate) return gate;
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
