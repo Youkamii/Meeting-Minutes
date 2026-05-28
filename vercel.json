@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/checkpoint",
       "schedule": "0 15 * * 0"
+    },
+    {
+      "path": "/api/cron/db-ping",
+      "schedule": "0 0 * * *"
     }
   ]
 }
