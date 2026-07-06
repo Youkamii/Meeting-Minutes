@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useCanEdit } from "@/lib/use-can-edit";
 import type { InternalNote, NoteTag } from "@/types";
 
 interface NotesTimelineProps {
@@ -27,6 +28,7 @@ export function NotesTimeline({
   onAdd,
   isAdding = false,
 }: NotesTimelineProps) {
+  const canEdit = useCanEdit();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tag, setTag] = useState<NoteTag | "">("");
@@ -48,7 +50,8 @@ export function NotesTimeline({
 
   return (
     <div className="space-y-4">
-      {/* Add note form */}
+      {/* Add note form — hidden for read-only users */}
+      {canEdit && (
       <form
         onSubmit={handleSubmit}
         className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4"
@@ -89,6 +92,7 @@ export function NotesTimeline({
           </button>
         </div>
       </form>
+      )}
 
       {/* Notes list */}
       <div className="space-y-2">

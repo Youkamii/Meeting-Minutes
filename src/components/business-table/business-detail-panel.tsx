@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useCanEdit } from "@/lib/use-can-edit";
 import { useBusiness, useUpdateBusiness, useArchiveBusiness } from "@/hooks/use-businesses";
 import { useWeeklyActions } from "@/hooks/use-weekly-actions";
 import { useAuditLogs } from "@/hooks/use-activity";
@@ -29,6 +30,7 @@ export function BusinessDetailPanel({
   onClose,
 }: BusinessDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("기본 정보");
+  const canEdit = useCanEdit();
   const { data, isLoading } = useBusiness(businessId);
   const updateBusiness = useUpdateBusiness();
   const business = data?.data as BusinessWithCompany | undefined;
@@ -68,6 +70,7 @@ export function BusinessDetailPanel({
 
   // Auto-save on field blur
   const handleSave = useCallback(() => {
+    if (!canEdit) return;
     const biz = businessRef.current;
     if (!biz) return;
     const changes: Record<string, unknown> = {};
@@ -89,7 +92,7 @@ export function BusinessDetailPanel({
         ...changes,
       });
     }
-  }, [businessId, name, embargoName, visibility, scale, timingText, timingStart, timingEnd, updateBusiness]);
+  }, [canEdit, businessId, name, embargoName, visibility, scale, timingText, timingStart, timingEnd, updateBusiness]);
 
   // Data for tabs
   const { data: actionsData } = useWeeklyActions(
@@ -185,9 +188,14 @@ export function BusinessDetailPanel({
           <p className="text-sm text-[var(--muted-foreground)]">로딩 중...</p>
         )}
 
-        {/* 기본 정보 — 바로 수정 가능, blur 시 자동 저장 */}
+        {/* 기본 정보 — 바로 수정 가능, blur 시 자동 저장 (읽기 전용은 disabled) */}
         {business && activeTab === "기본 정보" && (
-          <div className="space-y-4">
+          <fieldset disabled={!canEdit} className="space-y-4 border-0 m-0 p-0 min-w-0">
+            {!canEdit && (
+              <p className="rounded-md bg-[var(--muted)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+                읽기 전용입니다. 수정하려면 관리자에게 권한을 요청하세요.
+              </p>
+            )}
             <div>
               <label className="text-xs font-medium text-[var(--muted-foreground)]">사업명</label>
               <input
@@ -306,7 +314,7 @@ export function BusinessDetailPanel({
                 </button>
               )}
             </div>
-          </div>
+          </fieldset>
         )}
 
         {/* 주간 액션 */}

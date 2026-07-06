@@ -26,6 +26,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { MiniBlock } from "./mini-block";
 import { useMoveProgressItem, useCreateProgressItem } from "@/hooks/use-progress-items";
 import { useUpdateBusiness } from "@/hooks/use-businesses";
+import { useCanEdit } from "@/lib/use-can-edit";
 import { STAGES } from "@/lib/constants";
 import type { ProgressItem, Stage } from "@/types";
 
@@ -72,6 +73,7 @@ function DroppableStage({
   funnelNo,
   onFunnelNoChange,
   activeId,
+  canEdit,
 }: {
   stage: Stage;
   items: ProgressItem[];
@@ -80,6 +82,7 @@ function DroppableStage({
   funnelNo?: string;
   onFunnelNoChange?: (stage: Stage, value: string) => void;
   activeId?: string | null;
+  canEdit: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${stage}`, data: { stage } });
   const [showAdd, setShowAdd] = useState(false);
@@ -145,10 +148,10 @@ function DroppableStage({
         ) : (
           <div
             className="group cursor-default"
-            onDoubleClick={() => {
+            onDoubleClick={canEdit ? () => {
               setEditingFunnel(true);
               setTimeout(() => funnelInputRef.current?.focus(), 0);
-            }}
+            } : undefined}
           >
             {funnelNo ? (
               <span className="text-xs font-semibold font-mono text-[var(--primary)]">{funnelNo}</span>
@@ -172,7 +175,7 @@ function DroppableStage({
         ))}
       </SortableContext>
 
-      {showAdd ? (
+      {!canEdit ? null : showAdd ? (
         <div className="flex gap-1">
           <input
             type="text"
@@ -246,10 +249,14 @@ interface StageRowDndProps {
 }
 
 export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleStages, funnelNumbers, lockVersion }: StageRowDndProps) {
-  const sensors = useSensors(
+  const canEdit = useCanEdit();
+  const dragSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   );
+  const noSensors = useSensors();
+  // Read-only users cannot drag/reorder.
+  const sensors = canEdit ? dragSensors : noSensors;
   const moveItem = useMoveProgressItem();
   const updateBusiness = useUpdateBusiness();
   const [activeItem, setActiveItem] = useState<ProgressItem | null>(null);
@@ -272,6 +279,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
 
   const handleFunnelNoChange = useCallback(
     (stage: Stage, value: string) => {
+      if (!canEdit) return;
       const updated = { ...(funnelNumbers ?? {}) };
       if (value === "") {
         delete updated[stage];
@@ -284,7 +292,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
         lockVersion: lockVersion ?? 1,
       });
     },
-    [businessId, funnelNumbers, lockVersion, updateBusiness],
+    [canEdit, businessId, funnelNumbers, lockVersion, updateBusiness],
   );
 
   const itemsByStage = buildItemsByStage(localItems);
@@ -444,6 +452,7 @@ export function StageRowDnd({ businessId, progressItems, onBlockClick, visibleSt
               funnelNo={funnelNumbers?.[stage]}
               onFunnelNoChange={handleFunnelNoChange}
               activeId={activeItem?.id}
+              canEdit={canEdit}
             />
           );
         })}

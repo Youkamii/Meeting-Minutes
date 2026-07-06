@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MiniBlock } from "./mini-block";
 import { useCreateProgressItem } from "@/hooks/use-progress-items";
+import { useCanEdit } from "@/lib/use-can-edit";
 import type { ProgressItem, Stage } from "@/types";
 
 interface StageCellProps {
@@ -21,6 +22,7 @@ export function StageCell({
   const [showAdd, setShowAdd] = useState(false);
   const [newContent, setNewContent] = useState("");
   const createItem = useCreateProgressItem();
+  const canEdit = useCanEdit();
 
   const visibleItems = items.slice(0, 3);
   const overflowCount = items.length - 3;
@@ -60,7 +62,7 @@ export function StageCell({
         </span>
       )}
 
-      {showAdd ? (
+      {!canEdit ? null : showAdd ? (
         <div className="flex gap-1">
           <input
             type="text"

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { KeyCompanyToggle } from "./key-company-toggle";
+import { useCanEdit } from "@/lib/use-can-edit";
 import type { Company } from "@/types";
 
 interface CompanyGroupRowProps {
@@ -20,6 +21,7 @@ export function CompanyGroupRow({
   highlighted,
 }: CompanyGroupRowProps) {
   const [expanded, setExpanded] = useState(true);
+  const canEdit = useCanEdit();
 
   return (
     <div data-company-id={company.id} className={`border-b border-[var(--border)] transition-colors duration-700 ${highlighted ? "ring-2 ring-[var(--link)] ring-inset" : ""}`} style={{ background: "var(--background)" }}>
@@ -29,7 +31,7 @@ export function CompanyGroupRow({
       >
         {/* Sticky left — company info */}
         <div className="sticky left-0 z-[5] sticky-shadow-r flex w-[280px] shrink-0 items-center gap-2 bg-[var(--muted)] px-4 py-2 group-hover:bg-[var(--accent)] transition-colors">
-          {dragHandleProps && (
+          {dragHandleProps && canEdit && (
             <span
               className="text-[var(--muted-foreground)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
               onClick={(e) => e.stopPropagation()}

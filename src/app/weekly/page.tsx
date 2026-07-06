@@ -13,6 +13,7 @@ import {
   useArchiveWeeklyAction,
 } from "@/hooks/use-weekly-actions";
 import { useCompanies } from "@/hooks/use-companies";
+import { useCanEdit } from "@/lib/use-can-edit";
 import { InlineEditor } from "@/components/editor/inline-editor";
 import { ExcelDownloadDialog } from "@/components/export/excel-download-dialog";
 import { NewActionDialog } from "@/components/weekly-meeting/new-action-dialog";
@@ -150,6 +151,7 @@ function WeeklyCompanyRow({
   cycleMap,
   editingCell,
   collapsedWeeks,
+  canEdit,
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
@@ -162,6 +164,7 @@ function WeeklyCompanyRow({
   cycleMap: Map<string, (WeeklyAction & { company?: { id: string; canonicalName: string; isKey: boolean } })[]> | undefined;
   editingCell: EditingCell;
   collapsedWeeks: Set<string>;
+  canEdit: boolean;
   onStartEdit: (companyId: string, cycleId: string | null, weekYear: number, weekNumber: number, action?: WeeklyAction) => void;
   onSaveEdit: (html: string) => void;
   onCancelEdit: () => void;
@@ -248,11 +251,11 @@ function WeeklyCompanyRow({
                 ) : (
                   <div
                     key={action.id}
-                    onClick={(e) => {
+                    onClick={canEdit ? (e) => {
                       e.stopPropagation();
                       onStartEdit(company.id, cycleId, w.year, w.weekNumber, action);
-                    }}
-                    className={`group rounded-md border border-[var(--border)] border-l-4 bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--border-strong)] px-2.5 py-1.5 text-sm font-medium cursor-pointer transition-all break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal`}
+                    } : undefined}
+                    className={`group rounded-md border border-[var(--border)] border-l-4 bg-[var(--card)] shadow-sm px-2.5 py-1.5 text-sm font-medium transition-all break-words [&_p]:m-0 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal ${canEdit ? "hover:shadow-md hover:border-[var(--border-strong)] cursor-pointer" : ""}`}
                     style={{
                       borderLeftColor: `var(--status-${action.status.replace("_", "-")})`,
                     }}
@@ -260,24 +263,26 @@ function WeeklyCompanyRow({
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <StatusBadge
                         status={action.status}
-                        onClick={() => {
+                        onClick={canEdit ? () => {
                           const statuses = ["scheduled", "in_progress", "completed", "on_hold"];
                           const idx = statuses.indexOf(action.status);
                           const next = statuses[(idx + 1) % statuses.length];
                           onActionStatusChange(action.id, action.lockVersion, next);
-                        }}
+                        } : undefined}
                       />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm("이 액션을 삭제하시겠습니까?")) {
-                            onDeleteAction(action.id);
-                          }
-                        }}
-                        className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        삭제
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("이 액션을 삭제하시겠습니까?")) {
+                              onDeleteAction(action.id);
+                            }
+                          }}
+                          className="ml-auto text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          삭제
+                        </button>
+                      )}
                     </div>
                     <div
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(action.content) }}
@@ -295,7 +300,7 @@ function WeeklyCompanyRow({
                   status={editingCell.status}
                   onStatusChange={onStatusChange}
                 />
-              ) : hasContent ? (
+              ) : !canEdit ? null : hasContent ? (
                 /* 내용 있는 셀: 카드 아래 hover 영역 — 마우스 가져가면 + 추가 표출 */
                 <button
                   onClick={(e) => {
@@ -333,6 +338,7 @@ function WeeklyCompanyRow({
 
 /* --- Main Page --- */
 export default function WeeklyMeetingPage() {
+  const canEdit = useCanEdit();
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth() + 1);
@@ -472,6 +478,7 @@ export default function WeeklyMeetingPage() {
     weekNumber: number,
     action?: WeeklyAction,
   ) => {
+    if (!canEdit) return;
     let resolvedCycleId = cycleId;
     if (!resolvedCycleId) {
       const result = await ensureCycle.mutateAsync({ year: weekYear, weekNumber });
@@ -485,9 +492,10 @@ export default function WeeklyMeetingPage() {
       actionId: action?.id,
       status: action?.status ?? "scheduled",
     });
-  }, [ensureCycle]);
+  }, [canEdit, ensureCycle]);
 
   const saveEdit = useCallback((html: string) => {
+    if (!canEdit) return;
     if (!editingCell) return;
 
     if (editingCell.actionId) {
@@ -513,15 +521,16 @@ export default function WeeklyMeetingPage() {
       }
     }
     setEditingCell(null);
-  }, [editingCell, actions, createAction, updateAction]);
+  }, [canEdit, editingCell, actions, createAction, updateAction]);
 
   const handleActionStatusChange = useCallback((actionId: string, lockVersion: number, newStatus: string) => {
+    if (!canEdit) return;
     updateAction.mutate({
       id: actionId,
       lockVersion,
       status: newStatus,
     });
-  }, [updateAction]);
+  }, [canEdit, updateAction]);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
@@ -625,6 +634,7 @@ export default function WeeklyMeetingPage() {
                 cycleMap={cycleMap}
                 editingCell={editingCell}
                 collapsedWeeks={collapsedWeeks}
+                canEdit={canEdit}
                 onStartEdit={startEdit}
                 onSaveEdit={saveEdit}
                 onCancelEdit={() => setEditingCell(null)}

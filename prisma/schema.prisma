@@ -67,7 +67,8 @@ model User {
   name          String?
   image         String?
   role          Role       @default(user)
-  status        UserStatus @default(pending)
+  status        UserStatus @default(approved)
+  canEdit       Boolean    @default(false) @map("can_edit")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 

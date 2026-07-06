@@ -36,7 +36,8 @@ export type AuditAction =
   | "carryover"
   | "download"
   | "status_change"
-  | "role_change";
+  | "role_change"
+  | "permission_change";
 
 // ============================================================
 // Entities
@@ -48,6 +49,7 @@ export interface User {
   name: string;
   role: Role;
   status: UserStatus;
+  canEdit: boolean;
   createdAt: string;
   updatedAt: string;
 }

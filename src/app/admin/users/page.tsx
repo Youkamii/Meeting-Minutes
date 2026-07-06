@@ -37,7 +37,10 @@ export default function UsersPage() {
     loadUsers();
   }, []);
 
-  const updateUser = async (id: string, data: { role?: Role; status?: UserStatus }) => {
+  const updateUser = async (
+    id: string,
+    data: { role?: Role; status?: UserStatus; canEdit?: boolean },
+  ) => {
     await fetchJson("/api/admin/users", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -79,6 +82,16 @@ export default function UsersPage() {
               {user.status}
             </span>
 
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                user.role === "admin" || user.canEdit
+                  ? "bg-[var(--status-completed)]/15 text-[var(--status-completed)]"
+                  : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+              }`}
+            >
+              {user.role === "admin" || user.canEdit ? "수정 가능" : "읽기 전용"}
+            </span>
+
             <div className="flex gap-1.5">
               {user.status !== "approved" && (
                 <Button
@@ -96,6 +109,24 @@ export default function UsersPage() {
                   onClick={() => updateUser(user.id, { status: "rejected" })}
                 >
                   거절
+                </Button>
+              )}
+              {user.role !== "admin" && !user.canEdit && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => updateUser(user.id, { canEdit: true })}
+                >
+                  수정 권한 부여
+                </Button>
+              )}
+              {user.role !== "admin" && user.canEdit && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => updateUser(user.id, { canEdit: false })}
+                >
+                  수정 권한 회수
                 </Button>
               )}
               {user.role === "user" && (

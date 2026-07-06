@@ -2,6 +2,7 @@
 
 import { StatusDropdown } from "./status-dropdown";
 import { useUpdateWeeklyAction } from "@/hooks/use-weekly-actions";
+import { useCanEdit } from "@/lib/use-can-edit";
 import type { ActionStatus, Priority, WeeklyActionWithRelations } from "@/types";
 
 const PRIORITY_INDICATOR: Record<Priority, string> = {
@@ -10,14 +11,23 @@ const PRIORITY_INDICATOR: Record<Priority, string> = {
   low: "border-l-gray-400",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  scheduled: "예정",
+  in_progress: "진행중",
+  completed: "완료",
+  on_hold: "보류",
+};
+
 interface ActionCardProps {
   action: WeeklyActionWithRelations;
 }
 
 export function ActionCard({ action }: ActionCardProps) {
   const updateAction = useUpdateWeeklyAction();
+  const canEdit = useCanEdit();
 
   const handleStatusChange = (status: ActionStatus) => {
+    if (!canEdit) return;
     updateAction.mutate({
       id: action.id,
       status,
@@ -48,10 +58,16 @@ export function ActionCard({ action }: ActionCardProps) {
               ↻ {action.carryoverCount}
             </span>
           )}
-          <StatusDropdown
-            value={action.status}
-            onChange={handleStatusChange}
-          />
+          {canEdit ? (
+            <StatusDropdown
+              value={action.status}
+              onChange={handleStatusChange}
+            />
+          ) : (
+            <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[10px] font-medium text-[var(--muted-foreground)]">
+              {STATUS_LABELS[action.status] ?? action.status}
+            </span>
+          )}
         </div>
       </div>
     </div>

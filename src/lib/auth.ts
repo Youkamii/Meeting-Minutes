@@ -54,21 +54,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.id) {
         token.id = user.id;
       }
-      // Password user: skip DB lookup
+      // Password (shared) user: read-only, NOT admin. Skip DB lookup.
       if (token.id === PASSWORD_USER_ID) {
-        token.role = "admin";
+        token.role = "user";
         token.status = "approved";
+        token.canEdit = false;
         return token;
       }
-      // Always fetch latest role/status from DB
+      // Always fetch latest role/status/canEdit from DB
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, status: true },
+          select: { role: true, status: true, canEdit: true },
         });
         if (dbUser) {
           token.role = dbUser.role;
           token.status = dbUser.status;
+          token.canEdit = dbUser.canEdit;
         }
       }
       return token;
@@ -78,6 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as "admin" | "user";
         session.user.status = token.status as "pending" | "approved" | "rejected";
+        session.user.canEdit = token.canEdit as boolean;
       }
       return session;
     },
@@ -92,5 +95,17 @@ export async function isAdmin(): Promise<boolean> {
 export async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) {
     throw new Error("Forbidden: admin role required");
+  }
+}
+
+/** Admins always can edit; regular users only if granted `canEdit`. */
+export async function isEditor(): Promise<boolean> {
+  const session = await auth();
+  return session?.user?.role === "admin" || session?.user?.canEdit === true;
+}
+
+export async function requireEditor(): Promise<void> {
+  if (!(await isEditor())) {
+    throw new Error("Forbidden: edit permission required");
   }
 }

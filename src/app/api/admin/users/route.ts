@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, role, status } = body;
+  const { id, role, status, canEdit } = body;
 
   if (!id) {
     return NextResponse.json(
@@ -53,6 +53,12 @@ export async function PUT(request: NextRequest) {
       { status: 400 },
     );
   }
+  if (canEdit !== undefined && typeof canEdit !== "boolean") {
+    return NextResponse.json(
+      { error: "VALIDATION", message: "canEdit must be a boolean" },
+      { status: 400 },
+    );
+  }
 
   const current = await prisma.user.findUnique({ where: { id } });
 
@@ -68,6 +74,7 @@ export async function PUT(request: NextRequest) {
     data: {
       ...(role !== undefined ? { role } : {}),
       ...(status !== undefined ? { status } : {}),
+      ...(canEdit !== undefined ? { canEdit } : {}),
     },
   });
 
@@ -88,6 +95,16 @@ export async function PUT(request: NextRequest) {
       action: "status_change",
       ip: getClientIp(request),
       changes: { before: { status: current.status }, after: { status } },
+    });
+  }
+
+  if (canEdit !== undefined && canEdit !== current.canEdit) {
+    await createAuditLog({
+      entityType: "user",
+      entityId: id,
+      action: "permission_change",
+      ip: getClientIp(request),
+      changes: { before: { canEdit: current.canEdit }, after: { canEdit } },
     });
   }
 

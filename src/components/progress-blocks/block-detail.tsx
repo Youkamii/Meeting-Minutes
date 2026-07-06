@@ -9,6 +9,7 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import DOMPurify from "dompurify";
 import { useUpdateProgressItem, useDeleteProgressItem } from "@/hooks/use-progress-items";
+import { useCanEdit } from "@/lib/use-can-edit";
 import { useWeeklyActions, useCurrentCycle, useWeeklyCycles } from "@/hooks/use-weekly-actions";
 import { getISOWeekNumber, getISOWeekYear } from "@/lib/weekly-cycle";
 import type { ProgressItem, WeeklyAction } from "@/types";
@@ -227,6 +228,7 @@ const DEFAULT_WIDTH = 1080;
 const DEFAULT_HEIGHT = 780;
 
 export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps) {
+  const canEdit = useCanEdit();
   const [title, setTitle] = useState(item.title ?? "");
   const [date, setDate] = useState(item.date ?? "");
   const [saving, setSaving] = useState(false);
@@ -241,6 +243,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
 
   const editor = useEditor({
     immediatelyRender: false,
+    editable: canEdit,
     extensions: [
       StarterKit,
       TextStyle,
@@ -255,6 +258,11 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
       },
     },
   });
+
+  // Keep editor editability in sync with permission (session may resolve late)
+  useEffect(() => {
+    editor?.setEditable(canEdit);
+  }, [editor, canEdit]);
 
   // Cleanup resize listeners on unmount
   useEffect(() => {
@@ -298,6 +306,12 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
     if (closedRef.current || saving) return;
     closedRef.current = true;
 
+    // Read-only: never write, just close.
+    if (!canEdit) {
+      onClose();
+      return;
+    }
+
     const editorHtml = editor?.getHTML() ?? "";
     const cleanContent = editorHtml === "<p></p>" ? "" : editorHtml;
 
@@ -322,7 +336,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
       setSaving(false);
     }
     onClose();
-  }, [title, date, item, saving, updateItem, onClose, editor]);
+  }, [canEdit, title, date, item, saving, updateItem, onClose, editor]);
 
   // ESC to close without saving (standard cancel behavior)
   useEffect(() => {
@@ -411,19 +425,21 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
               {item.stage}
             </span>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (confirm("이 카드를 삭제하시겠습니까?")) {
-                    deleteItem.mutate(
-                      { id: item.id, lockVersion: item.lockVersion },
-                      { onSuccess: () => { closedRef.current = true; onClose(); } },
-                    );
-                  }
-                }}
-                className="text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors px-1.5 py-0.5 rounded hover:bg-[var(--destructive)]/10"
-              >
-                삭제
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => {
+                    if (confirm("이 카드를 삭제하시겠습니까?")) {
+                      deleteItem.mutate(
+                        { id: item.id, lockVersion: item.lockVersion },
+                        { onSuccess: () => { closedRef.current = true; onClose(); } },
+                      );
+                    }
+                  }}
+                  className="text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors px-1.5 py-0.5 rounded hover:bg-[var(--destructive)]/10"
+                >
+                  삭제
+                </button>
+              )}
               <button onClick={saveAndClose} disabled={saving} className="text-sm hover:opacity-70">
                 {saving ? "저장 중..." : "✕"}
               </button>
@@ -436,6 +452,7 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목"
+            readOnly={!canEdit}
             className={`${inputClass} font-medium`}
           />
 
@@ -444,18 +461,21 @@ export function BlockDetail({ item, open, onClose, companyId }: BlockDetailProps
             value={date}
             onChange={(e) => setDate(e.target.value)}
             placeholder="기간 (달력에서 날짜 클릭 시 자동 입력)"
+            readOnly={!canEdit}
             className={inputClass}
           />
 
           <div className="flex flex-1 min-h-0 flex-col rounded-md border border-[var(--border)] bg-[var(--background)] overflow-hidden">
-            <EditorToolbar editor={editor} />
+            {canEdit && <EditorToolbar editor={editor} />}
             <div className="flex-1 overflow-y-auto">
               <EditorContent editor={editor} className="h-full" />
             </div>
           </div>
 
           <p className="text-[10px] text-[var(--muted-foreground)] shrink-0">
-            바깥을 클릭하거나 ✕를 누르면 자동 저장됩니다
+            {canEdit
+              ? "바깥을 클릭하거나 ✕를 누르면 자동 저장됩니다"
+              : "읽기 전용입니다. 수정하려면 관리자에게 권한을 요청하세요."}
           </p>
         </div>
 

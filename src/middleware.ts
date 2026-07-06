@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import {
-  ADMIN_UNLOCK_COOKIE,
-  verifyAdminUnlockCookie,
-} from "@/lib/admin-unlock";
+
+// API routes that mutate but are allowed for read-only users:
+//   - recent-views: view tracking (not content editing)
+//   - export: data download (a read operation exposed via POST)
+const WRITE_WHITELIST = ["/api/recent-views", "/api/export"];
+
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -29,6 +32,7 @@ export async function middleware(req: NextRequest) {
 
   const status = token.status as string | undefined;
   const role = token.role as string | undefined;
+  const canEdit = role === "admin" || token.canEdit === true;
 
   // Rejected or pending
   if (status === "rejected" || status === "pending") {
@@ -45,40 +49,31 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Admin routes protection
-  if (
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/api/admin")
-  ) {
+  // Admin routes protection — admin role only (no extra password gate)
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (role !== "admin") {
       if (isApiRoute) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       return NextResponse.redirect(new URL("/", req.url));
     }
+    // Admins implicitly can edit — allow through.
+    return NextResponse.next();
+  }
 
-    // Extra password gate — skip unlock page itself and the unlock endpoint
-    const skipGate =
-      pathname === "/admin-unlock" ||
-      pathname.startsWith("/admin-unlock/") ||
-      pathname === "/api/admin/unlock";
-
-    if (!skipGate) {
-      const unlocked = await verifyAdminUnlockCookie(
-        req.cookies.get(ADMIN_UNLOCK_COOKIE)?.value,
-      );
-      if (!unlocked) {
-        if (isApiRoute) {
-          return NextResponse.json(
-            { error: "UnlockRequired" },
-            { status: 401 },
-          );
-        }
-        const url = new URL("/admin-unlock", req.url);
-        url.searchParams.set("next", pathname);
-        return NextResponse.redirect(url);
-      }
-    }
+  // Read-only enforcement: block content-mutating API calls unless the user
+  // has edit permission. Admin routes handled above; whitelist for non-content
+  // writes (view tracking, exports).
+  if (
+    isApiRoute &&
+    MUTATING_METHODS.has(req.method) &&
+    !canEdit &&
+    !WRITE_WHITELIST.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    return NextResponse.json(
+      { error: "ReadOnly", message: "Edit permission required" },
+      { status: 403 },
+    );
   }
 
   return NextResponse.next();

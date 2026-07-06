@@ -9,6 +9,7 @@ declare module "next-auth" {
       image?: string | null;
       role: "admin" | "user";
       status: "pending" | "approved" | "rejected";
+      canEdit: boolean;
     };
   }
 }

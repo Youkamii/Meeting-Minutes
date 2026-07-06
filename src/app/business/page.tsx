@@ -19,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useUIStore } from "@/stores/ui-store";
+import { useCanEdit } from "@/lib/use-can-edit";
 import { useCompanies, useReorderCompanies } from "@/hooks/use-companies";
 import { useBusinesses } from "@/hooks/use-businesses";
 import { CompanyGroupRow } from "@/components/business-table/company-group-row";
@@ -68,6 +69,7 @@ export default function BusinessManagementPage() {
 function BusinessManagementContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const canEdit = useCanEdit();
   const scrollToCompanyId = searchParams.get("company");
   const [highlightCompanyId, setHighlightCompanyId] = useState<string | null>(null);
 
@@ -267,6 +269,7 @@ function BusinessManagementContent() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveCompany(null);
+    if (!canEdit) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -366,7 +369,7 @@ function BusinessManagementContent() {
                 ? "기업 목록에서 ★를 눌러 중요 기업으로 지정하세요."
                 : "첫 번째 기업을 생성하여 시작하세요."}
             </p>
-            {!showKeyOnly && (
+            {!showKeyOnly && canEdit && (
               <button
                 onClick={() => setShowNewCompany(true)}
                 className="mt-4 rounded-md bg-[var(--primary)] px-4 py-2 text-sm text-[var(--primary-foreground)] hover:opacity-90"
@@ -436,12 +439,14 @@ function BusinessManagementContent() {
                       {bizList.length === 0 && (
                         <div className="px-8 py-3 text-xs text-[var(--muted-foreground)]">
                           등록된 사업이 없습니다.{" "}
-                          <button
-                            onClick={() => setNewBusinessForCompany(company.id)}
-                            className="text-[var(--primary)] hover:underline"
-                          >
-                            추가하기
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => setNewBusinessForCompany(company.id)}
+                              className="text-[var(--primary)] hover:underline"
+                            >
+                              추가하기
+                            </button>
+                          )}
                         </div>
                       )}
                       {[...bizList].sort((a, b) => {

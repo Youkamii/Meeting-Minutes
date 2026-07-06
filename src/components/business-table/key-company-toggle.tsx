@@ -1,6 +1,7 @@
 "use client";
 
 import { useUpdateCompany } from "@/hooks/use-companies";
+import { useCanEdit } from "@/lib/use-can-edit";
 
 interface KeyCompanyToggleProps {
   companyId: string;
@@ -14,6 +15,17 @@ export function KeyCompanyToggle({
   lockVersion,
 }: KeyCompanyToggleProps) {
   const updateCompany = useUpdateCompany();
+  const canEdit = useCanEdit();
+
+  // Read-only: show a static star indicator (only when it's a key company).
+  if (!canEdit) {
+    if (!isKey) return null;
+    return (
+      <span className="text-lg text-[var(--priority-medium)]" title="중요기업">
+        ★
+      </span>
+    );
+  }
 
   return (
     <button
